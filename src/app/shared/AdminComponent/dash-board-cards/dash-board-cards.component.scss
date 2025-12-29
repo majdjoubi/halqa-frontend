@@ -1,0 +1,101 @@
+.dbc-row {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.dbc-card {
+  background: #fff;
+  border: 1px solid #eef1f6;
+  border-radius: 6px;
+  padding: 20px;
+  width: calc((100% - 54px) / 4); /* 4 cards with gaps */
+  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.dbc-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dbc-title {
+  font-size: 14px;
+  color: #8d96a8;
+}
+
+.dbc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.dbc-badge.blue {
+  background: rgba(9, 132, 255, 0.08);
+  color: #0967ff;
+}
+.dbc-badge.yellow {
+  background: rgba(255, 184, 77, 0.08);
+  color: #ffb84d;
+}
+.dbc-badge.green {
+  background: rgba(46, 204, 113, 0.08);
+  color: #2ecc71;
+}
+.dbc-badge.red {
+  background: rgba(255, 99, 71, 0.08);
+  color: #ff6347;
+}
+.dbc-badge.gray {
+  background: rgba(0, 0, 0, 0.04);
+  color: #666;
+}
+
+.dbc-badge__icon.up {
+  color: inherit;
+}
+.dbc-badge__icon.down {
+  color: inherit;
+}
+
+.dbc-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #111827;
+  margin: 6px 0 12px 0;
+}
+
+.dbc-extra {
+  font-size: 13px;
+  color: #9aa4b2;
+}
+
+.dbc-extra__value {
+  color: #ff8c00; /* highlighted small value color similar to image */
+  margin-left: 6px;
+  font-weight: 600;
+  color: #0ea5e9; /* blue-ish highlight like screenshot */
+}
+
+@media (max-width: 1000px) {
+  .dbc-card {
+    width: calc((100% - 36px) / 3);
+  }
+}
+@media (max-width: 700px) {
+  .dbc-card {
+    width: calc((100% - 18px) / 2);
+  }
+}
+@media (max-width: 420px) {
+  .dbc-card {
+    width: 100%;
+  }
+}

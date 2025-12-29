@@ -1,0 +1,864 @@
+{
+  "WELCOME": "Welcome to Halqa",
+  "GREETING": "Hello",
+  "HOME": "Home",
+  "ABOUT_US": "About us",
+  "BENEFITS": "Benefits",
+  "OUR_MISSION": "our mission",
+  "ALL_Teachers": "All Teachers",
+  "my_Booked": "My Booked",
+  "my_booked": "My Calendar",
+  "booking": {
+    "errors": {
+      "time_conflict": "You already have a lesson booked at this time. Please select a different time slot.",
+      "insufficient_balance": "Insufficient wallet balance. Please top up your wallet to continue."
+    },
+    "top_up_wallet": "Top Up Wallet"
+  },
+  "my_booked_page": {
+    "header": {
+      "title": "My Calendar",
+      "subtitle": "Manage your availability and scheduled lessons. View your calendar and set your working hours.",
+      "image_alt": "Calendar"
+    },
+    "filters": {
+      "upcoming_title": "Upcoming Lessons",
+      "individual_title": "Individual Lessons",
+      "group_title": "Group Lessons",
+      "calendar_title": "Calendar",
+      "availability_title": "Availability",
+      "all": "All My Lessons",
+      "available_only": "Available Slots",
+      "booked_only": "Booked Lessons"
+    },
+    "card": {
+      "amount_paid": "Amount Paid:",
+      "booked_someone": "Someone has booked",
+      "booking_label": "Booking",
+      "btn_join": "Join Now",
+      "status": "Status",
+      "students": "students"
+    },
+    "empty": {
+      "individual_title": "No individual lessons booked yet",
+      "group_title": "No group lessons booked yet",
+      "availability": "No availability slots set. Add your first time slot to start receiving bookings."
+    },
+    "actions": {
+      "add_availability": "Add Availability",
+      "weekly_pattern": "Weekly Pattern",
+      "add_first_slot": "Add First Slot"
+    },
+    "default_rate": {
+      "label": "Default Hourly Rate",
+      "saved": "Default hourly rate updated successfully",
+      "save_error": "Failed to update default hourly rate",
+      "min_error": "Hourly rate must be at least $1"
+    },
+    "availability_filters": {
+      "title": "Filter:",
+      "all": "All My Lessons",
+      "available_only": "Available Slots",
+      "booked_only": "Booked Lessons"
+    },
+    "legend": {
+      "available": "Available",
+      "booked": "Booked",
+      "completed": "Completed",
+      "past": "Past"
+    },
+    "status": {
+      "available": "Available for booking",
+      "booked": "Booked"
+    },
+    "recurring": "Recurring Weekly",
+    "add_modal": {
+      "title": "Add Availability Slot",
+      "date": "Date",
+      "from_time": "From",
+      "to_time": "To",
+      "price": "Price per Hour",
+      "price_hint": "You can set different prices for different time slots",
+      "max_students": "Number of Students",
+      "max_students_hint": "If > 1, this will be created as a Group Session",
+      "recurring": "Repeat weekly on this day"
+    },
+    "weekly_modal": {
+      "title": "Set Weekly Pattern",
+      "description": "Configure your recurring weekly availability schedule. Enable the days you're available and set your preferred time slots.",
+      "add_time": "Add time slot",
+      "save": "Save Pattern",
+      "clear_pattern": "Clear All"
+    },
+    "details_modal": {
+      "title": "Slot Details",
+      "day": "Day",
+      "time": "Time",
+      "student": "Student",
+      "price": "Price",
+      "recurring": "Recurring",
+      "lesson": "Lesson",
+      "datetime": "Date & Time",
+      "amount": "Amount",
+      "delete": "Delete Slot",
+      "delete_refund": "Delete & Refund"
+    },
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    },
+    "messages": {
+      "save_success_title": "Saved Successfully",
+      "save_success": "Your availability has been saved.",
+      "save_error_title": "Save Failed",
+      "save_error": "Failed to save availability. Please try again.",
+      "delete_title": "Deleted",
+      "delete_success_title": "Deleted Successfully",
+      "delete_success": "The slot has been deleted.",
+      "delete_refund_success": "The slot has been deleted and the student has been refunded.",
+      "delete_error_title": "Delete Failed",
+      "delete_error": "Failed to delete the slot. Please try again.",
+      "refund_processing": "Processing refund...",
+      "refund_success": "Refund processed successfully. The amount has been credited to the student's wallet.",
+      "refund_error": "Failed to process refund. Please contact support.",
+      "slot_added": "Availability slot added successfully.",
+      "recurring_added": "Availability added and will repeat every {{day}}.",
+      "pattern_saved": "Weekly pattern saved successfully.",
+      "pattern_cleared": "Weekly pattern cleared successfully.",
+      "pattern_error": "Failed to save weekly pattern. Please try again.",
+      "slot_updated": "Availability slot updated successfully.",
+      "past_date_error": "Cannot add availability for a past date. Please select a future date.",
+      "conflict_error": "This time slot conflicts with an existing lesson or availability."
+    },
+    "available": "Available",
+    "booked": "Booked",
+    "delete_confirm": {
+      "title": "Delete Time Slot",
+      "message_available": "Are you sure you want to delete this time slot? This action cannot be undone.",
+      "message_booked": "This slot is booked by a student. Deleting it will automatically refund the student.",
+      "refund_amount": "Refund Amount",
+      "btn_delete": "Delete",
+      "btn_delete_refund": "Delete & Refund",
+      "recurring_question": "This is a recurring slot. What would you like to delete?",
+      "delete_single": "Delete this slot only",
+      "delete_single_desc": "Only this specific time slot will be removed",
+      "delete_all_recurring": "Delete all recurring slots",
+      "delete_all_recurring_desc": "All slots at this time on this day will be removed"
+    },
+    "recurring": "Recurring weekly",
+    "recurring_confirm": {
+      "title": "Recurring Availability",
+      "message": "This time slot will repeat every week automatically. Students will be able to book this slot on this day of the week.",
+      "every_week": "Repeats every week",
+      "confirm": "Confirm"
+    }
+  },
+  "my_booked_teachers_page": {
+    "header": {
+      "title": "My Booked Teachers",
+      "subtitle": "Manage your booked lessons and teachers here. View upcoming sessions and track your bookings.",
+      "image_alt": "Lessons"
+    },
+    "countdown": {
+      "next_lesson": "Next Lesson",
+      "days": "Days",
+      "hours": "Hours",
+      "minutes": "Minutes",
+      "seconds": "Seconds"
+    },
+    "filters": {
+      "schedule_title": "My Schedule",
+      "individual_title": "Individual Lessons",
+      "group_title": "Group Lessons"
+    },
+    "card": {
+      "amount_paid": "Amount Paid:",
+      "booked_someone": "Someone has booked",
+      "booking_label": "Booking",
+      "btn_join": "Join Now"
+    },
+    "empty": {
+      "individual_title": "No individual lessons booked yet",
+      "group_title": "No group lessons booked yet",
+      "no_upcoming": "No upcoming lessons scheduled"
+    },
+    "review_modal": {
+      "title": "Rate the Teacher",
+      "rating_label": "Rating:",
+      "comment_label": "Your Comment (Optional):",
+      "comment_placeholder": "Share your experience with the teacher...",
+      "btn_submit": "Submit Review",
+      "btn_skip": "Skip",
+      "notice": "You can only rate the teacher after the session is completed. This form will appear automatically when the session is finished."
+    }
+  },
+  "all_lessons_page": {
+    "header": {
+      "title_part1": "Deepen Your Faith:",
+      "title_accent": "Explore Our Islamic\nStudies Lessons",
+      "subtitle": "Embark on a journey of spiritual growth and intellectual discovery with our comprehensive lessons in Fiqh, Hadith, Quranic sciences, and more.",
+      "cta": "Explore All Lessons",
+      "image_alt": "Lessons"
+    },
+    "filters": {
+      "all_lessons_title": "All Group sessions",
+      "search_placeholder": "Search lessons...",
+      "sort_newest": "Newest First",
+      "sort_oldest": "Oldest First"
+    },
+    "card": {
+      "by": "by",
+      "reviews": "reviews"
+    },
+    "side_menu": {
+      "lesson_details_title": "Lesson Details",
+      "loading": "Loading lesson details...",
+      "description": "Description",
+      "class_info": "Class Information",
+      "max_students": "Maximum Students",
+      "duration": "Duration",
+      "price": "Price",
+      "about_teacher": "About the Teacher",
+      "years_experience": "years experience",
+      "enroll_now": "Enroll Now"
+    }
+  },
+  "ALL_Lessons": "Group Sessions",
+  "lesson_manage": "Group Sessions",
+
+  "lesson_manage_page": {
+    "popup": {
+      "success": "Success!",
+      "error": "Error!",
+      "ok": "OK",
+      "lesson_created": "Lesson created successfully!",
+      "lesson_updated": "Lesson updated successfully!",
+      "lesson_deleted": "Lesson deleted successfully!",
+      "failed_delete": "Failed to delete lesson. Please try again.",
+      "failed_load": "Failed to load lesson data. Please try again.",
+      "delete_confirm": "Are you sure you want to delete this lesson?"
+    },
+    "edit": {
+      "title": "Edit Lesson",
+      "loading": "Loading lesson data..."
+    },
+    "create_new": {
+      "title": "Create Group Session",
+      "description": "Fill in the details below to create a new lesson offering."
+    },
+    "label": {
+      "lesson_title": "Lesson Title",
+      "description": "Description",
+      "price": "Price",
+      "max_students": "Max Students",
+      "scheduled_at": "Scheduled At",
+      "duration": "Lesson Duration"
+    },
+    "placeholder": {
+      "lesson_title": "Type your lesson title",
+      "description": "Briefly describe the lesson content and objectives",
+      "price": "Enter Your hour price",
+      "max_students": "Enter number of students",
+      "scheduled_at": "Select date and time"
+    },
+    "btn": {
+      "cancel": "Cancel",
+      "update_lesson": "Update Lesson",
+      "updating": "Updating...",
+      "creating_lesson": "Creating session...",
+      "create_lesson": "Create Lesson",
+      "manage_lessons": "Manage Your Lessons",
+      "active": "Active lessons",
+      "previous": "Previous lessons"
+    },
+    "side": {
+      "active_heading": "Active lessons",
+      "active_desc": "View and manage currently running lessons.",
+      "expired_heading": "Expired Lessons",
+      "previous_desc": "See past lessons and summaries."
+    },
+    "card": {
+      "badge_active": "Active",
+      "badge_expired": "Expired",
+      "price": "Price",
+      "duration": "Duration",
+      "mins": "mins",
+      "max_students": "Max Students",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "validation": {
+      "title_required": "Title is required",
+      "title_minlength": "Title must be at least {{min}} characters",
+      "description_required": "Description is required",
+      "description_minlength": "Description must be at least {{min}} characters",
+      "price_required": "Price is required",
+      "price_min": "Price must be greater than 0",
+      "max_students_required": "Max students is required",
+      "max_students_min": "Must be at least {{min}} student",
+      "max_students_max": "Max students must be between {{min}} and {{max}}",
+      "scheduled_at_required": "Scheduled date and time is required",
+      "scheduled_at_future": "Scheduled date/time must be in the future",
+      "duration_required": "Lesson duration is required"
+    }
+  },
+
+  "ARABIC": "Arabic",
+  "ENGLISH": "English",
+  "CHANGE_LANGUAGE": "Change Language",
+  "TITLE": "Halqa Application",
+  "DESCRIPTION": "This is a multilingual application supporting Arabic and English",
+  "QUOTES": "Quotes",
+  "LOGIN": "Login",
+  "REGISTER": "Register",
+  "LOGOUT": "Logout",
+  "MY_PROFILE": "My Profile",
+  "STUDENT": "Student",
+  "TEACHER": "Teacher",
+
+  "hero_section": {
+    "title_part1": "Learn the Holy",
+    "title_part2": "Quran ",
+    "title_part3": "Anywhere",
+    "title_part4": "Anytime,",
+    "description": "Using highly personalised activities, videos and animations you can Join thousands of learners on their journey to read, recite, and memorize the Quran with ease. Step-by-step lessons designed for all ages and levels. Join energise your students and motivate them to achieve their learning goals as they progress through a journey."
+  },
+
+  "join_us_page": {
+    "title": "Join Us!",
+    "subtitle": "Student",
+    "description": "Choose your role to begin the journey",
+    "student-text": "A learner who wishes to study the Qur'an, Tajweed, and improve their recitation.",
+    "teacher-subtitle": "Teacher",
+    "teacher-text": "An experienced instructor who aims to teach students the Qur'an and Tajweed.",
+    "student-teacher": "An experienced instructor who aims to teach students the Qur'an and Tajweed.",
+    "button": "Join Us"
+  },
+
+  "student_profile": {
+    "edit_profile_button": "Edit profile",
+    "topup_wallet_button": "Top Up Wallet",
+    "edit_profile_title": "Edit Profile",
+    "wallet_balance": "Balance",
+    "available_balance": "Available balance",
+    "dashboard": "Dashboard",
+    "total_booking": "Total booking",
+    "total_lessons": "Total lessons",
+    "completed_lessons": "Completed lessons",
+    "upcoming_lessons": "Upcoming lessons",
+    "monthly_earnings": "Monthly earnings",
+    "favorite_teachers": "Favorite teachers",
+    "reviews_written": "Reviews written",
+    "lessons": "Lessons",
+    "btn_go_to_meet": "Go to meet",
+    "btn_cancel": "Cancel",
+    "profile_picture": "Profile Picture",
+    "upload_file": "Upload File",
+    "max_size": "Max size 5 MB",
+    "first_name": "First Name",
+    "first_name_placeholder": "Enter your first name",
+    "last_name": "Last Name",
+    "last_name_placeholder": "Enter your last name",
+    "phone_number": "Phone Number",
+    "phone_placeholder": "Enter your phone number",
+    "age": "Age",
+    "select_age": "Select your age"
+  },
+
+  "About_section": {
+    "title": "About Us",
+    "description": "Bringing the Quran Closer to Every Heart.",
+    "mission": "We are dedicated to making Quran learning accessible for everyone, everywhere. Our mission is to help learners of all ages read, recite, and memorize the Holy Quran with ease. Through structured lessons, qualified teachers, and modern tools, we aim to guide you step by step towards mastery and a deeper connection with the Book of Allah."
+  },
+
+  "our_benefits": {
+    "title": "Our Benefits",
+    "description": "Experience the Difference in",
+    "description2": "Learning the Holy Quran",
+    "paragraph": "With our modern approach, dedicated teachers, and flexible learning options, we make your Quran journey simple, inspiring, and effective.",
+
+    "benefit1_title": "Qualified Teachers",
+    "benefit1_description": "Learn with experienced instructors who provide personal guidance and support.",
+    "benefit2_title": "Step-by-Step Learning",
+    "benefit2_description": "Structured lessons designed to guide learners of all ages, from beginner to advanced.",
+    "benefit3_title": "Anytime, Anywhere Access",
+    "benefit3_description": "Study the Quran at your own pace with online access available 24/7."
+  },
+  "Our-Mission": {
+    "title": "Our Mission",
+    "description": "A Journey of Light and Knowledge",
+    "paragraph": "At the heart of our mission is the belief that the Quran should be accessible to everyone. We provide modern tools, structured lessons, and expert guidance to make learning not only simple but also spiritually enriching. Whether you are starting your journey or aiming to perfect your recitation, we are here to support you every step of the way."
+  },
+
+  "student_register": {
+    "title": "Register Your Data",
+    "description": "Fill in the following information",
+    "step1_label": "Enter Your Info",
+    "step2_label": "Choose Your Info",
+    "first_name": "First Name",
+    "first_name_placeholder": "Enter your first name",
+    "first_name_required": "First name is required",
+    "last_name": "Last Name",
+    "last_name_placeholder": "Enter your last name",
+    "last_name_required": "Last name is required",
+    "email": "Email",
+    "email_placeholder": "me@email.com",
+    "email_required": "Email is required",
+    "email_invalid": "Email is invalid",
+    "phone": "Phone Number",
+    "phone_placeholder": "(country code) 1234567890",
+    "phone_required": "Phone number is required",
+    "phone_invalid_format": "Number must start with a country code (e.g. +1)",
+    "egypt": "Egypt",
+    "saudi": "Saudi Arabia",
+    "uae": "UAE",
+    "age": "Age",
+    "age_placeholder": "22",
+    "age_required": "Age is required",
+    "password": "Password",
+    "password_placeholder": "••••••••",
+    "password_required": "Password is required",
+    "password_minlength": "Password must be at least 8 characters",
+    "confirm_password": "Confirm Password",
+    "confirm_password_placeholder": "••••••••",
+    "confirm_password_required": "Confirm password is required",
+    "password_mismatch": "Passwords do not match",
+    "continue": "Continue",
+    "birth_year": "Birth Year",
+    "birth_year_placeholder": "Select birth year",
+    "birth_year_required": "Birth year is required",
+    "profile_picture": "Profile Picture",
+    "upload_picture": "Upload your profile picture",
+    "upload_hint": "PNG, JPG up to 10MB",
+    "remove_picture": "Remove Picture",
+    "back": "Back",
+    "register": "Register",
+    "have_account": "Already have an account?",
+    "login_here": "Login here",
+    "validating": "Validating...",
+    "submitting": "Submitting...",
+    "step_info": "Step",
+    "of": "of",
+    "first_name_valid": "First name is valid",
+    "last_name_valid": "Last name is valid",
+    "email_valid": "Email is valid",
+    "password_match": "Passwords match",
+    "character": "Character",
+    "at_least_one_capital_letter": "At least one capital letter",
+    "at_least_one_number": "At least one number",
+    "no_spaces": "No spaces",
+    "at_least_one_special_char": "At least one special character (!@#$%^&* etc)",
+    "no_special_chars": "No dash (-) or dot (.)",
+    "password_no_special_chars": "Password cannot contain dash (-) or dot (.)",
+    "password_needs_special_char": "Password must contain at least one special character (!@#$%^&* etc)",
+    "phone_number": "Phone Number",
+    "phone_valid": "Phone number is valid",
+    "age_selected": "Age selected",
+    "birth_year_selected": "Birth year selected",
+    "years_old": "years old",
+    "reset_password": "Update Password",
+    "registration_error": "Registration Failed",
+    "uploading": "Uploading..."
+  },
+
+  "forget_password": {
+    "title": "Forget password",
+    "description": "Don't worry It is an easy process to recover your account again so Please enter your e-mail and a confirmation code will be send on it.",
+    "email": "Email",
+    "email_placeholder": "example@gmail.com",
+    "send": "Send"
+  },
+
+  "verify_otp": {
+    "title": "Verify your email",
+    "description": "We've sent a verification code to your email. Please enter the 6-digit code below to verify your account.",
+    "otp_label": "Verification Code",
+    "otp_placeholder": "Enter 6-digit code",
+    "verify": "Verify",
+    "resend": "Resend Code",
+    "didnt_receive": "Didn't receive the code?",
+    "resend_in": "Resend in",
+    "seconds": "seconds"
+  },
+
+  "validation": {
+    "field_valid": "Field is valid",
+    "field_required": "This field is required",
+    "invalid_email": "Email is invalid",
+    "min_length": "Must be at least {{min}} characters",
+    "max_length": "Must not exceed {{max}} characters",
+    "password_mismatch": "Passwords do not match",
+    "invalid_format": "Invalid format",
+    "character": "Character",
+    "at_least_one_capital_letter": "At least one capital letter",
+    "at_least_one_number": "At least one number",
+    "no_spaces": "No spaces"
+  },
+  "login_page": {
+    "title": "Welcome Back!",
+    "subtitle": "Sign in to continue your Quran learning journey",
+    "email_label": "Email Address",
+    "email_placeholder": "Enter your email",
+    "password_label": "Password",
+    "password_placeholder": "Enter your password",
+    "remember_me": "Remember me",
+    "forgot_password": "Forgot Password?",
+    "login_button": "Sign In",
+    "no_account": "Don't have an account?",
+    "register_link": "Register here"
+  },
+
+  "teacher_create_profile": {
+    "title": "Create Profile",
+    "subtitle": "Complete your profile information to provide your educational services to students",
+    "profile_picture": "Profile Picture",
+    "click_to_upload": "Click to upload",
+    "basic_info": "Basic Information",
+    "teaching_languages": "Teaching Languages",
+    "upload_picture": "Add profile picture",
+    "upload_hint": "PNG, JPG or JPEG (Max 5MB)",
+    "change_picture": "Change Picture",
+    "remove_picture": "Remove Picture",
+    "years_experience": "Years of Experience",
+    "years_experience_placeholder": "Enter years of experience",
+    "select_experience": "Select years of experience",
+    "experience_0_1": "Less than 1 year",
+    "experience_1_2": "1-2 years",
+    "experience_2_5": "2-5 years",
+    "experience_5_10": "5-10 years",
+    "experience_10_plus": "More than 10 years",
+    "hourly_rate": "Hourly Rate (USD)",
+    "hourly_rate_placeholder": " $25",
+    "hourly_rate_currency": "USD/hour",
+    "bio": "Bio",
+    "bio_placeholder": "Write a bio about yourself and your teaching experience, specializations, and what makes you unique as a teacher...",
+    "bio_character_count": "characters",
+    "characters": "characters",
+    "specializations": "Specializations",
+    "specializations_hint": "Select the specializations you teach (you can select multiple)",
+    "save_profile": "Save Profile",
+    "saving": "Saving...",
+    "form_info": "Make sure to fill all required fields to create a complete profile",
+    "languages_title": "Languages you can teach",
+    "selected_languages": "Selected languages:",
+    "specialization_quran_memorization": "Quran Memorization",
+    "specialization_tajweed": "Tajweed (Recitation Rules)",
+    "specialization_qiraat_seven": "Seven Qira'at",
+    "specialization_qiraat_ten": "Ten Qira'at",
+    "specialization_qiraat_twentyseven": "Twenty-Seven Qira'at",
+    "specialization_tafseer": "Tafseer (Quran Interpretation)",
+    "specialization_hadith_explanation": "Hadith Explanation",
+    "specialization_quran_memorization_desc": "Teach students methods and techniques for memorizing the Quran effectively.",
+    "specialization_tajweed_desc": "Provide instruction on Tajweed rules to improve recitation accuracy and fluency.",
+    "specialization_qiraat_seven_desc": "Guide students through the seven canonical readings and their nuances.",
+    "specialization_qiraat_ten_desc": "Practice and teach the ten recognized recitation styles.",
+    "specialization_qiraat_twentyseven_desc": "Explore advanced readings across the twenty-seven qira'at where applicable.",
+    "specialization_tafseer_desc": "Explain the meanings and contexts of Quranic verses with clarity.",
+    "specialization_hadith_explanation_desc": "Discuss hadith texts, their interpretations, and contexts for learners.",
+    "validation": {
+      "experience_required": "Please select years of experience",
+      "hourly_rate_required": "Please enter hourly rate",
+      "bio_required": "Please write a bio",
+      "bio_minlength": "Bio must be at least 50 characters",
+      "bio_maxlength": "Bio must not exceed 500 characters",
+      "min_value": "Value is below minimum allowed",
+      "max_value": "Value exceeds maximum allowed",
+      "min_length": "Value is shorter than the minimum length",
+      "max_length": "Value exceeds the maximum length",
+      "select_at_least_one": "Please select at least one option",
+      "specializations_required": "Please select at least one specialization",
+      "invalid_format": "Invalid format",
+      "languages_required": "Please select at least one language",
+      "invalid_time_range": "Invalid time range (end must be after start and at least 30 minutes)",
+      "max_slots_per_day": "You can add a maximum of 3 slots per day",
+      "availability_invalid": "Please fix availability slots",
+      "field_required": "This field is required"
+    },
+    "success_message": "Profile saved successfully!",
+    "error_message": "Please correct the errors in the form",
+    "availability": "Availability",
+    "slot": "Slot",
+    "day": "Day",
+    "select_day": "Select Day",
+    "from_time": "From Time",
+    "to_time": "To Time",
+    "is_recurring": "Recurring",
+    "add_time_slot": "Add Time Slot",
+    "sunday": "Sunday",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "language_arabic": "Arabic",
+    "language_english": "English",
+    "language_german": "German",
+    "default_avatar_alt": "Default avatar",
+    "add_availability": "Add availability",
+    "certifications": "Certifications",
+    "optional": "Optional",
+    "certification": "Certification",
+    "cert_title": "Certificate Title",
+    "cert_title_placeholder": "e.g., Al-Azhar University - Quranic Studies Diploma",
+    "cert_description": "Certificate Description",
+    "cert_description_placeholder": "Describe your certification, institution, and year of completion...",
+    "add_certification": "Add Certification",
+    "no_certifications": "No certifications added yet. Click 'Add Certification' to add your credentials.",
+    "cert_info": "Add your educational certificates and professional qualifications (optional)"
+  },
+
+  "availability": "Availability",
+
+  "teacher_profile": {
+    "edit_profile_button": "Edit profile",
+    "withdraw_profits": "Withdraw Profits",
+    "withdraw_via_paypal": "Withdrawal will be done through PayPal",
+    "payment_method": "Payment Method",
+    "paypal_email": "PayPal Email",
+    "paypal_email_placeholder": "Enter your PayPal email",
+    "bank_account_number": "Bank Account Number",
+    "bank_account_placeholder": "Enter your bank account number",
+    "withdraw_amount": "Amount to Withdraw",
+    "withdraw_amount_placeholder": "Enter the amount",
+    "notes": "Notes",
+    "notes_placeholder": "Add any notes or comments (optional)",
+    "submit_withdraw": "Submit Withdraw Request",
+    "edit_profile_title": "Edit Profile",
+    "wallet_balance": "Balance",
+    "available_balance": "Available balance",
+    "pending_balance": "Pending balance",
+    "dashboard": "Dashboard",
+    "bio": "Bio",
+    "bio_placeholder": "Write a short bio about yourself (experience, specializations and what makes you unique)",
+    "no_bio": "No bio available",
+    "no_specialization": "No specializations added",
+    "no_phone": "No phone number",
+    "no_email": "No email available",
+    "total_student": "Total students",
+    "certificates": "Certifications",
+    "no_certificates": "No certifications added",
+    "certificate_issued_by": "Issued by",
+    "certificate_view": "View Certificate",
+    "certificate_no_expiry": "No expiry",
+    "add_certificate": "Add Certificate",
+    "edit_certificate": "Edit Certificate",
+    "certificate_title": "Certificate Title",
+    "certificate_title_placeholder": "Enter certificate title",
+    "issuing_authority": "Issuing Authority",
+    "issuing_authority_placeholder": "Enter issuing authority",
+    "issue_date": "Issue Date",
+    "expiry_date": "Expiry Date",
+    "description": "Description",
+    "description_placeholder": "Enter certificate description",
+    "languages_title": "Languages",
+    "no_languages": "No languages added",
+    "total_booking": "Total booking",
+    "completed_lessons": "Completed lessons",
+    "upcoming_lessons": "Upcoming lessons",
+    "favorite_students": "Favorite students",
+    "pending_bookings": "Pending bookings",
+    "reviews_received": "Reviews received",
+    "total_reviews": "Total reviews",
+    "profile_picture": "Profile Picture",
+    "upload_file": "Upload File",
+    "max_size": "Max size 5 MB",
+    "first_name": "First Name",
+    "first_name_placeholder": "Enter your first name",
+    "last_name": "Last Name",
+    "last_name_placeholder": "Enter your last name",
+    "phone_number": "Phone Number",
+    "phone_placeholder": "Enter your phone number",
+    "reviews": "reviews",
+    "change_photo": "Change Photo",
+    "withdrawal_history": "Withdrawal History",
+    "no_withdrawal_requests": "No withdrawal requests yet",
+    "view_history": "View History",
+    "availability_calendar": {
+      "title": "Availability Schedule",
+      "legend_available": "Available",
+      "legend_booked": "Booked",
+      "legend_recurring": "Recurring",
+      "add_slot": "Add Time Slot",
+      "set_weekly_pattern": "Set Weekly Pattern"
+    },
+    "add_availability_modal": {
+      "title": "Add Availability",
+      "date_label": "Date",
+      "from_time": "From",
+      "to_time": "To",
+      "recurring_label": "Repeat this slot every week",
+      "save_btn": "Save",
+      "cancel_btn": "Cancel"
+    },
+    "weekly_pattern": {
+      "title": "Weekly Availability Pattern",
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday",
+      "add_slot": "Add time slot",
+      "save_btn": "Save Pattern",
+      "cancel_btn": "Cancel"
+    },
+    "booking_details": {
+      "title": "Booking Details",
+      "status_available": "Available",
+      "status_booked": "Booked",
+      "date_time": "Date & Time",
+      "student": "Student",
+      "no_student": "Not booked yet",
+      "lesson": "Lesson",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "price": "Price",
+      "notes": "Notes",
+      "no_notes": "No notes",
+      "join_session": "Join Session",
+      "delete_slot": "Delete Slot"
+    }
+  },
+
+  "languages": {
+    "ar": {
+      "name": "Arabic",
+      "code": "Arabic"
+    },
+    "en": {
+      "name": "English",
+      "code": "English"
+    },
+    "de": {
+      "name": "German",
+      "code": "Deutsch"
+    },
+    "arabic": "Arabic",
+    "english": "English",
+    "native": "Native",
+    "fluent": "Fluent"
+  },
+
+  "common": {
+    "loading": "Loading...",
+    "success": "Operation successful",
+    "error": "An error occurred",
+    "try_again": "Try again",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "save": "Save",
+    "saving": "Saving",
+    "deleting": "Deleting",
+    "close": "Close",
+    "ok": "OK",
+    "app_name": "Halqa",
+    "courses": "Courses",
+    "blog": "Blog",
+    "copyright": "All rights reserved ©",
+    "features": "Features",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "help": "Help",
+    "support": "Support",
+    "days": {
+      "sunday": "Sunday",
+      "monday": "Monday",
+      "tuesday": "Tuesday",
+      "wednesday": "Wednesday",
+      "thursday": "Thursday",
+      "friday": "Friday",
+      "saturday": "Saturday"
+    }
+  },
+  "all_teachers": {
+    "title": "All Teachers",
+    "search_placeholder": "Search in your teachers...",
+    "all_courses": "All Courses",
+    "all_teachers": "All Teachers",
+    "students": "students",
+    "specialization": "Specializations",
+    "about": "Bio",
+    "languages": "Languages",
+    "per_hour": "hr",
+    "book": "Book",
+    "view": "View",
+    "loading": "Loading...",
+    "of": "of",
+    "page_size_label": "Items per page",
+    "certifications": "Certifications",
+    "book_with": "Book with",
+    "no_availability": "No available slots",
+    "available": "Available",
+    "unavailable": "Unavailable",
+    "pay_now": "Pay Now",
+    "booking_footer": "Secure payment via Halqa",
+    "no_courses": "No courses available"
+  },
+  "days": {
+    "sunday": "Sun",
+    "monday": "Mon",
+    "tuesday": "Tue",
+    "wednesday": "Wed",
+    "thursday": "Thu",
+    "friday": "Fri",
+    "saturday": "Sat"
+  },
+  "courses": {
+    "math": "Mathematics",
+    "physics": "Physics",
+    "chemistry": "Chemistry"
+  },
+  "teachers": {
+    "ahmed": "Mr. Ahmed",
+    "sara": "Ms. Sara"
+  },
+  "calendar": {
+    "loading": "Loading calendar...",
+    "legend_title": "Color Guide:",
+    "status": {
+      "available": "Available for booking",
+      "booked": "Booked",
+      "group": "Group lesson",
+      "completed": "Completed"
+    },
+    "empty": {
+      "teacher_title": "No lessons scheduled",
+      "student_title": "No lessons available",
+      "teacher_hint": "Click on any date to add a new lesson",
+      "student_hint": "Please try again later or browse available teachers"
+    },
+    "buttons": {
+      "today": "Today",
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    }
+  },
+  "lesson": {
+    "duration": {
+      "30min": "30 minutes",
+      "1hour": "1 hour",
+      "90min": "1.5 hours",
+      "2hours": "2 hours"
+    },
+    "type": {
+      "individual": "Individual",
+      "group": "Group"
+    }
+  },
+  "dates": {
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "yesterday": "Yesterday"
+  }
+}

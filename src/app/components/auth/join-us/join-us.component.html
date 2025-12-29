@@ -1,0 +1,87 @@
+<section class="join-us">
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      <!-- Main Content -->
+      <div
+        class="join-us-text col-lg-7 col-md-7 col-12 d-flex flex-column justify-content-center p-4"
+      >
+        <!-- Header Section -->
+        <div class="header-section text-center mb-5">
+          <h1>{{ "join_us_page.title" | translate }}</h1>
+          <p class="subtitle-texts">
+            {{ "join_us_page.description" | translate }}
+          </p>
+        </div>
+
+        <!-- Links Container -->
+        <div
+          class="links-container d-flex flex-column align-items-center gap-4"
+        >
+          <!-- Student Link -->
+          <div
+            class="student-link d-flex align-items-center gap-4"
+            routerLink="/student-register"
+            style="cursor: pointer"
+          >
+            <div class="icon-container">
+              <img
+                src="../../../assets/icons/student-icon.svg"
+                alt="student"
+                class="img-fluid"
+              />
+            </div>
+            <div class="flex-grow-1">
+              <h5>
+                {{ "join_us_page.subtitle" | translate }}
+              </h5>
+              <p class="subtitle-texts mb-0">
+                {{ "join_us_page.student-text" | translate }}
+              </p>
+            </div>
+            <div class="arrow-container">
+              <img
+                src="../../../assets/icons/arrow-right.svg"
+                alt=""
+                class="arrow-icon"
+              />
+            </div>
+          </div>
+
+          <!-- Teacher Link -->
+          <div
+            class="student-link d-flex align-items-center gap-4"
+            routerLink="/teacher-register"
+          >
+            <div class="icon-container">
+              <img
+                src="../../../assets/icons/teacher-icon.svg"
+                alt="teacher"
+                class="img-fluid"
+              />
+            </div>
+            <div class="flex-grow-1">
+              <h5>
+                {{ "join_us_page.teacher-subtitle" | translate }}
+              </h5>
+              <p class="subtitle-texts mb-0">
+                {{ "join_us_page.teacher-text" | translate }}
+              </p>
+            </div>
+            <div class="arrow-container">
+              <img
+                src="../../../assets/icons/arrow-right.svg"
+                alt=""
+                class="arrow-icon"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side Image - Hidden on mobile -->
+      <div class="col-lg-5 col-md-5 d-none d-md-block">
+        <app-side-image></app-side-image>
+      </div>
+    </div>
+  </div>
+</section>

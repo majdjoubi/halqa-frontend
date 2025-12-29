@@ -1,0 +1,643 @@
+@charset "UTF-8";
+.custom-marginTop {
+  margin-top: 12rem;
+}
+
+.Teacher-custom-marginTop {
+  margin-top: 5rem;
+}
+
+.student-register {
+  min-height: 95vh;
+}
+.student-register .register-content {
+  padding: 2rem;
+}
+.student-register .header-section h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+@media (max-width: 768px) {
+  .student-register .header-section h1 {
+    font-size: 2rem;
+  }
+}
+@media (max-width: 480px) {
+  .student-register .header-section h1 {
+    font-size: 1.75rem;
+  }
+}
+.student-register .header-section .subtitle-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #8692a6;
+  margin-bottom: 2rem;
+}
+@media (max-width: 768px) {
+  .student-register .header-section .subtitle-text {
+    font-size: 1rem;
+  }
+}
+@media (max-width: 480px) {
+  .student-register .header-section .subtitle-text {
+    font-size: 0.9rem;
+  }
+}
+.student-register .steps-progress {
+  margin: 2rem 0;
+}
+.student-register .steps-progress .step {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 2px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+.student-register .steps-progress .step.active {
+  background-color: #016836;
+  border-color: #016836;
+  color: white;
+}
+.student-register .steps-progress .step.completed {
+  background-color: #016836;
+  border-color: #016836;
+  color: white;
+}
+.student-register .steps-progress .step .step-number {
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+@media (max-width: 480px) {
+  .student-register .steps-progress .step {
+    width: 40px;
+    height: 40px;
+  }
+  .student-register .steps-progress .step .step-number {
+    font-size: 0.8rem;
+  }
+}
+.student-register .steps-progress .step-line {
+  width: 100px;
+  height: 2px;
+  background-color: #dee2e6;
+  transition: all 0.3s ease;
+}
+.student-register .steps-progress .step-line.completed {
+  background-color: #016836;
+}
+@media (max-width: 480px) {
+  .student-register .steps-progress .step-line {
+    width: 60px;
+  }
+}
+.student-register .step-labels {
+  max-width: 300px;
+  margin: 0 auto;
+}
+.student-register .step-labels .step-label {
+  font-size: 0.9rem;
+  color: #8692a6;
+  font-weight: 500;
+}
+@media (max-width: 480px) {
+  .student-register .step-labels .step-label {
+    font-size: 0.8rem;
+  }
+}
+.student-register .form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.student-register .register-form .form-group {
+  position: relative;
+}
+.student-register .register-form .form-group .form-label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-size: 0.875rem;
+}
+.student-register .register-form .form-group .form-label.required::after {
+  content: " *";
+  color: #dc3545;
+}
+.student-register .register-form .form-group.field-valid .form-control,
+.student-register .register-form .form-group.field-valid .form-select {
+  border-color: #10b981;
+}
+.student-register .register-form .form-group.field-valid .form-control:focus,
+.student-register .register-form .form-group.field-valid .form-select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+.student-register .register-form .form-group.field-valid .form-control::after,
+.student-register .register-form .form-group.field-valid .form-select::after {
+  content: "✓";
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 1.2rem;
+  font-weight: bold;
+  z-index: 5;
+  pointer-events: none;
+}
+.student-register .register-form .form-group.field-valid .validation-icon {
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 1.2rem;
+  z-index: 5;
+  pointer-events: none;
+}
+.student-register .register-form .form-group .form-control,
+.student-register .register-form .form-group .form-select {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background-color: #fff;
+  position: relative;
+  min-height: 48px;
+}
+.student-register .register-form .form-group .form-control:focus,
+.student-register .register-form .form-group .form-select:focus {
+  border-color: #016836;
+  box-shadow: none;
+  outline: none;
+}
+.student-register .register-form .form-group .form-control:hover:not(:focus),
+.student-register .register-form .form-group .form-select:hover:not(:focus) {
+  border-color: #c6cbd1;
+}
+.student-register .register-form .form-group .form-control.is-invalid,
+.student-register .register-form .form-group .form-select.is-invalid {
+  border-color: #dc3545;
+}
+.student-register .register-form .form-group .form-control.is-valid,
+.student-register .register-form .form-group .form-select.is-valid {
+  border-color: #10b981;
+  position: relative;
+}
+.student-register .register-form .form-group .form-control::-moz-placeholder, .student-register .register-form .form-group .form-select::-moz-placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+.student-register .register-form .form-group .form-control::placeholder,
+.student-register .register-form .form-group .form-select::placeholder {
+  color: #9ca3af;
+  font-weight: 400;
+}
+.student-register .register-form .form-group .invalid-feedback {
+  display: block;
+  font-size: 0.75rem;
+  color: #dc3545;
+  margin-top: 0.375rem;
+  font-weight: 400;
+}
+.student-register .register-form .form-group .invalid-feedback small {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.student-register .register-form .form-group .invalid-feedback small:last-child {
+  margin-bottom: 0;
+}
+.student-register .register-form .form-group .invalid-feedback small::before {
+  content: "•";
+  margin-right: 0.375rem;
+  font-weight: bold;
+}
+.student-register .register-form .form-group .validation-feedback {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+}
+.student-register .register-form .form-group .validation-feedback.valid-feedback {
+  color: #10b981;
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+.student-register .register-form .form-group .validation-feedback.valid-feedback::before {
+  content: "✓";
+  margin-right: 0.375rem;
+  font-weight: bold;
+  color: #10b981;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.375rem;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item:last-child {
+  margin-bottom: 0;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item i {
+  margin-right: 0.5rem;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item.valid {
+  color: #10b981;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item.valid .fa-check {
+  color: #10b981;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item.invalid {
+  color: #dc3545;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item.invalid .fa-times {
+  color: #dc3545;
+}
+.student-register .register-form .form-group .password-requirements .requirement-item:not(.valid):not(.invalid) {
+  color: #6b7280;
+}
+.student-register .register-form .phone-input-group {
+  display: flex;
+  gap: 0.5rem;
+}
+.student-register .register-form .phone-input-group .country-code {
+  flex: 0 0 120px;
+}
+.student-register .register-form .phone-input-group .phone-number {
+  flex: 1;
+}
+[dir=rtl] .student-register .register-form .form-control.is-valid {
+  background-position: left 0.375rem center !important;
+  padding-left: calc(1.5em + 0.75rem) !important;
+  padding-right: 0.75rem !important;
+}
+[dir=rtl] .student-register .register-form .form-control.is-invalid {
+  background-position: left 0.375rem center !important;
+  padding-left: calc(1.5em + 0.75rem) !important;
+  padding-right: 0.75rem !important;
+}
+[dir=rtl] .student-register .register-form .password-input-group .password-toggle {
+  left: 0.5rem !important;
+  right: auto !important;
+}
+[dir=rtl] .student-register .register-form .password-input-group.field-valid .password-toggle {
+  left: 3rem !important;
+  right: auto !important;
+}
+[dir=rtl] .student-register .register-form .password-input-group.field-valid::after {
+  left: 0.5rem !important;
+  right: auto !important;
+}
+[dir=rtl] .student-register .register-form .password-input-group .form-control {
+  padding-left: 3.25rem !important;
+  padding-right: 0.75rem !important;
+}
+[dir=rtl] .student-register .register-form .password-input-group .form-control.is-valid {
+  padding-left: 5.5rem !important;
+}
+[dir=rtl] .student-register .register-form .validation-icon {
+  left: 0.5rem !important;
+  right: auto !important;
+}
+[dir=rtl] .student-register .register-form .field-valid::after {
+  left: 0.5rem !important;
+  right: auto !important;
+}
+.student-register .register-form .password-input-group {
+  position: relative;
+}
+.student-register .register-form .password-input-group .form-control {
+  padding-inline-end: 3.25rem;
+}
+.student-register .register-form .password-input-group .form-control.is-valid {
+  padding-inline-end: 5.5rem;
+}
+.student-register .register-form .password-input-group .password-toggle {
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  padding: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+.student-register .register-form .password-input-group .password-toggle:active {
+  outline: none;
+}
+.student-register .register-form .password-input-group .password-toggle:focus {
+  outline: none;
+}
+.student-register .register-form .password-input-group .password-toggle i {
+  font-size: 1rem;
+}
+.student-register .register-form .password-input-group.field-valid .password-toggle {
+  inset-inline-end: 3rem;
+}
+.student-register .register-form .password-input-group.field-valid::after {
+  content: "✓";
+  position: absolute;
+  inset-inline-end: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #10b981;
+  font-size: 1.2rem;
+  font-weight: bold;
+  z-index: 5;
+  pointer-events: none;
+}
+.student-register .register-form .file-upload-container .file-upload-area {
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.student-register .register-form .file-upload-container .file-upload-area:hover {
+  border-color: #016836;
+  background-color: rgba(1, 104, 54, 0.05);
+}
+.student-register .register-form .file-upload-container .file-upload-area.has-file {
+  border-style: solid;
+  border-color: #016836;
+  background-color: rgba(1, 104, 54, 0.05);
+}
+.student-register .register-form .file-upload-container .file-upload-area .upload-placeholder .upload-icon {
+  font-size: 2rem;
+  color: #8692a6;
+  margin-bottom: 1rem;
+}
+.student-register .register-form .file-upload-container .file-upload-area .upload-placeholder .upload-text {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+.student-register .register-form .file-upload-container .file-upload-area .upload-placeholder .upload-hint {
+  color: #8692a6;
+  font-size: 0.875rem;
+}
+.student-register .register-form .file-upload-container .file-upload-area .uploaded-file .preview-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  margin-bottom: 1rem;
+}
+.student-register .register-form .file-upload-container .file-upload-area .uploaded-file .file-name {
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+.student-register .register-form .continue-btn,
+.student-register .register-form .btn-primary,
+.student-register .register-form .submit-btn {
+  background-color: #016836;
+  border-color: #016836;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.student-register .register-form .continue-btn::before,
+.student-register .register-form .btn-primary::before,
+.student-register .register-form .submit-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+.student-register .register-form .continue-btn:hover,
+.student-register .register-form .btn-primary:hover,
+.student-register .register-form .submit-btn:hover {
+  background-color: rgb(0.5142857143, 53.4857142857, 27.7714285714);
+  border-color: rgb(0.5142857143, 53.4857142857, 27.7714285714);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(1, 104, 54, 0.4);
+}
+.student-register .register-form .continue-btn:hover::before,
+.student-register .register-form .btn-primary:hover::before,
+.student-register .register-form .submit-btn:hover::before {
+  left: 100%;
+}
+.student-register .register-form .continue-btn:active,
+.student-register .register-form .btn-primary:active,
+.student-register .register-form .submit-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(1, 104, 54, 0.3);
+}
+.student-register .register-form .continue-btn:disabled,
+.student-register .register-form .btn-primary:disabled,
+.student-register .register-form .submit-btn:disabled {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  opacity: 0.65;
+  transform: none;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+.student-register .register-form .continue-btn:disabled::before,
+.student-register .register-form .btn-primary:disabled::before,
+.student-register .register-form .submit-btn:disabled::before {
+  display: none;
+}
+.student-register .register-form .continue-btn.btn-loading,
+.student-register .register-form .btn-primary.btn-loading,
+.student-register .register-form .submit-btn.btn-loading {
+  pointer-events: none;
+}
+.student-register .register-form .continue-btn .spinner-border-sm,
+.student-register .register-form .btn-primary .spinner-border-sm,
+.student-register .register-form .submit-btn .spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+.student-register .register-form .btn-outline-secondary,
+.student-register .register-form .back-btn {
+  color: #8692a6;
+  border-color: #dee2e6;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+.student-register .register-form .btn-outline-secondary:hover,
+.student-register .register-form .back-btn:hover {
+  background-color: #f8f9fa;
+  border-color: #adb5bd;
+  color: #495057;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.student-register .register-form .btn-outline-secondary:active,
+.student-register .register-form .back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.student-register .register-form .form-actions {
+  margin-top: 2rem;
+}
+.student-register .register-form .form-actions .btn {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.student-register .register-form .form-progress-info .text-muted {
+  font-size: 0.875rem;
+}
+.student-register .register-form .form-progress-info .text-primary {
+  color: #016836 !important;
+}
+.student-register .login-link {
+  color: #8692a6;
+}
+.student-register .login-link .login-link-text {
+  color: #016836;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+.student-register .login-link .login-link-text:hover {
+  color: rgb(0.5142857143, 53.4857142857, 27.7714285714);
+  text-decoration: underline;
+}
+@media (max-width: 768px) {
+  .student-register .container-fluid {
+    padding: 1rem;
+  }
+  .student-register .register-content {
+    padding: 1rem;
+  }
+  .student-register .row {
+    margin: 0;
+  }
+  .student-register .form-container {
+    max-width: 100%;
+  }
+  .student-register .phone-input-group {
+    flex-direction: column;
+  }
+  .student-register .phone-input-group .country-code {
+    flex: 1;
+  }
+}
+@media (max-width: 480px) {
+  .student-register .container-fluid {
+    padding: 0.5rem;
+  }
+  .student-register .register-content {
+    padding: 0.5rem;
+  }
+  .student-register .header-section .subtitle-text {
+    text-align: center;
+  }
+  .student-register .register-form .form-control,
+  .student-register .register-form .form-select {
+    font-size: 0.9rem;
+    padding: 0.6rem 0.8rem;
+  }
+  .student-register .register-form .password-input-group .password-toggle {
+    right: 0.6rem;
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+  .student-register .register-form .file-upload-container .file-upload-area {
+    padding: 1.5rem 1rem;
+  }
+  .student-register .register-form .file-upload-container .file-upload-area .upload-placeholder .upload-icon {
+    font-size: 1.5rem;
+  }
+  .student-register .register-form .file-upload-container .file-upload-area .uploaded-file .preview-image {
+    width: 60px;
+    height: 60px;
+  }
+  .student-register .register-form .continue-btn,
+  .student-register .register-form .btn-primary,
+  .student-register .register-form .btn-outline-secondary {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+  }
+}
+@media (min-width: 1400px) {
+  .student-register .register-content {
+    padding: 3rem;
+  }
+  .student-register .register-content h1 {
+    font-size: 3rem;
+  }
+  .student-register .form-container {
+    max-width: 600px;
+  }
+  .student-register .register-form .form-control,
+  .student-register .register-form .form-select {
+    padding: 1rem 1.25rem;
+    font-size: 1.1rem;
+  }
+  .student-register .register-form .continue-btn,
+  .student-register .register-form .btn-primary,
+  .student-register .register-form .btn-outline-secondary {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+  }
+}
+@media (max-width: 768px) and (orientation: landscape) {
+  .student-register {
+    min-height: auto;
+  }
+  .student-register .register-content {
+    padding: 1rem 2rem;
+  }
+  .student-register .header-section {
+    margin-bottom: 1.5rem;
+  }
+  .student-register .steps-progress {
+    margin: 1rem 0;
+  }
+}
+.rtl .student-register .phone-input-group {
+  direction: rtl;
+}
+.rtl .student-register .password-input-group .password-toggle {
+  right: auto;
+  left: 0.75rem;
+}
+.rtl .student-register .form-control {
+  text-align: right;
+}
+.rtl .student-register .file-upload-container .file-upload-area .uploaded-file .file-name {
+  text-align: center;
+}
+@media (max-width: 480px) {
+  .rtl .student-register .password-input-group .password-toggle {
+    left: 0.6rem;
+  }
+}/*# sourceMappingURL=teacher-register.component.css.map */

@@ -1,0 +1,21 @@
+/* Center the empty-state in the page */
+.pending-teachers-page {
+  display: flex;
+  /* align to top so the search/filter remains near the page top even when empty */
+  align-items: flex-start;
+  justify-content: center; /* keep horizontal center */
+  min-height: calc(100vh - 160px); /* adjust if header/footer heights differ */
+  padding: 48px 24px 24px; /* extra top padding to position content lower from header */
+}
+
+.empty-state {
+  max-width: 560px;
+  width: 100%;
+  background: transparent; /* keep same look as page */
+}
+
+@media (max-width: 768px) {
+  .pending-teachers-page {
+    min-height: calc(100vh - 120px);
+  }
+}/*# sourceMappingURL=pending-teachers.component.css.map */

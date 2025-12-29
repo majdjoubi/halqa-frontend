@@ -1,0 +1,272 @@
+<section class="all-teachers show-users">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 col-md-12 mb-4">
+        <h5>
+          {{ title }} <small *ngIf="showCount">({{ users.length || 0 }})</small>
+        </h5>
+
+        <div class="teacher-filter mt-4">
+          <div class="filter-row">
+            <div class="filter-item search-item">
+              <label class="visually-hidden" for="userSearch">Search</label>
+              <div class="search-input">
+                <input
+                  id="userSearch"
+                  type="text"
+                  placeholder="Search by name or email"
+                  [(ngModel)]="searchText"
+                  (ngModelChange)="onSearchChange($event)"
+                />
+                <button type="button" class="search-icon" aria-label="Search">
+                  <img src="/assets/icons/search-icon.svg" alt="search" />
+                </button>
+              </div>
+            </div>
+            <div class="filter-item status-item">
+              <div
+                class="status-filters"
+                role="group"
+                aria-label="Status filters"
+              >
+                <!-- Render dynamic status options provided by parent via statusOptions -->
+                <ng-container
+                  *ngIf="
+                    statusOptions && statusOptions.length;
+                    else defaultStatusOptions
+                  "
+                >
+                  <label
+                    class="status-option"
+                    *ngFor="let opt of statusOptions"
+                    [title]="opt.label"
+                    [ngStyle]="{ '--pill-color': opt.color || null }"
+                  >
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="statusFilter[opt.key]"
+                      (change)="onStatusChange()"
+                      [attr.aria-checked]="statusFilter[opt.key]"
+                    />
+                    <span class="pill" [attr.data-key]="opt.key">
+                      <span class="pill-label">{{ opt.label }}</span>
+                    </span>
+                  </label>
+                </ng-container>
+                <ng-template #defaultStatusOptions>
+                  <!-- fallback to original three options when none provided -->
+                  <label class="status-option status-pending" title="Pending">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="statusFilter['pending']"
+                      (change)="onStatusChange()"
+                      [attr.aria-checked]="statusFilter['pending']"
+                    />
+                    <span class="pill">
+                      <span class="pill-label">Pending</span>
+                    </span>
+                  </label>
+
+                  <label class="status-option status-approved" title="Approved">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="statusFilter['approved']"
+                      (change)="onStatusChange()"
+                      [attr.aria-checked]="statusFilter['approved']"
+                    />
+                    <span class="pill">
+                      <span class="pill-label">Approved</span>
+                    </span>
+                  </label>
+
+                  <label class="status-option status-rejected" title="Rejected">
+                    <input
+                      type="checkbox"
+                      [(ngModel)]="statusFilter['rejected']"
+                      (change)="onStatusChange()"
+                      [attr.aria-checked]="statusFilter['rejected']"
+                    />
+                    <span class="pill">
+                      <span class="pill-label">Rejected</span>
+                    </span>
+                  </label>
+                </ng-template>
+                <button
+                  type="button"
+                  class="filter-clear"
+                  (click)="clearFilters()"
+                  title="Clear filters"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="teacher-cards mt-4">
+          <div class="teacher-cards-grid">
+            <ng-container
+              *ngIf="
+                filteredUsersList && filteredUsersList.length;
+                else emptyBlock
+              "
+            >
+              <div
+                class="teacher-card"
+                [ngClass]="'status-' + (t.statusKey || t.status)"
+                *ngFor="let t of filteredUsersList"
+              >
+                <div class="teacher-left">
+                  <div class="avatar-wrap">
+                    <img
+                      (click)="openProfile(t)"
+                      [src]="
+                        t.profilePictureUrl ||
+                        '/assets/images/blank-avatar.webp'
+                      "
+                      (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
+                      [alt]="t.displayName + ' profile'"
+                    />
+                  </div>
+                </div>
+
+                <div class="teacher-center">
+                  <div class="teacher-name-row">
+                    <div class="name-row">
+                      <h5
+                        class="name name-link"
+                        (click)="openProfile(t)"
+                        title="Open profile"
+                      >
+                        {{ t.displayName || t.firstName || t.name }}
+                      </h5>
+                      <div *ngIf="t.email" class="user-email">
+                        {{ t.email }}
+                      </div>
+                    </div>
+                    <p class="role">{{ t.role }}</p>
+
+                    <div
+                      class="specializations"
+                      *ngIf="t.specializations?.length"
+                    >
+                      <span
+                        class="spec-chip"
+                        *ngFor="let s of t.specializations; let i = index"
+                        [attr.aria-label]="'specialization-' + i"
+                        >{{ s }}</span
+                      >
+                    </div>
+                  </div>
+
+                  <div class="teacher-meta">
+                    <div class="students">
+                      {{ t.totalStudents || 0 }} <span>students</span>
+                    </div>
+                    <div class="rating-badge mt-3">
+                      <span class="rating-value">{{
+                        t.averageRating != null ? t.averageRating : "-"
+                      }}</span>
+                      <img src="/assets/icons/star-teacher.svg" alt="star" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="teacher-right">
+                  <div class="status-wrap">
+                    <span class="status-badge">{{
+                      t.statusLabel || (t.status | titlecase)
+                    }}</span>
+                  </div>
+                  <div class="hourly-rate">
+                    {{ formatRate(t.hourlyRate) }} <span>/hr</span>
+                  </div>
+                  <div class="buttons-group">
+                    <!-- Dynamic buttons if provided -->
+                    <ng-container
+                      *ngIf="
+                        actionButtons && actionButtons.length;
+                        else defaults
+                      "
+                    >
+                      <button
+                        *ngFor="let b of actionButtons"
+                        class="btn"
+                        type="button"
+                        [style.background]="b.bg || null"
+                        [style.color]="b.bg ? '#fff' : null"
+                        (click)="onActionClick(b, t)"
+                      >
+                        <span class="btn-label">{{ b.label }}</span>
+                      </button>
+                    </ng-container>
+
+                    <ng-template #defaults>
+                      <button
+                        class="btn btn-book"
+                        type="button"
+                        aria-label="Book"
+                        (click)="bookUser(t.id)"
+                      >
+                        <span class="btn-label">Book</span>
+                      </button>
+                      <button
+                        (click)="viewUser(t.id)"
+                        class="btn btn-view"
+                        type="button"
+                        aria-label="View"
+                      >
+                        <span class="btn-label">View</span>
+                      </button>
+                    </ng-template>
+                  </div>
+                </div>
+              </div>
+            </ng-container>
+            <ng-template #emptyBlock>
+              <div class="empty-block">
+                <p>No users to display.</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+        <!-- Side menu to show selected user's profile -->
+        <app-side-menu
+          [open]="menuOpen"
+          (openChange)="onMenuOpenChange($event)"
+          [width]="'420px'"
+          position="right"
+          [closable]="true"
+        >
+          <div class="side-profile" *ngIf="selectedUser">
+            <div class="side-avatar">
+              <img
+                [src]="selectedUser.profilePictureUrl"
+                [alt]="selectedUser.displayName + ' avatar'"
+              />
+            </div>
+            <h4>{{ selectedUser.displayName }}</h4>
+            <p class="side-role">{{ selectedUser.role }}</p>
+            <div *ngIf="selectedUser.displayName">
+              {{ selectedUser.displayName }}
+            </div>
+            <div
+              class="side-specs"
+              *ngIf="selectedUser.specializations?.length"
+            >
+              <strong>Specializations:</strong>
+              <div class="spec-list">
+                <span
+                  class="spec-chip"
+                  *ngFor="let s of selectedUser.specializations"
+                  >{{ s }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </app-side-menu>
+      </div>
+    </div>
+  </div>
+</section>

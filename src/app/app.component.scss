@@ -1,0 +1,132 @@
+// Language switcher styles
+.language-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  label {
+    font-weight: 500;
+    margin-inline-end: 0.5rem;
+  }
+
+  .lang-btn {
+    background: transparent;
+    border: 2px solid white;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+
+    &:hover {
+      background: white;
+      color: #2c3e50;
+    }
+
+    &.active {
+      background: #3498db;
+      border-color: #3498db;
+    }
+  }
+}
+
+// Main content styles
+.main-content {
+  min-height: calc(100vh - 80px);
+  /* removed bottom padding to eliminate extra space at the end of the page */
+}
+
+.welcome-section {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+
+  h2 {
+    color: #2c3e50;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Navigation styles
+.navigation {
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  li {
+    margin: 0;
+  }
+
+  a {
+    text-decoration: none;
+    color: #2c3e50;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    display: block;
+
+    &:hover {
+      background: #3498db;
+      color: white;
+    }
+  }
+}
+
+.router-content {
+  margin-top: 2rem;
+}
+
+// RTL Support
+:host-context([dir="rtl"]) {
+  .language-switcher {
+    flex-direction: row-reverse;
+  }
+
+  .navigation ul {
+    flex-direction: row-reverse;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .header .container {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .language-switcher {
+    justify-content: center;
+  }
+
+  .welcome-section {
+    padding: 1.5rem;
+
+    h2 {
+      font-size: 2rem;
+    }
+  }
+
+  .navigation ul {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}

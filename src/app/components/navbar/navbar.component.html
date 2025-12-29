@@ -1,0 +1,325 @@
+<nav class="modern-navbar" *ngIf="showNavbar">
+  <div class="navbar-container">
+    <ng-container *ngIf="isLoading; else navbarContent">
+      <div class="skeleton-navbar">
+        <div class="skeleton-brand">
+          <ngx-skeleton-loader
+            count="1"
+            appearance="line"
+            [theme]="{
+              height: '32px',
+              width: '100px',
+              'border-radius': '8px'
+            }"
+          ></ngx-skeleton-loader>
+        </div>
+
+        <!-- Skeleton Navigation Links -->
+        <div class="skeleton-nav-links">
+          <ngx-skeleton-loader
+            *ngFor="let i of [1, 2, 3, 4]"
+            count="1"
+            appearance="line"
+            [theme]="{
+              height: '20px',
+              width: '80px',
+              'border-radius': '8px',
+              margin: '0 16px'
+            }"
+          ></ngx-skeleton-loader>
+        </div>
+
+        <!-- Skeleton Right Actions -->
+        <div class="skeleton-actions">
+          <!-- Skeleton Notification (for students) -->
+          <ngx-skeleton-loader
+            count="1"
+            appearance="circle"
+            [theme]="{
+              height: '32px',
+              width: '32px',
+              'border-radius': '50%',
+              margin: '0 8px'
+            }"
+          ></ngx-skeleton-loader>
+
+          <!-- Skeleton Language Button -->
+          <ngx-skeleton-loader
+            count="1"
+            appearance="line"
+            [theme]="{
+              height: '36px',
+              width: '60px',
+              'border-radius': '18px',
+              margin: '0 8px'
+            }"
+          ></ngx-skeleton-loader>
+
+          <!-- Skeleton Auth Buttons -->
+          <ngx-skeleton-loader
+            count="1"
+            appearance="circle"
+            [theme]="{
+              height: '40px',
+              width: '40px',
+              'border-radius': '50%',
+              margin: '0 4px'
+            }"
+          ></ngx-skeleton-loader>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #navbarContent>
+      <!-- Logo Section -->
+      <div class="navbar-brand">
+        <a routerLink="/" class="brand-link d-flex align-items-center">
+          <!-- Logo image + name to appear as a single brand -->
+          <img
+            src="assets/images/logo.png"
+            alt="Halqa logo"
+            class="brand-logo"
+          />
+          <span class="brand-text ms-2">Halqa</span>
+        </a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <div class="navbar-menu" [class.active]="mobileMenuOpen">
+        <ul class="nav-links">
+          <li class="nav-item">
+            <a
+              routerLink="/"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+              class="nav-link"
+              (click)="closeMobileMenu()"
+            >
+              {{ "HOME" | translate }}
+            </a>
+          </li>
+
+          <ng-container *ngIf="role === 1">
+            <li class="nav-item">
+              <a
+                routerLink="/all-teachers"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "ALL_Teachers" | translate }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/my-booked-teachers"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "my_Booked" | translate }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/all-lessons"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "ALL_Lessons" | translate }}
+              </a>
+            </li>
+          </ng-container>
+
+          <ng-container *ngIf="role === 2">
+            <li class="nav-item">
+              <a
+                routerLink="/lesson-manage"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "lesson_manage" | translate }}
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/my-booked"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "my_booked" | translate }}
+              </a>
+            </li>
+          </ng-container>
+          <ng-container *ngIf="role === 3">
+            <li class="nav-item">
+              <a
+                routerLink="/dashboard"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                DashBoard
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/pending-teachers"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                Pending Teachers
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/all-users"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                All Users
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/withdraw-requests"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                Withdraw Requests
+              </a>
+            </li>
+          </ng-container>
+
+          <!-- Mobile Auth Buttons -->
+          <li class="nav-item mobile-auth-item" *ngIf="!isAuthenticated">
+            <a
+              routerLink="/join-us"
+              class="nav-link mobile-register-btn"
+              (click)="closeMobileMenu()"
+            >
+              {{ "REGISTER" | translate }}
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </li>
+          <li class="nav-item mobile-auth-item" *ngIf="!isAuthenticated">
+            <a
+              routerLink="/login"
+              class="nav-link mobile-login-btn"
+              (click)="closeMobileMenu()"
+            >
+              {{ "LOGIN" | translate }}
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </li>
+
+          <!-- Mobile Logout Button -->
+          <li class="nav-item mobile-auth-item" *ngIf="isAuthenticated">
+            <button class="nav-link mobile-logout-btn" (click)="logout()">
+              {{ "LOGOUT" | translate }}
+              <i class="fas fa-sign-out-alt"></i>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right Section -->
+      <div class="navbar-actions">
+        <!-- Language Switcher -->
+        <button
+          class="language-btn"
+          (click)="toggleLanguage()"
+          [attr.aria-label]="'Switch to ' + getOtherLanguage().nativeName"
+        >
+          <i class="fas fa-globe"></i>
+          {{ getOtherLanguage().code | uppercase }}
+        </button>
+
+        <!-- Auth Buttons -->
+        <div class="auth-buttons" *ngIf="!isAuthenticated">
+          <a routerLink="/join-us" class="register-btn">
+            {{ "REGISTER" | translate }}
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <a routerLink="/login" class="login-btn">
+            {{ "LOGIN" | translate }}
+            <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+
+        <!-- User Menu -->
+        <div class="user-menu" *ngIf="isAuthenticated">
+          <div class="profile-dropdown">
+            <button
+              class="profile-picture-btn"
+              (click)="toggleProfileDropdown()"
+              [class.active]="profileDropdownOpen"
+              [attr.aria-label]="userName"
+            >
+              <div class="profile-picture">
+                <img
+                  [src]="src"
+                  alt="User Avatar"
+                  (error)="onImageError($event)"
+                />
+              </div>
+            </button>
+
+            <div class="dropdown-menu" [class.show]="profileDropdownOpen">
+              <div class="dropdown-header">
+                <div class="user-info">
+                  <div class="user-avatar">
+                    <div class="profile-picture">
+                      <img
+                        [src]="src"
+                        alt="User Avatar"
+                        (error)="onImageError($event)"
+                      />
+                    </div>
+                  </div>
+                  <div class="user-details">
+                    <span class="user-name">{{ userName }}</span>
+                    <span class="user-role">
+                      {{
+                        role === 1
+                          ? ("STUDENT" | translate)
+                          : role === 2
+                          ? ("TEACHER" | translate)
+                          : role === 3
+                          ? ("ADMIN" | translate)
+                          : ""
+                      }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="dropdown-divider"></div>
+
+              <div class="dropdown-content">
+                <button class="dropdown-item" (click)="openProfile()">
+                  <i class="fas fa-user-circle"></i>
+                  <span>{{ "MY_PROFILE" | translate }}</span>
+                </button>
+
+                <button class="dropdown-item logout-item" (click)="logout()">
+                  <i class="fas fa-sign-out-alt"></i>
+                  <span>{{ "LOGOUT" | translate }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button
+          class="mobile-toggle"
+          (click)="toggleMobileMenu()"
+          [class.active]="mobileMenuOpen"
+          aria-label="Toggle mobile menu"
+        >
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</nav>

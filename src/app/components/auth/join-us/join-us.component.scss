@@ -1,0 +1,259 @@
+@import "../../../shared/styles/_color-variable";
+
+.join-us {
+  min-height: 95vh;
+
+  .join-us-text {
+    padding: 2rem;
+  }
+
+  .header-section {
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 1.5rem;
+      color: #2c3e50;
+
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 1.75rem;
+      }
+    }
+
+    p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+
+      @media (max-width: 768px) {
+        font-size: 1rem;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .links-container {
+    width: 100%;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .student-link {
+    border-radius: 12px;
+    box-shadow: 0 2px 20px 0 rgba(0, 0, 0, 0.08);
+    padding: 1.5rem 2rem;
+    width: 100%;
+    max-width: 600px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    background: white;
+    margin: 0 auto;
+
+    &:hover {
+      background-color: $secondary-color;
+      border: 2px solid $primary-color;
+      transform: translateY(-3px);
+      box-shadow: 0 6px 25px 0 rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+
+      .arrow-icon {
+        transform: translateX(5px);
+      }
+    }
+
+    .icon-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 60px;
+
+      img {
+        width: 50px;
+        height: 50px;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    .arrow-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 30px;
+
+      .arrow-icon {
+        width: 20px;
+        height: 20px;
+        transition: transform 0.3s ease;
+      }
+    }
+
+    h5 {
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+    }
+
+    // Mobile responsiveness
+    @media (max-width: 768px) {
+      padding: 1.25rem 1rem;
+      margin: 0 auto 1rem auto;
+      max-width: 100%;
+
+      .icon-container img {
+        width: 45px;
+        height: 45px;
+      }
+
+      .arrow-container .arrow-icon {
+        width: 18px;
+        height: 18px;
+      }
+
+      h5 {
+        font-size: 1.1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      padding: 1rem 0.75rem;
+
+      .icon-container {
+        min-width: 50px;
+
+        img {
+          width: 40px;
+          height: 40px;
+        }
+      }
+
+      .arrow-container {
+        min-width: 25px;
+
+        .arrow-icon {
+          width: 16px;
+          height: 16px;
+        }
+      }
+
+      h5 {
+        font-size: 1rem;
+      }
+
+      p {
+        font-size: 0.85rem;
+        line-height: 1.4;
+      }
+    }
+
+    @media (max-width: 360px) {
+      padding: 0.75rem 0.5rem;
+
+      .icon-container img {
+        width: 35px;
+        height: 35px;
+      }
+
+      h5 {
+        font-size: 0.95rem;
+      }
+
+      p {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .subtitle-texts {
+    color: $text-color;
+
+    @media (max-width: 768px) {
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 0.9rem;
+    }
+  }
+
+  // Container adjustments for mobile
+  @media (max-width: 768px) {
+    .container-fluid {
+      padding: 1rem;
+    }
+
+    .join-us-text {
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .row {
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container-fluid {
+      padding: 0.5rem;
+    }
+
+    .join-us-text {
+      padding: 0.5rem;
+    }
+  }
+
+  // Extra large screens optimization
+  @media (min-width: 1400px) {
+    .join-us-text {
+      padding: 3rem;
+
+      h1 {
+        font-size: 3rem;
+      }
+
+      .student-link {
+        max-width: 600px;
+        padding: 2rem 2.5rem;
+
+        .icon-container img {
+          width: 60px;
+          height: 60px;
+        }
+
+        .arrow-container .arrow-icon {
+          width: 24px;
+          height: 24px;
+        }
+
+        h5 {
+          font-size: 1.3rem;
+        }
+
+        p {
+          font-size: 1.1rem;
+        }
+      }
+    }
+  }
+
+  // Landscape mobile optimization
+  @media (max-width: 768px) and (orientation: landscape) {
+    min-height: auto;
+
+    .join-us-text {
+      padding: 1rem 2rem;
+    }
+
+    .student-link {
+      padding: 1rem 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+  }
+}

@@ -1,0 +1,371 @@
+<section class="lesson-manage Teacher-custom-marginTop">
+  <!-- Success/Error Popup -->
+  <div class="popup-overlay" *ngIf="showPopup" (click)="closePopup()">
+    <div
+      class="popup-container"
+      [ngClass]="popupType"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="popup-header">
+        <div class="popup-icon">
+          <svg
+            *ngIf="popupType === 'success'"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" />
+            <path
+              d="M8 12l2 2 4-4"
+              stroke="#22c55e"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <svg
+            *ngIf="popupType === 'error'"
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+          >
+            <circle cx="12" cy="12" r="10" stroke="#ef4444" stroke-width="2" />
+            <path
+              d="M8 8l8 8M16 8l-8 8"
+              stroke="#ef4444"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
+        <button class="popup-close" (click)="closePopup()" type="button">
+          &times;
+        </button>
+      </div>
+      <div class="popup-body">
+        <h3 class="popup-title">
+          {{
+            popupType === "success"
+              ? ("lesson_manage_page.popup.success" | translate)
+              : ("lesson_manage_page.popup.error" | translate)
+          }}
+        </h3>
+        <p class="popup-message">{{ popupMessage }}</p>
+      </div>
+      <div class="popup-footer">
+        <button
+          class="btn"
+          [ngClass]="popupType === 'success' ? 'btn-success' : 'btn-error'"
+          (click)="closePopup()"
+          type="button"
+        >
+          {{ "lesson_manage_page.popup.ok" | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="create-lesson">
+      <div class="create-lesson__outer">
+        <div class="centered-form-container">
+          <div class="create-lesson__card">
+            <header class="create-lesson__card-header">
+              <h3>{{ "lesson_manage_page.create_new.title" | translate }}</h3>
+              <p>
+                {{ "lesson_manage_page.create_new.description" | translate }}
+              </p>
+            </header>
+
+            <form
+              class="create-lesson__form"
+              [formGroup]="lessonForm"
+              (ngSubmit)="onSubmit()"
+              novalidate
+            >
+              <div class="form-row two-col">
+                <label class="form-group">
+                  <span class="label">{{
+                    "lesson_manage_page.label.lesson_title" | translate
+                  }}</span>
+                  <input
+                    type="text"
+                    class="input"
+                    formControlName="title"
+                    placeholder="{{
+                      'lesson_manage_page.placeholder.lesson_title' | translate
+                    }}"
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    [class.error]="
+                      lessonForm.get('title')?.invalid &&
+                      lessonForm.get('title')?.touched
+                    "
+                  />
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('title')?.invalid &&
+                      lessonForm.get('title')?.touched
+                    "
+                  >
+                    <small
+                      *ngIf="lessonForm.get('title')?.errors?.['required']"
+                      >{{
+                        "lesson_manage_page.validation.title_required"
+                          | translate
+                      }}</small
+                    >
+                    <small
+                      *ngIf="lessonForm.get('title')?.errors?.['minlength']"
+                      >{{
+                        "lesson_manage_page.validation.title_minlength"
+                          | translate : { min: 3 }
+                      }}</small
+                    >
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <label class="form-group">
+                  <span class="label">{{
+                    "lesson_manage_page.label.description" | translate
+                  }}</span>
+                  <textarea
+                    class="input textarea"
+                    rows="4"
+                    formControlName="description"
+                    placeholder="{{
+                      'lesson_manage_page.placeholder.description' | translate
+                    }}"
+                    autocomplete="off"
+                    autocorrect="on"
+                    spellcheck="true"
+                    [class.error]="
+                      lessonForm.get('description')?.invalid &&
+                      lessonForm.get('description')?.touched
+                    "
+                  ></textarea>
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('description')?.invalid &&
+                      lessonForm.get('description')?.touched
+                    "
+                  >
+                    <small
+                      *ngIf="lessonForm.get('description')?.errors?.['required']"
+                      >{{
+                        "lesson_manage_page.validation.description_required"
+                          | translate
+                      }}</small
+                    >
+                    <small
+                      *ngIf="lessonForm.get('description')?.errors?.['minlength']"
+                      >{{
+                        "lesson_manage_page.validation.description_minlength"
+                          | translate : { min: 10 }
+                      }}</small
+                    >
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-row two-col align-center">
+                <label class="form-group">
+                  <span class="label"
+                    >{{
+                      "lesson_manage_page.label.price" | translate
+                    }}
+                    ($)</span
+                  >
+                  <input
+                    type="number"
+                    class="input"
+                    formControlName="price"
+                    placeholder="{{
+                      'lesson_manage_page.placeholder.price' | translate
+                    }}"
+                    min="0"
+                    step="0.01"
+                    inputmode="decimal"
+                    autocomplete="off"
+                    [class.error]="
+                      lessonForm.get('price')?.invalid &&
+                      lessonForm.get('price')?.touched
+                    "
+                  />
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('price')?.invalid &&
+                      lessonForm.get('price')?.touched
+                    "
+                  >
+                    <small
+                      *ngIf="lessonForm.get('price')?.errors?.['required']"
+                      >{{
+                        "lesson_manage_page.validation.price_required"
+                          | translate
+                      }}</small
+                    >
+                    <small *ngIf="lessonForm.get('price')?.errors?.['min']">{{
+                      "lesson_manage_page.validation.price_min" | translate
+                    }}</small>
+                  </span>
+                </label>
+
+                <label class="form-group">
+                  <span class="label">{{
+                    "lesson_manage_page.label.scheduled_at" | translate
+                  }}</span>
+                  <input
+                    type="datetime-local"
+                    class="input"
+                    formControlName="scheduledAt"
+                    placeholder="{{
+                      'lesson_manage_page.placeholder.scheduled_at' | translate
+                    }}"
+                    [min]="minDate"
+                    [class.error]="
+                      lessonForm.get('scheduledAt')?.invalid &&
+                      lessonForm.get('scheduledAt')?.touched
+                    "
+                  />
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('scheduledAt')?.invalid &&
+                      lessonForm.get('scheduledAt')?.touched
+                    "
+                  >
+                    <small
+                      *ngIf="lessonForm.get('scheduledAt')?.errors?.['required']"
+                      >{{
+                        "lesson_manage_page.validation.scheduled_at_required"
+                          | translate
+                      }}</small
+                    >
+                    <small
+                      *ngIf="lessonForm.get('scheduledAt')?.errors?.['futureDate']"
+                      >{{
+                        "lesson_manage_page.validation.scheduled_at_future"
+                          | translate
+                      }}</small
+                    >
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-row two-col align-center">
+                <label class="form-group">
+                  <span class="label">{{
+                    "lesson_manage_page.label.max_students" | translate
+                  }}</span>
+                  <input
+                    type="number"
+                    class="input"
+                    formControlName="maxStudents"
+                    placeholder="{{
+                      'lesson_manage_page.placeholder.max_students' | translate
+                    }}"
+                    min="1"
+                    max="20"
+                    step="1"
+                    inputmode="numeric"
+                    autocomplete="off"
+                    [class.error]="
+                      lessonForm.get('maxStudents')?.invalid &&
+                      lessonForm.get('maxStudents')?.touched
+                    "
+                  />
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('maxStudents')?.invalid &&
+                      lessonForm.get('maxStudents')?.touched
+                    "
+                  >
+                    <small
+                      *ngIf="lessonForm.get('maxStudents')?.errors?.['required']"
+                      >{{
+                        "lesson_manage_page.validation.max_students_required"
+                          | translate
+                      }}</small
+                    >
+                    <small
+                      *ngIf="lessonForm.get('maxStudents')?.errors?.['min']"
+                      >{{
+                        "lesson_manage_page.validation.max_students_min"
+                          | translate : { min: 1 }
+                      }}</small
+                    >
+                    <small
+                      *ngIf="lessonForm.get('maxStudents')?.errors?.['max']"
+                      >{{
+                        "lesson_manage_page.validation.max_students_max"
+                          | translate : { min: 1, max: 20 }
+                      }}</small
+                    >
+                  </span>
+                </label>
+
+                <label class="form-group">
+                  <span class="label">{{
+                    "lesson_manage_page.label.duration" | translate
+                  }}</span>
+                  <select
+                    class="input"
+                    formControlName="duration"
+                    [class.error]="
+                      lessonForm.get('duration')?.invalid &&
+                      lessonForm.get('duration')?.touched
+                    "
+                  >
+                    <option *ngFor="let opt of durationOptions" [value]="opt.value">
+                      {{ opt.labelKey | translate }}
+                    </option>
+                  </select>
+                  <span
+                    class="error-message"
+                    *ngIf="
+                      lessonForm.get('duration')?.invalid &&
+                      lessonForm.get('duration')?.touched
+                    "
+                  >
+                    <small *ngIf="lessonForm.get('duration')?.errors?.['required']">
+                      {{ "lesson_manage_page.validation.duration_required" | translate }}
+                    </small>
+                  </span>
+                </label>
+              </div>
+
+              <div class="form-row">
+                <button
+                  type="submit"
+                  class="btn btn--primary"
+                  [disabled]="lessonForm.invalid || isCreatingLesson"
+                >
+                  <ng-container *ngIf="!isCreatingLesson">
+                    {{ "lesson_manage_page.btn.create_lesson" | translate }}
+                  </ng-container>
+                  <ng-container *ngIf="isCreatingLesson">
+                    <span class="spinner" aria-hidden="true"></span>
+                    {{ "lesson_manage_page.btn.creating_lesson" | translate }}
+                  </ng-container>
+                </button>
+                <div class="api-error-message" *ngIf="apiErrorMessage">
+                  {{ apiErrorMessage }}
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

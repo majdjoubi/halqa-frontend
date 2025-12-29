@@ -1,0 +1,324 @@
+<section class="student-profile">
+  <div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="profile-header custom-marginTop">
+      <div class="profile-info">
+        <div class="avatar-container">
+          <img
+            [src]="UserData?.profile?.profilePictureUrl"
+            class="profile-avatar"
+            alt="Profile Picture"
+            (error)="onImageError($event)"
+          />
+        </div>
+        <div class="user-details">
+          <h2 class="user-name">
+            {{ UserData?.profile?.firstName }} {{ UserData?.profile?.lastName }}
+          </h2>
+          <div class="email">
+            <img
+              src="../../../../../assets/icons/sms.svg"
+              alt="Phone Icon"
+              width="16"
+              height="16"
+              class="mx-2"
+            />
+            <span class="phone-number">{{
+              UserData?.profile?.email ||
+                ("teacher_profile.no_email" | translate)
+            }}</span>
+          </div>
+          <div class="phone">
+            <img
+              src="../../../../../assets/icons/call.svg"
+              alt="Phone Icon"
+              width="16"
+              height="16"
+              class="mx-2"
+            />
+            <span class="phone-number">{{
+              UserData?.profile?.phoneNumber ||
+                ("teacher_profile.no_phone" | translate)
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button class="topup-wallet-btn" (click)="navigateToWalletTopup()">
+          <i class="fas fa-wallet"></i>
+          {{ "student_profile.topup_wallet_button" | translate }}
+        </button>
+        <button class="edit-profile-btn" (click)="openProfileEdit()">
+          <i class="fas fa-edit"></i>
+          {{ "student_profile.edit_profile_button" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Wallet Balance -->
+        <div class="wallet-card">
+          <h3 class="section-title">
+            <i class="fas fa-wallet wallet-icon"></i>
+            {{ "student_profile.wallet_balance" | translate }}
+          </h3>
+          <div class="wallet-content">
+            <p class="balance-label">
+              {{ "student_profile.available_balance" | translate }}
+            </p>
+            <h2 class="balance-amount">
+              {{
+                UserData?.profile?.walletBalance
+                  | currency : "USD" : "symbol" : "1.2-2"
+              }}
+            </h2>
+          </div>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard-section">
+          <h3 class="section-title">
+            <i class="fas fa-chart-bar dashboard-icon"></i>
+            {{ "student_profile.dashboard" | translate }}
+          </h3>
+
+          <div class="stats-grid">
+            <!-- Total Booking -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-header">
+                <span class="stat-label">{{
+                  "student_profile.total_booking" | translate
+                }}</span>
+              </div>
+              <div class="stat-value">
+                {{ UserData?.stats?.totalBookings }}
+              </div>
+            </div>
+
+            <!-- Completed Lessons -->
+            <div class="stat-card stat-card-success">
+              <div class="stat-header">
+                <span class="stat-label">{{
+                  "student_profile.completed_lessons" | translate
+                }}</span>
+              </div>
+              <div class="stat-value">
+                {{ UserData?.stats?.completedLessons }}
+              </div>
+            </div>
+
+            <!-- Upcoming Lessons -->
+            <div class="stat-card stat-card-warning">
+              <div class="stat-header">
+                <span class="stat-label">{{
+                  "student_profile.upcoming_lessons" | translate
+                }}</span>
+              </div>
+              <div class="stat-value">
+                {{ UserData?.stats?.upcomingLessons }}
+              </div>
+            </div>
+
+            <!-- Favorite Teachers -->
+            <div class="stat-card stat-card-info">
+              <div class="stat-header">
+                <span class="stat-label">{{
+                  "student_profile.favorite_teachers" | translate
+                }}</span>
+              </div>
+              <div class="stat-value">
+                {{ UserData?.stats?.favoriteTeachers }}
+              </div>
+            </div>
+
+            <!-- Reviews Written -->
+            <div class="stat-card stat-card-secondary">
+              <div class="stat-header">
+                <span class="stat-label">{{
+                  "student_profile.reviews_written" | translate
+                }}</span>
+              </div>
+              <div class="stat-value">
+                {{ UserData?.stats?.reviewsWritten }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column removed: Lessons section intentionally removed -->
+    </div>
+  </div>
+
+  <!-- Edit Profile Side Menu -->
+  <app-side-menu
+    [open]="menuOpen"
+    (openChange)="menuOpen = $event"
+    position="right"
+    width="450px"
+    (closed)="closeProfileEdit()"
+  >
+    <div slot="header">
+      <h4 class="edit-profile-title">
+        {{ "student_profile.edit_profile_title" | translate }}
+      </h4>
+    </div>
+
+    <div class="edit-profile-content">
+      <form
+        *ngIf="profileForm"
+        [formGroup]="profileForm"
+        (ngSubmit)="onSubmitProfile()"
+        class="profile-form"
+      >
+        <!-- Profile Picture Upload -->
+        <div class="form-group">
+          <label class="form-label">{{
+            "student_profile.profile_picture" | translate
+          }}</label>
+          <div class="upload-area" (click)="triggerFileInput()">
+            <div
+              *ngIf="previewUrl; else defaultUpload"
+              class="preview-container"
+            >
+              <img [src]="previewUrl" class="preview-image" alt="Preview" />
+              <div class="upload-overlay">
+                <i class="fas fa-camera"></i>
+                <span>Change Photo</span>
+              </div>
+            </div>
+            <ng-template #defaultUpload>
+              <div class="upload-placeholder">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">
+                  {{ "student_profile.upload_file" | translate }}
+                </p>
+                <p class="upload-hint">
+                  {{ "student_profile.max_size" | translate }}
+                </p>
+              </div>
+            </ng-template>
+            <input
+              type="file"
+              class="file-input"
+              id="profilePicture"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+          <app-form-validation
+            [control]="profileForm.get('profilePictureUrl')"
+            fieldType="file"
+          ></app-form-validation>
+        </div>
+
+        <!-- Name Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">{{
+              "student_profile.first_name" | translate
+            }}</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="firstName"
+              [placeholder]="
+                'student_profile.first_name_placeholder' | translate
+              "
+              [class.invalid]="
+                profileForm.get('firstName')?.invalid &&
+                profileForm.get('firstName')?.touched
+              "
+              [class.valid]="
+                profileForm.get('firstName')?.valid &&
+                profileForm.get('firstName')?.touched
+              "
+            />
+            <app-form-validation
+              [control]="profileForm.get('firstName')"
+              fieldType="text"
+            ></app-form-validation>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">{{
+              "student_profile.last_name" | translate
+            }}</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="lastName"
+              [placeholder]="
+                'student_profile.last_name_placeholder' | translate
+              "
+              [class.invalid]="
+                profileForm.get('lastName')?.invalid &&
+                profileForm.get('lastName')?.touched
+              "
+              [class.valid]="
+                profileForm.get('lastName')?.valid &&
+                profileForm.get('lastName')?.touched
+              "
+            />
+            <app-form-validation
+              [control]="profileForm.get('lastName')"
+              fieldType="text"
+            ></app-form-validation>
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "student_profile.phone_number" | translate
+          }}</label>
+          <input
+            type="tel"
+            class="form-control"
+            formControlName="phoneNumber"
+            [placeholder]="'student_profile.phone_placeholder' | translate"
+            [class.invalid]="
+              profileForm.get('phoneNumber')?.invalid &&
+              profileForm.get('phoneNumber')?.touched
+            "
+            [class.valid]="
+              profileForm.get('phoneNumber')?.valid &&
+              profileForm.get('phoneNumber')?.touched
+            "
+          />
+          <app-form-validation
+            [control]="profileForm.get('phoneNumber')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeProfileEdit()"
+          >
+            <i class="fas fa-times"></i>
+            {{ "common.cancel" | translate }}
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="profileForm.invalid || isSubmitting"
+            [class.loading]="isSubmitting"
+          >
+            <i class="fas fa-save"></i>
+            {{ "common.save" | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div slot="footer"></div>
+  </app-side-menu>
+</section>

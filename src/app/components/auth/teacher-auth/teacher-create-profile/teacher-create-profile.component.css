@@ -1,0 +1,618 @@
+.custom-marginTop {
+  margin-top: 12rem;
+}
+
+.Teacher-custom-marginTop {
+  margin-top: 5rem;
+}
+
+.teacher-create-profile {
+  min-height: 100vh;
+  background: linear-gradient(135deg, rgba(1, 104, 54, 0.02) 0%, rgba(255, 255, 255, 0.95) 100%);
+}
+.teacher-create-profile .header-section {
+  margin-bottom: 2rem;
+  animation: fadeInDown 0.8s ease-out;
+}
+.teacher-create-profile .header-section .page-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #016836;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.teacher-create-profile .header-section .page-title::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #016836, transparent);
+  border-radius: 2px;
+}
+@media (max-width: 768px) {
+  .teacher-create-profile .header-section .page-title {
+    font-size: 2rem;
+  }
+}
+.teacher-create-profile .header-section .page-subtitle {
+  font-size: 1.1rem;
+  color: #8692a6;
+  max-width: 500px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.teacher-create-profile .form-container {
+  max-width: 700px;
+  margin: 0 auto;
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+@media (max-width: 768px) {
+  .teacher-create-profile .form-container {
+    margin: 0 1rem;
+  }
+}
+.teacher-create-profile .form-section {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(1, 104, 54, 0.1);
+  transition: all 0.3s ease;
+}
+@media (max-width: 768px) {
+  .teacher-create-profile .form-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+.teacher-create-profile .section-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #016836;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+}
+.teacher-create-profile .section-title::before {
+  content: "";
+  width: 4px;
+  height: 20px;
+  background: #016836;
+  border-radius: 2px;
+  margin-right: 0.75rem;
+}
+.teacher-create-profile .form-group {
+  margin-bottom: 1.5rem;
+}
+.teacher-create-profile .form-group .form-label {
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.5rem;
+  display: block;
+  font-size: 0.9rem;
+}
+.teacher-create-profile .form-group .form-label.required::after {
+  content: " *";
+  color: #dc3545;
+}
+.teacher-create-profile .form-group .form-control,
+.teacher-create-profile .form-group .form-select {
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+.teacher-create-profile .form-group .form-control:focus,
+.teacher-create-profile .form-group .form-select:focus {
+  border-color: #016836;
+  box-shadow: 0 0 0 3px rgba(1, 104, 54, 0.1);
+  outline: none;
+}
+.teacher-create-profile .form-group .form-control.is-valid,
+.teacher-create-profile .form-group .form-select.is-valid {
+  border-color: #10b981;
+}
+.teacher-create-profile .form-group .form-control.is-valid:focus,
+.teacher-create-profile .form-group .form-select.is-valid:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+.teacher-create-profile .form-group .form-control.is-invalid,
+.teacher-create-profile .form-group .form-select.is-invalid {
+  border-color: #ef4444;
+}
+.teacher-create-profile .form-group .form-control.is-invalid:focus,
+.teacher-create-profile .form-group .form-select.is-invalid:focus {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+.teacher-create-profile .form-group .input-group .input-group-text {
+  background: #effff4;
+  border: 2px solid #e1e5e9;
+  border-left: none;
+  color: #016836;
+  font-weight: 600;
+}
+.teacher-create-profile .form-group .input-group .form-control:focus + .input-group-text {
+  border-color: #016836;
+}
+.teacher-create-profile .form-group .bio-textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+.teacher-create-profile .form-group .character-count {
+  text-align: right;
+  margin-top: 0.5rem;
+}
+.teacher-create-profile .form-group .invalid-feedback,
+.teacher-create-profile .form-group .valid-feedback {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}
+.teacher-create-profile .form-group .invalid-feedback {
+  color: #dc3545;
+}
+.teacher-create-profile .form-group .valid-feedback {
+  color: #10b981;
+}
+.teacher-create-profile .profile-picture-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload {
+  width: 150px;
+  height: 150px;
+  border: 3px dashed #e1e5e9;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload:hover {
+  border-color: #016836;
+  border-style: solid;
+  transform: scale(1.02);
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload:hover .upload-icon {
+  color: #016836;
+  transform: scale(1.1);
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload.has-image {
+  border-color: #016836;
+  border-style: solid;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload.has-image .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload.has-image .image-overlay i {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload.has-image .image-overlay span {
+  font-size: 0.8rem;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload.has-image:hover .image-overlay {
+  opacity: 1;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload .upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload .upload-placeholder .default-avatar {
+  /* Fill the upload circle exactly */
+  width: 100%;
+  height: 100%;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 50%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  margin: 0;
+  display: block;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload .upload-placeholder .upload-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload .uploaded-image {
+  width: 100%;
+  height: 100%;
+}
+.teacher-create-profile .profile-picture-container .profile-picture-upload .uploaded-image .profile-preview {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  border-radius: 50%;
+}
+.teacher-create-profile .profile-picture-container .remove-btn {
+  font-size: 0.8rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+}
+.teacher-create-profile .languages-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .teacher-create-profile .languages-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.teacher-create-profile .languages-grid .language-option {
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  position: relative;
+}
+.teacher-create-profile .languages-grid .language-option:hover {
+  border-color: #016836;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(1, 104, 54, 0.1);
+}
+.teacher-create-profile .languages-grid .language-option.selected {
+  border-color: #016836;
+  background: linear-gradient(135deg, #effff4 0%, rgba(204, 225, 215, 0.3) 100%);
+}
+.teacher-create-profile .languages-grid .language-option.selected .selection-indicator {
+  opacity: 1;
+}
+.teacher-create-profile .languages-grid .language-option .language-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.teacher-create-profile .languages-grid .language-option .language-content .language-flag {
+  font-size: 2rem;
+}
+.teacher-create-profile .languages-grid .language-option .language-content .language-info {
+  flex: 1;
+}
+.teacher-create-profile .languages-grid .language-option .language-content .language-info .language-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #016836;
+}
+.teacher-create-profile .languages-grid .language-option .language-content .language-info .language-native {
+  font-size: 0.85rem;
+  color: #8692a6;
+  margin: 0;
+  opacity: 0.8;
+}
+.teacher-create-profile .languages-grid .language-option .language-content .selection-indicator {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: #016836;
+  font-size: 1.2rem;
+}
+.teacher-create-profile .specializations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+@media (max-width: 768px) {
+  .teacher-create-profile .specializations-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.teacher-create-profile .specializations-grid .specialization-card {
+  border: 2px solid #e1e5e9;
+  border-radius: 16px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  text-align: center;
+  position: relative;
+}
+.teacher-create-profile .specializations-grid .specialization-card:hover {
+  border-color: #016836;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(1, 104, 54, 0.15);
+}
+.teacher-create-profile .specializations-grid .specialization-card.selected {
+  border-color: #016836;
+  background: linear-gradient(135deg, #effff4 0%, rgba(204, 225, 215, 0.3) 100%);
+}
+.teacher-create-profile .specializations-grid .specialization-card.selected .selection-check {
+  opacity: 1;
+}
+.teacher-create-profile .specializations-grid .specialization-card.selected .spec-icon i {
+  color: #016836;
+}
+.teacher-create-profile .specializations-grid .specialization-card .spec-icon {
+  margin-bottom: 1rem;
+}
+.teacher-create-profile .specializations-grid .specialization-card .spec-icon i {
+  font-size: 2.5rem;
+  color: #9ca3af;
+  transition: color 0.3s ease;
+}
+.teacher-create-profile .specializations-grid .specialization-card .spec-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #016836;
+}
+.teacher-create-profile .specializations-grid .specialization-card .spec-description {
+  font-size: 0.9rem;
+  color: #8692a6;
+  opacity: 0.8;
+  margin: 0;
+}
+.teacher-create-profile .specializations-grid .specialization-card .selection-check {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: #016836;
+  font-size: 1.5rem;
+}
+.teacher-create-profile .availability-container .availability-slot {
+  border: 1px solid rgba(1, 104, 54, 0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  background: rgba(1, 104, 54, 0.02);
+}
+.teacher-create-profile .availability-container .availability-slot .slot-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.teacher-create-profile .availability-container .availability-slot .slot-header .slot-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #016836;
+  margin: 0;
+}
+.teacher-create-profile .add-slot-btn {
+  border: 2px dashed #016836;
+  color: #016836;
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+.teacher-create-profile .add-slot-btn:hover:not(:disabled) {
+  background: #effff4;
+  border-style: solid;
+}
+.teacher-create-profile .add-slot-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.teacher-create-profile .submit-btn {
+  background: linear-gradient(135deg, #016836 0%, rgb(0.5142857143, 53.4857142857, 27.7714285714) 100%);
+  border: none;
+  border-radius: 12px;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.teacher-create-profile .submit-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.6s ease;
+}
+.teacher-create-profile .submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgb(0.7571428571, 78.7428571429, 40.8857142857) 0%, rgb(0.2714285714, 28.2285714286, 14.6571428571) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(1, 104, 54, 0.3);
+}
+.teacher-create-profile .submit-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+.teacher-create-profile .submit-btn:disabled {
+  background: #6b7280;
+  cursor: not-allowed;
+  transform: none;
+}
+.teacher-create-profile .submit-btn.loading {
+  pointer-events: none;
+}
+.teacher-create-profile .form-info {
+  margin-top: 1rem;
+}
+.teacher-create-profile .form-info small {
+  color: #8692a6;
+  opacity: 0.8;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.certifications-container {
+  margin-bottom: 1.5rem;
+}
+.certifications-container .certification-card {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  animation: fadeInUp 0.5s ease-out;
+}
+.certifications-container .certification-card:hover {
+  border-color: #016836;
+  box-shadow: 0 4px 15px rgba(1, 104, 54, 0.1);
+  transform: translateY(-2px);
+}
+.certifications-container .certification-card .cert-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+.certifications-container .certification-card .cert-header .cert-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #016836;
+  margin: 0;
+  display: flex;
+  align-items: center;
+}
+.certifications-container .certification-card .cert-header .cert-title::before {
+  content: "\f0a3";
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  margin-right: 0.5rem;
+  color: #016836;
+  font-size: 0.9rem;
+}
+.certifications-container .certification-card .cert-header .btn-outline-danger {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+.certifications-container .certification-card .cert-header .btn-outline-danger:hover {
+  transform: scale(1.05);
+}
+.certifications-container .certification-card .form-group {
+  margin-bottom: 1rem;
+}
+.certifications-container .certification-card .form-group .form-label {
+  font-weight: 500;
+  color: #8692a6;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+.certifications-container .certification-card .form-group .form-control {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+.certifications-container .certification-card .form-group .form-control:focus {
+  border-color: #016836;
+  box-shadow: 0 0 0 0.2rem rgba(1, 104, 54, 0.15);
+}
+.certifications-container .certification-card .form-group textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+.certifications-container .no-certifications {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 1rem 0;
+}
+.certifications-container .no-certifications i {
+  opacity: 0.5;
+}
+.certifications-container .no-certifications p {
+  margin: 0;
+  font-style: italic;
+}
+
+.add-cert-btn {
+  background: linear-gradient(135deg, #016836 0%, rgb(0.5142857143, 53.4857142857, 27.7714285714) 100%);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(1, 104, 54, 0.2);
+}
+.add-cert-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(1, 104, 54, 0.3);
+  background: linear-gradient(135deg, rgb(0.7571428571, 78.7428571429, 40.8857142857) 0%, rgb(0.2714285714, 28.2285714286, 14.6571428571) 100%);
+}
+.add-cert-btn:disabled {
+  opacity: 0.6;
+  transform: none;
+  cursor: not-allowed;
+}
+.add-cert-btn i {
+  font-size: 0.9rem;
+}
+
+.cert-info small {
+  color: #6c757d;
+  font-style: italic;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+[dir=rtl] .teacher-create-profile .section-title::before {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}
+[dir=rtl] .teacher-create-profile .language-content {
+  direction: rtl;
+}
+[dir=rtl] .teacher-create-profile .selection-check {
+  left: 1rem;
+  right: auto;
+}/*# sourceMappingURL=teacher-create-profile.component.css.map */

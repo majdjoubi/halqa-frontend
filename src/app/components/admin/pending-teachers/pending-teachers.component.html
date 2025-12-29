@@ -1,0 +1,225 @@
+<div class="pending-teachers-page">
+  <ng-container
+    *ngIf="pendingTeachers && pendingTeachers.length > 0; else emptyBlock"
+  >
+    <app-show-users
+      [users]="pendingTeachers"
+      [title]="'Pending Teachers'"
+      [showCount]="true"
+      [actionButtons]="[
+        { label: 'Allow', bg: '#0b8043', action: 'allow' },
+        { label: 'Remove', bg: '#c30000', action: 'remove' }
+      ]"
+      (action)="onUserAction($event)"
+    ></app-show-users>
+  </ng-container>
+
+  <ng-template
+    #emptyBlock
+    class="d-flex justify-content-center align-items-center"
+  >
+    <div class="empty-state" style="text-align: center; padding: 40px 16px">
+      <img
+        src="/assets/images/blank-avatar.webp"
+        alt="no pending users"
+        style="width: 96px; height: 96px; opacity: 0.6; margin-bottom: 16px"
+      />
+      <h3 style="margin: 8px 0 6px">No pending teachers</h3>
+      <p style="color: #6b7280; margin: 0 0 12px">
+        There are currently no teachers waiting for approval.
+      </p>
+      <button class="btn btn-primary" type="button" (click)="refreshPending()">
+        Refresh
+      </button>
+    </div>
+  </ng-template>
+</div>
+
+<!-- Reusable side menu — shows selected teacher profile -->
+<app-side-menu
+  [open]="sidebarOpen"
+  (openChange)="sidebarOpen = $any($event)"
+  [width]="'420px'"
+  [position]="'right'"
+  [backdropOpacity]="0.5"
+>
+  <div slot="header">
+    <h4 *ngIf="teacherById">Teacher details</h4>
+  </div>
+
+  <div *ngIf="teacherById; else loadingBlock">
+    <div class="teacher-profile">
+      <div class="profile-row enhanced mb-4">
+        <img
+          [src]="
+            teacherById.profilePictureUrl || '/assets/images/blank-avatar.webp'
+          "
+          [alt]="
+            teacherById.firstName +
+            ' ' +
+            ('common.default_avatar_alt' | translate)
+          "
+          class="profile-avatar"
+        />
+
+        <div class="profile-meta">
+          <div class="meta-top">
+            <h4 class="profile-name">
+              {{ teacherById.firstName }} {{ teacherById.lastName }}
+            </h4>
+            <p class="role">{{ teacherById.role }}</p>
+          </div>
+
+          <div class="rating-row">
+            <img
+              src="/assets/icons/star-teacher.svg"
+              alt="star"
+              class="rating-star"
+            />
+            <div class="rating-text">
+              <span class="rating-value">{{ teacherById.averageRating }}</span>
+              <span class="review-count"
+                >&nbsp;({{ teacherById.totalStudents || 0 }} review)
+              </span>
+            </div>
+          </div>
+
+          <div class="rate-row">
+            <span class="rate-amount">${{ teacherById.hourlyRate }}</span>
+            <span class="rate-unit"
+              >/ {{ "all_teachers.per_hour" | translate }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section profile-bio" *ngIf="teacherById.bio">
+        <h5 class="section-title">{{ "all_teachers.about" | translate }}</h5>
+        <p>{{ teacherById.bio }}</p>
+      </div>
+
+      <div
+        class="profile-section specializations-section"
+        *ngIf="teacherById.specializations?.length"
+      >
+        <h5 class="section-title">
+          {{ "all_teachers.specialization" | translate }}
+        </h5>
+        <div class="specializations">
+          <span
+            class="spec-chip"
+            *ngFor="let s of teacherById.specializations"
+            >{{ s }}</span
+          >
+        </div>
+      </div>
+
+      <div
+        class="profile-section language-section"
+        *ngIf="teacherById.languages?.length"
+      >
+        <h5 class="section-title">
+          {{ "all_teachers.languages" | translate }}
+        </h5>
+        <div class="language-list">
+          <ng-container *ngFor="let lang of teacherById.languages">
+            <div class="lang-chip">
+              <div class="lang-icon" aria-hidden="true">
+                <!-- simple circle icon - replace with real icons if available -->
+                <div class="language-icon">
+                  <img src="../../../../../assets/icons/lang.svg" alt="lang" />
+                </div>
+              </div>
+              <div class="language-meta">
+                <div class="language-name">
+                  {{ lang?.language || lang }}
+                </div>
+                <!-- show level if present on object, otherwise try to infer or leave blank -->
+                <div class="language-level">{{ lang?.level || "" }}</div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="profile-section profile-bio certificate">
+        <h5 class="section-title">
+          {{ "all_teachers.certifications" | translate }}
+        </h5>
+
+        <div class="cert-grid">
+          <ng-container
+            *ngIf="teacherById.certifications?.length; else placeholderCerts"
+          >
+            <div class="cert-item" *ngFor="let c of teacherById.certifications">
+              <div class="cert-icon">
+                <img
+                  [src]="c.icon || '/assets/icons/certtificate.svg'"
+                  alt="cert"
+                />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">{{ c.title }}</div>
+                <div class="cert-sub">{{ c.institution }}</div>
+                <div class="cert-years">
+                  {{ c.from }}{{ c.to ? " - " + c.to : "" }}
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #placeholderCerts>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <img src="/assets/icons/certtificate.svg" alt="cert" />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">Certified Quran Teacher</div>
+                <div class="cert-sub">Al-Azhar University</div>
+                <div class="cert-years">2015 - 2018</div>
+              </div>
+            </div>
+
+            <div class="cert-item">
+              <div class="cert-icon">
+                <img src="/assets/icons/certtificate.svg" alt="cert" />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">Certified Quran Teacher</div>
+                <div class="cert-sub">Al-Azhar University</div>
+                <div class="cert-years">2015 - 2018</div>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button
+          class="btn btn-book"
+          type="button"
+          (click)="allowTeacher(teacherById.id)"
+        >
+          Allow Teacher
+        </button>
+        <button
+          class="btn btn-reject"
+          type="button"
+          (click)="rejectTeacher(teacherById.id)"
+        >
+          Reject Teacher
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingBlock>
+    <div class="side-loading">
+      <p>Loading teacher details...</p>
+    </div>
+  </ng-template>
+
+  <div slot="footer">
+    <small class="muted">Admin Panel - Teacher Management</small>
+  </div>
+</app-side-menu>

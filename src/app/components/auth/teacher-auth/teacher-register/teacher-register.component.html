@@ -1,0 +1,603 @@
+<section class="student-register">
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      <!-- Main Content -->
+      <div
+        class="register-content col-lg-7 col-md-7 col-12 d-flex flex-column justify-content-center p-4"
+      >
+        <!-- Header Section -->
+        <div class="header-section text-center mb-4">
+          <h1>{{ "student_register.title" | translate }}</h1>
+          <p class="subtitle-text">
+            {{ "student_register.description" | translate }}
+          </p>
+
+          <!-- Steps Progress -->
+          <div
+            class="steps-progress d-flex justify-content-center align-items-center mb-4"
+          >
+            <div
+              class="step"
+              [class.active]="currentStep === 1"
+              [class.completed]="currentStep > 1"
+            >
+              <span class="step-number">{{
+                currentStep > 1 ? "✓" : "01"
+              }}</span>
+            </div>
+            <div class="step-line" [class.completed]="currentStep > 1"></div>
+            <div class="step" [class.active]="currentStep === 2">
+              <span class="step-number">02</span>
+            </div>
+          </div>
+
+          <div class="step-labels d-flex justify-content-between">
+            <span class="step-label">{{
+              "student_register.step1_label" | translate
+            }}</span>
+            <span class="step-label">{{
+              "student_register.step2_label" | translate
+            }}</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Basic Information -->
+        <div *ngIf="currentStep === 1" class="form-container">
+          <!-- Error Message Alert -->
+          <div
+            *ngIf="errorMessage"
+            class="alert alert-danger mb-4 d-flex align-items-start"
+            role="alert"
+          >
+            <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+            <div>
+              <strong>{{ 'student_register.registration_error' | translate }}</strong>
+              <p class="mb-0 mt-1">{{ errorMessage }}</p>
+            </div>
+          </div>
+          <form [formGroup]="step1Form" class="register-form">
+            <!-- Name Row -->
+            <div class="row">
+              <!-- First Name -->
+              <div class="col-md-6">
+                <div
+                  class="form-group mb-4"
+                  [class.field-valid]="
+                    step1Form.get('firstName')?.valid &&
+                    step1Form.get('firstName')?.touched
+                  "
+                >
+                  <label class="form-label required">{{
+                    "student_register.first_name" | translate
+                  }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="firstName"
+                    [placeholder]="
+                      'student_register.first_name_placeholder' | translate
+                    "
+                    [class.is-invalid]="
+                      step1Form.get('firstName')?.invalid &&
+                      step1Form.get('firstName')?.touched
+                    "
+                    [class.is-valid]="
+                      step1Form.get('firstName')?.valid &&
+                      step1Form.get('firstName')?.touched
+                    "
+                  />
+                  <app-form-validation
+                    [control]="step1Form.get('firstName')"
+                    fieldType="text"
+                    [config]="getValidationConfig('firstName')"
+                  ></app-form-validation>
+                </div>
+              </div>
+
+              <!-- Last Name -->
+              <div class="col-md-6">
+                <div
+                  class="form-group mb-4"
+                  [class.field-valid]="
+                    step1Form.get('lastName')?.valid &&
+                    step1Form.get('lastName')?.touched
+                  "
+                >
+                  <label class="form-label required">{{
+                    "student_register.last_name" | translate
+                  }}</label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    formControlName="lastName"
+                    [placeholder]="
+                      'student_register.last_name_placeholder' | translate
+                    "
+                    [class.is-invalid]="
+                      step1Form.get('lastName')?.invalid &&
+                      step1Form.get('lastName')?.touched
+                    "
+                    [class.is-valid]="
+                      step1Form.get('lastName')?.valid &&
+                      step1Form.get('lastName')?.touched
+                    "
+                  />
+                  <app-form-validation
+                    [control]="step1Form.get('lastName')"
+                    fieldType="text"
+                    [config]="getValidationConfig('lastName')"
+                  ></app-form-validation>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div
+              class="form-group mb-4"
+              [class.field-valid]="
+                step1Form.get('email')?.valid && step1Form.get('email')?.touched
+              "
+            >
+              <label class="form-label required">{{
+                "student_register.email" | translate
+              }}</label>
+              <input
+                type="email"
+                class="form-control"
+                formControlName="email"
+                [placeholder]="'student_register.email_placeholder' | translate"
+                [class.is-invalid]="
+                  step1Form.get('email')?.invalid &&
+                  step1Form.get('email')?.touched
+                "
+                [class.is-valid]="
+                  step1Form.get('email')?.valid &&
+                  step1Form.get('email')?.touched
+                "
+              />
+              <div
+                *ngIf="
+                  step1Form.get('email')?.valid &&
+                  step1Form.get('email')?.touched
+                "
+                class="validation-feedback valid-feedback"
+              >
+                {{ "student_register.email_valid" | translate }}
+              </div>
+              <div
+                *ngIf="
+                  step1Form.get('email')?.invalid &&
+                  step1Form.get('email')?.touched
+                "
+                class="invalid-feedback"
+              >
+                <small *ngIf="step1Form.get('email')?.errors?.['required']">
+                  {{ "student_register.email_required" | translate }}
+                </small>
+                <small *ngIf="step1Form.get('email')?.errors?.['email']">
+                  {{ "student_register.email_invalid" | translate }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div
+              class="form-group mb-4"
+              [class.field-valid]="
+                step1Form.get('password')?.valid &&
+                step1Form.get('password')?.touched
+              "
+            >
+              <label class="form-label required">{{
+                "student_register.password" | translate
+              }}</label>
+              <div class="password-input-group">
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-control"
+                  formControlName="password"
+                  autocomplete="new-password"
+                  [placeholder]="
+                    'student_register.password_placeholder' | translate
+                  "
+                  [class.is-invalid]="
+                    step1Form.get('password')?.invalid &&
+                    step1Form.get('password')?.touched
+                  "
+                  [class.is-valid]="
+                    step1Form.get('password')?.valid &&
+                    step1Form.get('password')?.touched
+                  "
+                />
+                <button
+                  type="button"
+                  class="btn password-toggle"
+                  (click)="togglePasswordVisibility()"
+                >
+                  <i
+                    class="fas"
+                    [class.fa-eye]="!showPassword"
+                    [class.fa-eye-slash]="showPassword"
+                  ></i>
+                </button>
+              </div>
+
+              <!-- Password Requirements -->
+              <div
+                class="password-requirements mt-2"
+                *ngIf="step1Form.get('password')?.touched"
+              >
+                <small
+                  class="requirement-item"
+                  [class.valid]="step1Form.get('password')?.value?.length >= 8"
+                  [class.invalid]="
+                    step1Form.get('password')?.value?.length < 8 &&
+                    step1Form.get('password')?.value?.length > 0
+                  "
+                >
+                  <i
+                    class="fas fa-check"
+                    *ngIf="step1Form.get('password')?.value?.length >= 8"
+                  ></i>
+                  <i
+                    class="fas fa-times"
+                    *ngIf="
+                      step1Form.get('password')?.value?.length < 8 &&
+                      step1Form.get('password')?.value?.length > 0
+                    "
+                  ></i>
+                  8-20 {{ "student_register.character" | translate }}
+                </small>
+                <small
+                  class="requirement-item"
+                  [class.valid]="hasUpperCase(step1Form.get('password')?.value)"
+                  [class.invalid]="
+                    !hasUpperCase(step1Form.get('password')?.value) &&
+                    step1Form.get('password')?.value?.length > 0
+                  "
+                >
+                  <i
+                    class="fas fa-check"
+                    *ngIf="hasUpperCase(step1Form.get('password')?.value)"
+                  ></i>
+                  <i
+                    class="fas fa-times"
+                    *ngIf="
+                      !hasUpperCase(step1Form.get('password')?.value) &&
+                      step1Form.get('password')?.value?.length > 0
+                    "
+                  ></i>
+                  {{
+                    "student_register.at_least_one_capital_letter" | translate
+                  }}
+                </small>
+                <small
+                  class="requirement-item"
+                  [class.valid]="hasNumber(step1Form.get('password')?.value)"
+                  [class.invalid]="
+                    !hasNumber(step1Form.get('password')?.value) &&
+                    step1Form.get('password')?.value?.length > 0
+                  "
+                >
+                  <i
+                    class="fas fa-check"
+                    *ngIf="hasNumber(step1Form.get('password')?.value)"
+                  ></i>
+                  <i
+                    class="fas fa-times"
+                    *ngIf="
+                      !hasNumber(step1Form.get('password')?.value) &&
+                      step1Form.get('password')?.value?.length > 0
+                    "
+                  ></i>
+                  {{ "student_register.at_least_one_number" | translate }}
+                </small>
+                <small
+                  class="requirement-item"
+                  [class.valid]="!hasSpaces(step1Form.get('password')?.value)"
+                  [class.invalid]="hasSpaces(step1Form.get('password')?.value)"
+                >
+                  <i
+                    class="fas fa-check"
+                    *ngIf="!hasSpaces(step1Form.get('password')?.value)"
+                  ></i>
+                  <i
+                    class="fas fa-times"
+                    *ngIf="hasSpaces(step1Form.get('password')?.value)"
+                  ></i>
+                  {{ "student_register.no_spaces" | translate }}
+                </small>
+              </div>
+
+              <div
+                *ngIf="
+                  step1Form.get('password')?.invalid &&
+                  step1Form.get('password')?.touched
+                "
+                class="invalid-feedback"
+              >
+                <small *ngIf="step1Form.get('password')?.errors?.['required']">
+                  {{ "student_register.password_required" | translate }}
+                </small>
+                <small *ngIf="step1Form.get('password')?.errors?.['minlength']">
+                  {{ "student_register.password_minlength" | translate }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div
+              class="form-group mb-4"
+              [class.field-valid]="
+                step1Form.get('confirmPassword')?.valid &&
+                step1Form.get('confirmPassword')?.touched
+              "
+            >
+              <label class="form-label required">{{
+                "student_register.confirm_password" | translate
+              }}</label>
+              <div class="password-input-group">
+                <input
+                  [type]="showConfirmPassword ? 'text' : 'password'"
+                  class="form-control"
+                  formControlName="confirmPassword"
+                  [placeholder]="
+                    'student_register.confirm_password_placeholder' | translate
+                  "
+                  [class.is-invalid]="
+                    step1Form.get('confirmPassword')?.invalid &&
+                    step1Form.get('confirmPassword')?.touched
+                  "
+                  [class.is-valid]="
+                    step1Form.get('confirmPassword')?.valid &&
+                    step1Form.get('confirmPassword')?.touched
+                  "
+                />
+                <button
+                  type="button"
+                  class="btn password-toggle"
+                  (click)="toggleConfirmPasswordVisibility()"
+                >
+                  <i
+                    class="fas"
+                    [class.fa-eye]="!showConfirmPassword"
+                    [class.fa-eye-slash]="showConfirmPassword"
+                  ></i>
+                </button>
+              </div>
+
+              <!-- Password Match Indicator -->
+              <div
+                *ngIf="
+                  step1Form.get('confirmPassword')?.valid &&
+                  step1Form.get('confirmPassword')?.touched
+                "
+                class="validation-feedback valid-feedback"
+              >
+                {{ "student_register.password_match" | translate }}
+              </div>
+
+              <div
+                *ngIf="
+                  step1Form.get('confirmPassword')?.invalid &&
+                  step1Form.get('confirmPassword')?.touched
+                "
+                class="invalid-feedback"
+              >
+                <small
+                  *ngIf="step1Form.get('confirmPassword')?.errors?.['required']"
+                >
+                  {{ "student_register.confirm_password_required" | translate }}
+                </small>
+                <small
+                  *ngIf="step1Form.get('confirmPassword')?.errors?.['passwordMismatch']"
+                >
+                  {{ "student_register.password_mismatch" | translate }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Phone Number -->
+            <div
+              class="form-group mb-4"
+              [class.field-valid]="
+                step1Form.get('phoneNumber')?.valid &&
+                step1Form.get('phoneNumber')?.touched
+              "
+            >
+              <label class="form-label required">{{
+                "student_register.phone" | translate
+              }}</label>
+              <input
+                type="tel"
+                class="form-control"
+                formControlName="phoneNumber"
+                [placeholder]="'student_register.phone_placeholder' | translate"
+                [class.is-invalid]="
+                  step1Form.get('phoneNumber')?.invalid &&
+                  step1Form.get('phoneNumber')?.touched
+                "
+                [class.is-valid]="
+                  step1Form.get('phoneNumber')?.valid &&
+                  step1Form.get('phoneNumber')?.touched
+                "
+              />
+              <div
+                *ngIf="
+                  step1Form.get('phoneNumber')?.invalid &&
+                  step1Form.get('phoneNumber')?.touched
+                "
+                class="invalid-feedback"
+              >
+                <small
+                  *ngIf="step1Form.get('phoneNumber')?.errors?.['required']"
+                  >{{ "student_register.phone_required" | translate }}</small
+                >
+                <small
+                  *ngIf="step1Form.get('phoneNumber')?.errors?.['pattern']"
+                  >{{
+                    "student_register.phone_invalid_format" | translate
+                  }}</small
+                >
+              </div>
+              <div
+                *ngIf="
+                  step1Form.get('phoneNumber')?.valid &&
+                  step1Form.get('phoneNumber')?.touched
+                "
+                class="validation-feedback valid-feedback"
+              >
+                {{ "student_register.phone_valid" | translate }}
+              </div>
+            </div>
+            <!-- Continue Button -->
+            <button
+              type="button"
+              class="btn btn-primary w-100 continue-btn"
+              (click)="goToStep2()"
+              [disabled]="!isStep1Valid()"
+              [class.btn-loading]="step1Form.pending"
+            >
+              <span *ngIf="!step1Form.pending">
+                {{ "student_register.continue" | translate }}
+                <i class="fas fa-arrow-right ms-2"></i>
+              </span>
+              <span
+                *ngIf="step1Form.pending"
+                class="d-flex align-items-center justify-content-center"
+              >
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                {{ "student_register.validating" | translate }}
+              </span>
+            </button>
+
+            <!-- Form Progress Info -->
+            <div class="form-progress-info mt-3 text-center">
+              <small class="text-muted">
+                {{ "student_register.step_info" | translate }}:
+                <span class="fw-bold text-primary"
+                  >1 {{ "student_register.of" | translate }} 2</span
+                >
+              </small>
+            </div>
+          </form>
+        </div>
+
+        <!-- Step 2: Additional Information -->
+        <div *ngIf="currentStep === 2" class="form-container">
+          <!-- Error Message Alert -->
+          <div
+            *ngIf="errorMessage"
+            class="alert alert-danger mb-4"
+            role="alert"
+          >
+            <i class="fas fa-exclamation-circle me-2"></i>
+            {{ errorMessage }}
+          </div>
+
+          <form [formGroup]="step2Form" class="register-form">
+            <!-- Profile Picture -->
+            <div class="form-group mb-4">
+              <label class="form-label">{{
+                "student_register.profile_picture" | translate
+              }}</label>
+              <div class="file-upload-container">
+                <div
+                  class="file-upload-area"
+                  (click)="fileInput.click()"
+                  [class.has-file]="selectedFile"
+                >
+                  <div *ngIf="!selectedFile" class="upload-placeholder">
+                    <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                    <p class="upload-text">
+                      {{ "student_register.upload_picture" | translate }}
+                    </p>
+                    <small class="upload-hint">{{
+                      "student_register.upload_hint" | translate
+                    }}</small>
+                  </div>
+                  <div *ngIf="selectedFile" class="uploaded-file">
+                    <img
+                      [src]="previewUrl"
+                      class="preview-image"
+                      alt="Preview"
+                    />
+                    <p class="file-name">{{ selectedFile.name }}</p>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeFile($event)"
+                    >
+                      {{ "student_register.remove_picture" | translate }}
+                    </button>
+                  </div>
+                </div>
+                <input
+                  #fileInput
+                  type="file"
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  style="display: none"
+                />
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions d-flex gap-3">
+              <button
+                type="button"
+                class="btn btn-outline-secondary flex-fill back-btn"
+                (click)="goToStep1()"
+                [disabled]="isSubmitting || uploadingFile"
+              >
+                <i class="fas fa-arrow-left me-2"></i>
+                {{ "student_register.back" | translate }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary flex-fill submit-btn"
+                (click)="onSubmit()"
+                [disabled]="!isStep1Valid() || !isStep2Valid() || isSubmitting || uploadingFile"
+              >
+                <span *ngIf="!isSubmitting && !uploadingFile">
+                  {{ "student_register.register" | translate }}
+                  <i class="fas fa-check ms-2"></i>
+                </span>
+                <span
+                  *ngIf="isSubmitting || uploadingFile"
+                  class="d-flex align-items-center justify-content-center"
+                >
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  {{ uploadingFile ? ("student_register.uploading" | translate) : ("student_register.submitting" | translate) }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Form Progress Info -->
+            <div class="form-progress-info mt-3 text-center">
+              <small class="text-muted">
+                {{ "student_register.step_info" | translate }}:
+                <span class="fw-bold text-primary"
+                  >2 {{ "student_register.of" | translate }} 2</span
+                >
+              </small>
+            </div>
+          </form>
+        </div>
+
+        <div class="login-link text-center mt-4">
+          <p class="mb-0">
+            {{ "student_register.have_account" | translate }}
+            <a routerLink="/login" class="login-link-text">{{
+              "student_register.login_here" | translate
+            }}</a>
+          </p>
+        </div>
+      </div>
+      <!-- Side Image -->
+      <div class="col-lg-5 col-md-5 d-none d-md-block">
+        <app-side-image></app-side-image>
+      </div>
+    </div>
+  </div>
+</section>

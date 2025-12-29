@@ -1,0 +1,125 @@
+.all-user-wrapper {
+  /* Scope styles so they only affect the show-users instance inside this wrapper */
+  /* hide only the default Book/View buttons; keep the actionButtons visible */
+  /* Show the injected actionButtons as a compact switch: the child renders a button
+  	 inside .buttons-group; because we hid .buttons-group above, we create our own
+  	 lightweight switch that listens to the same action by letting the button still
+  	 exist but visually move it into the card-right area using absolute positioning.
+  	 However, to keep things simple and resilient across child changes we'll target
+  	 the generated button inside the teacher-card via the actionButtons label.
+  */
+  /* make the teacher-card relative so we can absolutely position our switch */
+  /* style the toggle in the card-right area - kept out to avoid empty rules */
+  /* Style the actionButtons (rendered as .btn) as a compact switch */
+  /* knob */
+  /* When a user is approved, tint the switch and move knob to the right */
+  /* Add a textual label next to the switch button showing Active/Inactive */
+  /* default label for inactive */
+  /* label when approved/active */
+  /* allow dynamic status pills in the show-users instance to use --pill-color */
+  /* if no custom color provided, make pending/rejected/approved have defaults */
+  /* loading spinner shown while toggle is in progress
+     show-users maps statusKey 'loading' -> class 'status-loading' on the card
+  */
+}
+.all-user-wrapper ::ng-deep .show-users .status-badge,
+.all-user-wrapper ::ng-deep .show-users .status-wrap {
+  display: none !important; /* hide the status label for this usage only */
+}
+.all-user-wrapper ::ng-deep .show-users .btn-book,
+.all-user-wrapper ::ng-deep .show-users .btn-view {
+  display: none !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card {
+  position: relative;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card .buttons-group > .btn {
+  min-width: 44px !important;
+  height: 28px !important;
+  padding: 0 6px !important;
+  border-radius: 14px !important;
+  background: #e6e6e6 !important;
+  color: #222 !important;
+  font-size: 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: none !important;
+  position: relative !important;
+  overflow: hidden !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card .buttons-group > .btn::after {
+  content: "" !important;
+  position: absolute !important;
+  top: 3px !important;
+  left: 3px !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  transition: left 180ms ease !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12) !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card.status-approved .buttons-group > .btn {
+  background: #0b8043 !important;
+  color: #fff !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card.status-approved .buttons-group > .btn::after {
+  left: calc(100% - 25px) !important; /* position knob to right */
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card .buttons-group {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  white-space: nowrap !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card .buttons-group::after {
+  content: "Inactive" !important;
+  font-size: 13px !important;
+  color: #666 !important;
+  margin-left: 4px !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card.status-approved .buttons-group::after {
+  content: "Active" !important;
+  color: #0b8043 !important;
+}
+.all-user-wrapper ::ng-deep .show-users .status-option .pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 6px 12px !important;
+  border-radius: 999px !important;
+  background: var(--pill-color, #eee) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+}
+.all-user-wrapper ::ng-deep .show-users .status-option.status-pending .pill {
+  background: #f0ad4e !important;
+}
+.all-user-wrapper ::ng-deep .show-users .status-option.status-approved .pill {
+  background: #0b8043 !important;
+}
+.all-user-wrapper ::ng-deep .show-users .status-option.status-rejected .pill {
+  background: #c30000 !important;
+}
+.all-user-wrapper ::ng-deep .show-users .teacher-card.status-loading .buttons-group > .btn::before {
+  content: "" !important;
+  display: inline-block !important;
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 50% !important;
+  border: 2px solid rgba(255, 255, 255, 0.6) !important;
+  border-top-color: rgba(0, 0, 0, 0.2) !important;
+  margin-right: 6px !important;
+  box-sizing: border-box !important;
+  animation: __au_spin 800ms linear infinite !important;
+}
+@keyframes __au_spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}/*# sourceMappingURL=all-user.component.css.map */

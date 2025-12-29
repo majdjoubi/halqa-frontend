@@ -1,0 +1,550 @@
+<section class="all-teachers">
+  <!-- Unified modal for success/error -->
+  <div class="popup-overlay" *ngIf="showModal" (click)="closeModal()">
+    <div
+      class="popup-container"
+      [ngClass]="modalType"
+      (click)="$event.stopPropagation()"
+    >
+      <div class="popup-header">
+        <button class="popup-close" (click)="closeModal()" type="button">
+          &times;
+        </button>
+      </div>
+      <div class="popup-body">
+        <h3 class="popup-title">
+          {{
+            modalType === "success"
+              ? ("common.success" | translate)
+              : ("common.error" | translate)
+          }}
+        </h3>
+        <p class="popup-message">{{ modalMessage }}</p>
+      </div>
+      <div class="popup-footer">
+        <button
+          *ngIf="isInsufficientBalance"
+          class="btn btn-primary me-2"
+          (click)="goToWalletTopUp()"
+          type="button"
+        >
+          {{ "booking.top_up_wallet" | translate }}
+        </button>
+        <button
+          class="btn"
+          [ngClass]="modalType === 'success' ? 'btn-success' : 'btn-error'"
+          (click)="closeModal()"
+          type="button"
+        >
+          {{ "common.ok" | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 col-md-12 mb-4">
+        <h5>{{ "all_teachers.title" | translate }} ({{ AllTeacherCount }})</h5>
+        <div class="teacher-filter mt-4">
+          <div class="filter-row">
+            <div class="filter-item search-item">
+              <label class="visually-hidden" for="teacherSearch">Search</label>
+              <div class="search-input">
+                <input
+                  id="teacherSearch"
+                  type="text"
+                  [placeholder]="'all_teachers.search_placeholder' | translate"
+                  [(ngModel)]="searchText"
+                  (ngModelChange)="onSearchChange()"
+                />
+                <button type="button" class="search-icon" aria-label="Search">
+                  <img src="/assets/icons/search-icon.svg" alt="search" />
+                </button>
+              </div>
+            </div>
+
+            <div class="filter-item">
+              <label for="courseDropdown" class="visually-hidden"
+                >Courses</label
+              >
+              <div
+                class="select-wrapper custom-dropdown"
+                [class.open]="coursesOpen"
+                (click)="toggleCourses($event)"
+                (keydown)="onCourseKeydown($event)"
+                tabindex="0"
+                role="button"
+                aria-haspopup="listbox"
+                [attr.aria-expanded]="coursesOpen"
+              >
+                <div class="selected-value">
+                  {{ getCourseLabel$() | async }}
+                </div>
+                <span class="arrow" aria-hidden="true">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6 9l6 6 6-6"
+                      stroke="#333"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </span>
+
+                <ul class="options" role="listbox" *ngIf="coursesOpen">
+                  <li
+                    role="option"
+                    [class.selected]="selectedCourse === ''"
+                    (click)="selectCourse('', $event)"
+                  >
+                    {{ "all_teachers.all_courses" | translate }}
+                  </li>
+                  <ng-container *ngIf="coursesLoading">
+                    <li class="loading">{{ "common.loading" | translate }}</li>
+                  </ng-container>
+                  <ng-container *ngIf="!coursesLoading">
+                    <li
+                      *ngIf="!courses || courses.length === 0"
+                      class="no-courses"
+                    >
+                      {{ "all_teachers.no_courses" | translate }}
+                    </li>
+                    <li
+                      *ngFor="let c of courses"
+                      role="option"
+                      [class.selected]="selectedCourse === c.value"
+                      (click)="selectCourse(c.value, $event)"
+                    >
+                      {{ c.label || c.name || c | translate }}
+                    </li>
+                  </ng-container>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="teacher-cards mt-4">
+          <div class="teacher-cards-grid">
+            <div class="teacher-card" *ngFor="let t of allTeachers">
+              <div class="teacher-left">
+                <div class="avatar-wrap">
+                  <img
+                    [src]="
+                      t.profilePictureUrl
+                        ? t.profilePictureUrl
+                        : '../../../../assets/images/blank-avatar.webp'
+                    "
+                    [alt]="
+                      t.name + ' ' + ('common.default_avatar_alt' | translate)
+                    "
+                  />
+                </div>
+              </div>
+
+              <div class="teacher-center">
+                <div class="teacher-name-row">
+                  <h5 class="name">{{ t.firstName }}</h5>
+                  <p class="role">{{ t.role }}</p>
+
+                  <!-- Specializations: render array returned from API as chips -->
+                  <div
+                    class="specializations"
+                    *ngIf="t.specializations?.length"
+                  >
+                    <span
+                      class="spec-chip"
+                      *ngFor="let s of t.specializations; let i = index"
+                      [attr.aria-label]="'specialization-' + i"
+                    >
+                      {{ s }}
+                    </span>
+                  </div>
+                  <!-- /Specializations -->
+                </div>
+
+                <div class="teacher-meta">
+                  <div class="students">
+                    {{ t.totalStudents }}
+                    <span>{{ "all_teachers.students" | translate }}</span>
+                  </div>
+                  <div class="rating-badge mt-3">
+                    <span class="rating-value">{{ t.averageRating }}</span>
+                    <img
+                      src="../../../../assets/icons/star-teacher.svg"
+                      alt="star"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="teacher-right">
+                <div class="hourly-rate">
+                  ${{ t.hourlyRate }}
+                  <span>/{{ "all_teachers.per_hour" | translate }}</span>
+                </div>
+                <div class="buttons-group">
+                  <button
+                    class="btn btn-book"
+                    type="button"
+                    aria-label="Book"
+                    (click)="bookTeacher(t.id)"
+                  >
+                    <span class="btn-label">{{
+                      "all_teachers.book" | translate
+                    }}</span>
+                    <span
+                      *ngIf="loadingBookId === t.id"
+                      class="btn-spinner"
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+                  <button
+                    (click)="viewTeacherProfile(t.id)"
+                    class="btn btn-view"
+                    type="button"
+                    aria-label="View"
+                    [disabled]="loadingViewId === t.id"
+                  >
+                    <span class="btn-label">{{
+                      "all_teachers.view" | translate
+                    }}</span>
+                    <span
+                      *ngIf="loadingViewId === t.id"
+                      class="btn-spinner"
+                      aria-hidden="true"
+                    ></span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Pagination controls -->
+        <div class="pagination-wrap mt-4">
+          <div class="pagination-inner container-sm">
+            <nav class="pager" aria-label="Teachers pagination">
+              <button
+                class="pager-btn"
+                type="button"
+                (click)="prevPage()"
+                [disabled]="currentpage === 1 || loading"
+                aria-label="Previous page"
+              >
+                &laquo;
+              </button>
+
+              <ng-container *ngFor="let p of displayPages">
+                <ng-container *ngIf="p === '...'">
+                  <span class="dots">&hellip;</span>
+                </ng-container>
+                <ng-container *ngIf="p !== '...'">
+                  <button
+                    class="pager-btn"
+                    type="button"
+                    (click)="goToPage(+p)"
+                    [class.active]="currentpage === +p"
+                    [disabled]="loading"
+                  >
+                    {{ p }}
+                  </button>
+                </ng-container>
+              </ng-container>
+
+              <button
+                class="pager-btn"
+                type="button"
+                (click)="nextPage()"
+                [disabled]="currentpage === totalPages || loading"
+                aria-label="Next page"
+              >
+                &raquo;
+              </button>
+            </nav>
+
+            <div class="pagination-info">
+              <span *ngIf="!loading"
+                >{{ rangeStart }} - {{ rangeEnd }}
+                {{ "all_teachers.of" | translate }} {{ AllTeacherCount }}</span
+              >
+              <span *ngIf="loading">{{
+                "all_teachers.loading" | translate
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Reusable side menu — shows selected teacher profile -->
+<app-side-menu
+  [open]="sidebarOpen"
+  (openChange)="sidebarOpen = $any($event)"
+  [width]="'420px'"
+  [position]="'right'"
+  [backdropOpacity]="0.5"
+>
+  <div slot="header">
+    <h4 *ngIf="teacherById">Teacher details</h4>
+  </div>
+
+  <div *ngIf="teacherById; else loadingBlock">
+    <div class="teacher-profile">
+      <div class="profile-row enhanced mb-4">
+        <img
+          [src]="
+            teacherById.profilePictureUrl || '/assets/images/blank-avatar.webp'
+          "
+          [alt]="
+            teacherById.firstName +
+            ' ' +
+            ('common.default_avatar_alt' | translate)
+          "
+          class="profile-avatar"
+        />
+
+        <div class="profile-meta">
+          <div class="meta-top">
+            <h4 class="profile-name">
+              {{ teacherById.firstName }} {{ teacherById.lastName }}
+            </h4>
+            <p class="role">{{ teacherById.role }}</p>
+          </div>
+
+          <div class="rating-row">
+            <img
+              src="/assets/icons/star-teacher.svg"
+              alt="star"
+              class="rating-star"
+            />
+            <div class="rating-text">
+              <span class="rating-value">{{ teacherById.averageRating }}</span>
+              <span class="review-count"
+                >&nbsp;({{ teacherById.totalStudents || 0 }} review)
+              </span>
+            </div>
+          </div>
+
+          <div class="rate-row">
+            <span class="rate-amount">${{ teacherById.hourlyRate }}</span>
+            <span class="rate-unit"
+              >/ {{ "all_teachers.per_hour" | translate }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-section profile-bio" *ngIf="teacherById.bio">
+        <h5 class="section-title">{{ "all_teachers.about" | translate }}</h5>
+        <p>{{ teacherById.bio }}</p>
+      </div>
+
+      <div
+        class="profile-section specializations-section"
+        *ngIf="teacherById.specializations?.length"
+      >
+        <h5 class="section-title">
+          {{ "all_teachers.specialization" | translate }}
+        </h5>
+        <div class="specializations">
+          <span
+            class="spec-chip"
+            *ngFor="let s of teacherById.specializations"
+            >{{ s }}</span
+          >
+        </div>
+      </div>
+
+      <div
+        class="profile-section language-section"
+        *ngIf="teacherById.languages?.length"
+      >
+        <h5 class="section-title">
+          {{ "all_teachers.languages" | translate }}
+        </h5>
+        <div class="language-list">
+          <ng-container *ngFor="let lang of teacherById.languages">
+            <div class="lang-chip">
+              <div class="lang-icon" aria-hidden="true">
+                <!-- simple circle icon - replace with real icons if available -->
+                <div class="language-icon">
+                  <img src="../../../../../assets/icons/lang.svg" alt="lang" />
+                </div>
+              </div>
+              <div class="language-meta">
+                <div class="language-name">
+                  {{ lang?.language || lang }}
+                </div>
+                <!-- show level if present on object, otherwise try to infer or leave blank -->
+                <div class="language-level">{{ lang?.level || "" }}</div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <div class="profile-section profile-bio certificate">
+        <h5 class="section-title">
+          {{ "all_teachers.certifications" | translate }}
+        </h5>
+
+        <div class="cert-grid">
+          <ng-container
+            *ngIf="teacherById.certifications?.length; else placeholderCerts"
+          >
+            <div class="cert-item" *ngFor="let c of teacherById.certifications">
+              <div class="cert-icon">
+                <img
+                  [src]="c.icon || '/assets/icons/certtificate.svg'"
+                  alt="cert"
+                />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">{{ c.title }}</div>
+                <div class="cert-sub">{{ c.institution }}</div>
+                <div class="cert-years">
+                  {{ c.from }}{{ c.to ? " - " + c.to : "" }}
+                </div>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-template #placeholderCerts>
+            <div class="cert-item">
+              <div class="cert-icon">
+                <img src="/assets/icons/certtificate.svg" alt="cert" />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">Certified Quran Teacher</div>
+                <div class="cert-sub">Al-Azhar University</div>
+                <div class="cert-years">2015 - 2018</div>
+              </div>
+            </div>
+
+            <div class="cert-item">
+              <div class="cert-icon">
+                <img src="/assets/icons/certtificate.svg" alt="cert" />
+              </div>
+              <div class="cert-meta">
+                <div class="cert-title">Certified Quran Teacher</div>
+                <div class="cert-sub">Al-Azhar University</div>
+                <div class="cert-years">2015 - 2018</div>
+              </div>
+            </div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="profile-actions">
+        <button
+          class="btn btn-book"
+          type="button"
+          (click)="bookTeacher(teacherById.id)"
+        >
+          {{ "all_teachers.book" | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingBlock>
+    <div class="side-loading">
+      <p>{{ "all_teachers.loading" | translate }}</p>
+    </div>
+  </ng-template>
+
+  <div slot="footer">
+    <small class="muted">{{ "all_teachers.footer_note" | translate }}</small>
+  </div>
+</app-side-menu>
+
+<!-- Dedicated booking side menu (separate from the view/profile side-menu) -->
+<app-side-menu
+  [open]="bookingSidebarOpen"
+  (openChange)="bookingSidebarOpen = $any($event)"
+  [width]="'420px'"
+  [position]="'right'"
+  [backdropOpacity]="0.5"
+>
+  <div slot="header">
+    <h4 *ngIf="bookingTeacher">
+      {{ "all_teachers.book_with" | translate }} {{ bookingTeacher.firstName }}
+    </h4>
+    <h4 *ngIf="!bookingTeacher">{{ "all_teachers.book" | translate }}</h4>
+  </div>
+
+  <div *ngIf="bookingTeacher; else bookingLoading">
+    <div class="availability-simple">
+      <p
+        *ngIf="
+          !bookingTeacher.availability ||
+          bookingTeacher.availability.length === 0
+        "
+        class="no-availability"
+      >
+        {{ "all_teachers.no_availability" | translate }}
+      </p>
+
+      <!-- Grouped by day view -->
+      <div class="day-groups" *ngIf="groupedAvailability.length > 0">
+        <div class="day-group" *ngFor="let group of groupedAvailability">
+          <div class="day-header">
+            <span class="day-name">{{ group.day }}</span>
+            <span class="day-date" *ngIf="group.date">({{ group.date }})</span>
+          </div>
+          <div class="time-slots">
+            <button
+              type="button"
+              class="time-slot"
+              *ngFor="let slot of group.slots"
+              [class.disabled]="!slot.isAvailable"
+              [class.selected]="selectedSlotIndex === getSlotOriginalIndex(slot)"
+              [disabled]="!slot.isAvailable"
+              (click)="selectSlot(getSlotOriginalIndex(slot))"
+            >
+              <span class="slot-time">{{ slot.startTime }} - {{ slot.endTime }}</span>
+              <span class="slot-price" *ngIf="slot.price">${{ slot.price }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="booking-actions mt-3" *ngIf="groupedAvailability.length > 0">
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="selectedSlotIndex === null || payProcessing"
+          (click)="payNow()"
+        >
+          <span *ngIf="!payProcessing">{{
+            "all_teachers.pay_now" | translate
+          }}</span>
+          <span
+            *ngIf="payProcessing"
+            class="btn-spinner"
+            aria-hidden="true"
+          ></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #bookingLoading>
+    <div class="side-loading">
+      <p>{{ "all_teachers.loading" | translate }}</p>
+    </div>
+  </ng-template>
+
+  <div slot="footer">
+    <small class="muted">{{ "all_teachers.booking_footer" | translate }}</small>
+  </div>
+</app-side-menu>

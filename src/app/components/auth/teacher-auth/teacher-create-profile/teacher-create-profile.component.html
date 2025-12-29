@@ -1,0 +1,550 @@
+<section class="teacher-create-profile">
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      <!-- Main Content -->
+      <div
+        class="col-lg-7 col-md-8 col-12 d-flex flex-column justify-content-center p-4"
+      >
+        <!-- Header Section -->
+        <div class="header-section text-center mb-5">
+          <h1 class="page-title">
+            {{ "teacher_create_profile.title" | translate }}
+          </h1>
+          <p class="page-subtitle">
+            {{ "teacher_create_profile.subtitle" | translate }}
+          </p>
+        </div>
+
+        <!-- Profile Form -->
+        <div class="form-container">
+          <form
+            [formGroup]="profileForm"
+            (ngSubmit)="onSubmit()"
+            class="profile-form"
+          >
+            <!-- Profile Picture Section -->
+            <div class="form-section">
+              <div class="form-group">
+                <label class="form-label">{{
+                  "teacher_create_profile.profile_picture" | translate
+                }}</label>
+                <div class="profile-picture-container">
+                  <div
+                    class="profile-picture-upload"
+                    (click)="fileInput.click()"
+                    [class.has-image]="previewUrl"
+                  >
+                    <!-- Default Avatar -->
+                    <div *ngIf="!previewUrl" class="upload-placeholder">
+                      <img
+                        src="assets/images/person-icon.svg"
+                        [alt]="
+                          'teacher_create_profile.default_avatar_alt'
+                            | translate
+                        "
+                        class="default-avatar w-50"
+                      />
+                    </div>
+
+                    <!-- Preview Image -->
+                    <div *ngIf="previewUrl" class="uploaded-image">
+                      <img
+                        [src]="previewUrl"
+                        alt="Profile Preview"
+                        class="profile-preview"
+                      />
+                      <div class="image-overlay">
+                        <i class="fas fa-edit"></i>
+                        <span>{{
+                          "teacher_create_profile.change_picture" | translate
+                        }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <input
+                    #fileInput
+                    type="file"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                    style="display: none"
+                  />
+
+                  <button
+                    *ngIf="previewUrl"
+                    type="button"
+                    class="btn btn-sm btn-outline-danger remove-btn"
+                    (click)="removeImage($event)"
+                  >
+                    <i class="fas fa-trash-alt me-1"></i>
+                    {{ "teacher_create_profile.remove_picture" | translate }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Basic Information Section -->
+            <div class="form-section">
+              <h3 class="section-title">
+                {{ "teacher_create_profile.basic_info" | translate }}
+              </h3>
+
+              <div class="row g-3">
+                <!-- Years of Experience -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label required">{{
+                      "teacher_create_profile.years_experience" | translate
+                    }}</label>
+                    <input
+                      type="number"
+                      class="form-control"
+                      formControlName="yearsOfExperience"
+                      min="0"
+                      max="50"
+                      placeholder="{{
+                        'teacher_create_profile.years_experience_placeholder'
+                          | translate
+                      }}"
+                      [class.is-invalid]="isFieldInvalid('yearsOfExperience')"
+                      [class.is-valid]="isFieldValid('yearsOfExperience')"
+                    />
+
+                    <div
+                      *ngIf="isFieldInvalid('yearsOfExperience')"
+                      class="invalid-feedback"
+                    >
+                      {{ getFieldError("yearsOfExperience") | translate }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hourly Rate -->
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label class="form-label required">{{
+                      "teacher_create_profile.hourly_rate" | translate
+                    }}</label>
+                    <div class="input-group">
+                      <input
+                        type="number"
+                        class="form-control"
+                        formControlName="hourlyRate"
+                        min="5"
+                        step="0.5"
+                        placeholder="{{
+                          'teacher_create_profile.hourly_rate_placeholder'
+                            | translate
+                        }}"
+                        [class.is-invalid]="isFieldInvalid('hourlyRate')"
+                        [class.is-valid]="isFieldValid('hourlyRate')"
+                      />
+                    </div>
+
+                    <div
+                      *ngIf="isFieldInvalid('hourlyRate')"
+                      class="invalid-feedback"
+                    >
+                      {{ getFieldError("hourlyRate") | translate }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Teaching Languages Section -->
+            <div class="form-section">
+              <h3 class="section-title">
+                {{ "teacher_create_profile.teaching_languages" | translate }}
+              </h3>
+
+              <div class="languages-grid">
+                <div
+                  *ngFor="let language of availableLanguages"
+                  class="language-option"
+                  [class.selected]="isLanguageSelected(language.value)"
+                  (click)="toggleLanguage(language.value)"
+                >
+                  <div class="language-content">
+                    <div class="language-flag">{{ language.flag }}</div>
+                    <div class="language-info">
+                      <h4 class="language-name">
+                        {{ language.name | translate }}
+                      </h4>
+                      <p class="language-native">{{ language.nativeName }}</p>
+                    </div>
+                    <div class="selection-indicator">
+                      <i
+                        class="fas fa-check"
+                        *ngIf="isLanguageSelected(language.value)"
+                      ></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                *ngIf="
+                  profileForm.get('languages')?.invalid &&
+                  profileForm.get('languages')?.touched
+                "
+                class="invalid-feedback d-block mt-2"
+              >
+                {{
+                  "teacher_create_profile.validation.languages_required"
+                    | translate
+                }}
+              </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div class="form-section">
+              <div class="form-group">
+                <label class="form-label required">{{
+                  "teacher_create_profile.bio" | translate
+                }}</label>
+                <textarea
+                  class="form-control bio-textarea"
+                  formControlName="bio"
+                  rows="5"
+                  maxlength="500"
+                  placeholder="{{
+                    'teacher_create_profile.bio_placeholder' | translate
+                  }}"
+                  [class.is-invalid]="isFieldInvalid('bio')"
+                  [class.is-valid]="isFieldValid('bio')"
+                ></textarea>
+
+                <div class="character-count">
+                  <small class="text-muted">
+                    {{ getBioLength() }}/500
+                    {{ "teacher_create_profile.characters" | translate }}
+                  </small>
+                </div>
+
+                <div *ngIf="isFieldInvalid('bio')" class="invalid-feedback">
+                  {{ getFieldError("bio") | translate }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Specializations Section -->
+            <div class="form-section">
+              <h3 class="section-title">
+                {{ "teacher_create_profile.specializations" | translate }}
+              </h3>
+
+              <div class="specializations-grid">
+                <div
+                  *ngFor="let spec of availableSpecializations"
+                  class="specialization-card"
+                  [class.selected]="isSpecializationSelected(spec.value)"
+                  (click)="toggleSpecialization(spec.value)"
+                >
+                  <div class="spec-icon">
+                    <i [class]="spec.icon"></i>
+                  </div>
+                  <h4 class="spec-title">{{ spec.label | translate }}</h4>
+                  <p class="spec-description">
+                    {{ spec.description | translate }}
+                  </p>
+
+                  <div
+                    class="selection-check"
+                    *ngIf="isSpecializationSelected(spec.value)"
+                  >
+                    <i class="fas fa-check-circle"></i>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                *ngIf="
+                  selectedSpecializations.length === 0 &&
+                  profileForm.get('specializations')?.touched
+                "
+                class="invalid-feedback d-block mt-2"
+              >
+                {{
+                  "teacher_create_profile.validation.specializations_required"
+                    | translate
+                }}
+              </div>
+            </div>
+
+            <!-- Availability Section -->
+            <div class="form-section">
+              <h3 class="section-title">
+                {{ "teacher_create_profile.availability" | translate }}
+              </h3>
+
+              <div class="availability-container" formArrayName="availability">
+                <div
+                  *ngFor="let slot of availability.controls; let i = index"
+                  class="availability-slot"
+                  [formGroupName]="i"
+                >
+                  <div class="slot-header">
+                    <h4 class="slot-title">
+                      {{ "teacher_create_profile.slot" | translate }}
+                      {{ i + 1 }}
+                    </h4>
+                    <button
+                      *ngIf="availability.length > 1"
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeAvailability(i)"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <div class="row g-3">
+                    <!-- Day Selection -->
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label class="form-label">{{
+                          "teacher_create_profile.day" | translate
+                        }}</label>
+                        <select class="form-select" formControlName="day">
+                          <option value="">
+                            {{
+                              "teacher_create_profile.select_day" | translate
+                            }}
+                          </option>
+                          <option
+                            *ngFor="let day of days; let dayIndex = index"
+                            [value]="dayIndex"
+                          >
+                            {{ day | translate }}
+                          </option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <!-- From Time -->
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label class="form-label">{{
+                          "teacher_create_profile.from_time" | translate
+                        }}</label>
+                        <input
+                          type="time"
+                          class="form-control"
+                          formControlName="fromTime"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- To Time -->
+                    <div class="col-md-4">
+                      <div class="form-group">
+                        <label class="form-label">{{
+                          "teacher_create_profile.to_time" | translate
+                        }}</label>
+                        <input
+                          type="time"
+                          class="form-control"
+                          formControlName="toTime"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Is Recurring Checkbox -->
+                  <div class="form-check mt-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="isRecurring{{ i }}"
+                      formControlName="isRecurring"
+                    />
+                    <label class="form-check-label" for="isRecurring{{ i }}">
+                      {{ "teacher_create_profile.is_recurring" | translate }}
+                    </label>
+                  </div>
+
+                  <!-- Slot Validation -->
+                  <div
+                    *ngIf="slot.errors?.['timeRangeInvalid'] && slot.touched"
+                    class="invalid-feedback d-block"
+                  >
+                    {{
+                      "teacher_create_profile.validation.invalid_time_range"
+                        | translate
+                    }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Add Slot Button -->
+              <button
+                type="button"
+                class="btn btn-outline-primary add-slot-btn"
+                (click)="addAvailability()"
+                [disabled]="availability.length >= 7"
+              >
+                <i class="fas fa-plus me-2"></i>
+                {{ "teacher_create_profile.add_time_slot" | translate }}
+              </button>
+
+              <!-- Availability Validation -->
+              <div
+                *ngIf="profileForm.get('availability')?.errors?.['maxSlotsPerDay'] && profileForm.get('availability')?.touched"
+                class="invalid-feedback d-block mt-2"
+              >
+                {{
+                  "teacher_create_profile.validation.max_slots_per_day"
+                    | translate
+                }}
+              </div>
+            </div>
+
+            <!-- Certification Section -->
+            <div class="form-section">
+              <h3 class="section-title">
+                {{ "teacher_create_profile.certifications" | translate }}
+                <small class="text-muted ms-2">
+                  ({{ "teacher_create_profile.optional" | translate }})
+                </small>
+              </h3>
+
+              <div
+                class="certifications-container"
+                formArrayName="certifications"
+              >
+                <div
+                  *ngFor="let cert of certifications.controls; let i = index"
+                  class="certification-card"
+                  [formGroupName]="i"
+                >
+                  <div class="cert-header">
+                    <h4 class="cert-title">
+                      {{ "teacher_create_profile.certification" | translate }}
+                      {{ i + 1 }}
+                    </h4>
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger"
+                      (click)="removeCertification(i)"
+                    >
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <div class="row g-3">
+                    <!-- Certificate Title -->
+                    <div class="col-12">
+                      <div class="form-group">
+                        <label class="form-label">{{
+                          "teacher_create_profile.cert_title" | translate
+                        }}</label>
+                        <input
+                          type="text"
+                          class="form-control"
+                          formControlName="title"
+                          placeholder="{{
+                            'teacher_create_profile.cert_title_placeholder'
+                              | translate
+                          }}"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Certificate Description -->
+                    <div class="col-12">
+                      <div class="form-group">
+                        <label class="form-label">{{
+                          "teacher_create_profile.cert_description" | translate
+                        }}</label>
+                        <textarea
+                          class="form-control"
+                          formControlName="description"
+                          rows="3"
+                          maxlength="300"
+                          placeholder="{{
+                            'teacher_create_profile.cert_description_placeholder'
+                              | translate
+                          }}"
+                        ></textarea>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- No certifications message -->
+                <div
+                  *ngIf="certifications.length === 0"
+                  class="no-certifications text-center py-4"
+                >
+                  <i
+                    class="fas fa-certificate text-muted mb-3"
+                    style="font-size: 3rem"
+                  ></i>
+                  <p class="text-muted">
+                    {{ "teacher_create_profile.no_certifications" | translate }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Add Certification Button -->
+              <button
+                type="button"
+                class="btn btn-outline-primary add-cert-btn"
+                (click)="addCertification()"
+                [disabled]="certifications.length >= 5"
+              >
+                <i class="fas fa-plus me-2"></i>
+                {{ "teacher_create_profile.add_certification" | translate }}
+              </button>
+
+              <div class="cert-info mt-2">
+                <small class="text-muted">
+                  {{ "teacher_create_profile.cert_info" | translate }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Submit Section -->
+            <div class="form-section">
+              <button
+                type="submit"
+                class="btn btn-primary btn-lg w-100 submit-btn"
+                [disabled]="!profileForm.valid || isSubmitting"
+                [class.loading]="isSubmitting"
+                (click)="onSubmit()"
+              >
+                <span
+                  *ngIf="!isSubmitting"
+                  class="d-flex align-items-center justify-content-center"
+                >
+                  <i class="fas fa-save me-2"></i>
+                  {{ "teacher_create_profile.save_profile" | translate }}
+                </span>
+
+                <span
+                  *ngIf="isSubmitting"
+                  class="d-flex align-items-center justify-content-center"
+                >
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  {{ "teacher_create_profile.saving" | translate }}
+                </span>
+              </button>
+
+              <div class="form-info text-center mt-3">
+                <small class="text-muted">
+                  {{ "teacher_create_profile.form_info" | translate }}
+                </small>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Side Image -->
+      <div class="col-lg-5 col-md-4 d-none d-md-block">
+        <app-side-image></app-side-image>
+      </div>
+    </div>
+  </div>
+</section>

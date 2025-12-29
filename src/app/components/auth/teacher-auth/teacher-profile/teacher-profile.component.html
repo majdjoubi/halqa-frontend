@@ -1,0 +1,1353 @@
+<section class="student-profile">
+  <div class="container-fluid">
+    <!-- Profile Header -->
+    <div class="profile-header custom-marginTop">
+      <div class="profile-info">
+        <div class="avatar-container">
+          <img
+            [src]="
+              UserData?.profile?.profilePictureUrl ||
+              '../../../../../assets/images/student-Avatar.svg'
+            "
+            class="profile-avatar"
+            alt="Profile Picture"
+          />
+        </div>
+        <div class="user-details">
+          <h4 class="mb-0">
+            {{ UserData?.profile?.firstName }} {{ UserData?.profile?.lastName }}
+          </h4>
+          <div class="specializations d-flex flex-wrap gap-2">
+            <!-- <span
+              class="user-email"
+              *ngFor="let skill of UserData?.profile?.specializations"
+            >
+              {{ skill }}
+            </span> -->
+
+            <span>
+              {{
+                UserData?.profile?.specializations?.join(", ") ||
+                  ("teacher_profile.no_specialization" | translate)
+              }}
+            </span>
+          </div>
+          <div class="rating-section">
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <span class="rating-value">{{
+                UserData?.stats?.averageRating
+              }}</span>
+              <span class="reviews-count"
+                >({{ UserData?.stats?.totalReviews }}
+                {{ "teacher_profile.reviews" | translate }})</span
+              >
+            </div>
+          </div>
+          <div class="connections d-flex flex-wrap gap-3 mt-2">
+            <div class="phone">
+              <img
+                src="../../../../../assets/icons/call.svg"
+                alt="Phone Icon"
+                width="16"
+                height="16"
+                class="mx-2"
+              />
+              <span class="phone-number">{{
+                UserData?.profile?.phoneNumber ||
+                  ("teacher_profile.no_phone" | translate)
+              }}</span>
+            </div>
+            <div class="email">
+              <img
+                src="../../../../../assets/icons/sms.svg"
+                alt="Phone Icon"
+                width="16"
+                height="16"
+                class="mx-2"
+              />
+              <span class="phone-number">{{
+                UserData?.profile?.email ||
+                  ("teacher_profile.no_email" | translate)
+              }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-actions flex flex-column">
+        <button class="edit-profile-btn mb-2" (click)="openProfileEdit()">
+          <i class="fas fa-edit"></i>
+          {{ "teacher_profile.edit_profile_button" | translate }}
+        </button>
+
+        <button
+          class="edit-profile-btn"
+          (click)="openWithdrawModal()"
+          [disabled]="
+            !UserData?.profile?.walletBalance ||
+            UserData?.profile?.walletBalance <= 0
+          "
+        >
+          <i class="fas fa-money-bill-wave"></i>
+          {{ "teacher_profile.withdraw_profits" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <div class="bio">
+        <h3 class="section-title">
+          {{ "teacher_profile.bio" | translate }}
+        </h3>
+        <p class="bio-text">
+          {{ UserData?.profile?.bio || ("teacher_profile.no_bio" | translate) }}
+        </p>
+      </div>
+      <!-- Left Column -->
+      <div class="left-column">
+        <!-- Wallet Balance -->
+        <div class="wallet-section">
+          <div class="wallet-card">
+            <div class="wallet-content">
+              <p class="balance-label">
+                {{ "teacher_profile.available_balance" | translate }}
+              </p>
+              <h2 class="balance-amount">
+                {{
+                  UserData?.profile?.walletBalance || 0
+                    | currency : "USD" : "symbol" : "1.2-2"
+                }}
+              </h2>
+            </div>
+          </div>
+
+          <div class="wallet-card">
+            <div class="wallet-content">
+              <p class="balance-label">
+                {{ "teacher_profile.pending_balance" | translate }}
+              </p>
+              <h2 class="balance-amount">
+                {{
+                  UserData?.profile?.pendingBalance || 0
+                    | currency : "USD" : "symbol" : "1.2-2"
+                }}
+              </h2>
+            </div>
+          </div>
+        </div>
+
+        <!-- Withdrawal Requests Section -->
+        <div class="withdrawal-history-section">
+          <div class="section-header">
+            <div class="header-content">
+              <h3 class="section-title">
+                <i class="fas fa-history"></i>
+                {{ "teacher_profile.withdrawal_history" | translate }}
+              </h3>
+              <span class="request-count" *ngIf="pendingRequestsCount > 0">
+                {{ pendingRequestsCount }} Pending
+              </span>
+            </div>
+            <button
+              class="view-history-btn"
+              (click)="toggleWithdrawalHistory()"
+            >
+              <i class="fas fa-eye"></i>
+              {{ "teacher_profile.view_history" | translate }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Cards -->
+        <div class="dashboard-section">
+          <h3 class="section-title">
+            <i class="fas fa-chart-bar dashboard-icon"></i>
+            {{ "teacher_profile.dashboard" | translate }}
+          </h3>
+
+          <div class="stats-grid">
+            <!-- Total Booking -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <img
+                    src="../../../../../assets/icons/all-student.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{ UserData?.stats?.totalStudents }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "teacher_profile.total_student" | translate }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Completed Lessons -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <img
+                    src="../../../../../assets/icons/total-lessons.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{ UserData?.stats?.totalLessons }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "student_profile.total_lessons" | translate }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Upcoming Lessons -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <img
+                    src="../../../../../assets/icons/monthly-earning.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{
+                    UserData?.stats?.monthlyEarnings
+                      | currency : "USD" : "symbol" : "1.2-2"
+                  }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "student_profile.monthly_earnings" | translate }}
+                </div>
+              </div>
+            </div>
+            <!-- Favorite Students -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <img src="../../../../../assets/icons/hour-rate.svg" alt="" />
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{ UserData?.stats?.pendingBookings }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "teacher_profile.pending_bookings" | translate }}
+                </div>
+              </div>
+            </div>
+            <!-- total_reviews -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <img
+                    src="../../../../../assets/icons/total-reviews.svg"
+                    alt=""
+                  />
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{ UserData?.stats?.totalReviews }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "teacher_profile.total_reviews" | translate }}
+                </div>
+              </div>
+            </div>
+            <!-- completedLessons -->
+            <div class="stat-card stat-card-primary">
+              <div class="stat-left">
+                <div class="icon-box">
+                  <i class="fa-solid fa-trophy fa-xl"></i>
+                </div>
+              </div>
+              <div class="stat-right">
+                <div class="stat-number">
+                  {{ UserData?.stats?.completedLessons }}
+                </div>
+                <div class="stat-subtitle">
+                  {{ "teacher_profile.completed_lessons" | translate }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="certificate">
+        <div class="section-header">
+          <h3 class="section-title">
+            {{ "teacher_profile.certificates" | translate }}
+          </h3>
+          <button
+            class="edit-certifications-btn"
+            (click)="openCertificationModal()"
+          >
+            <i class="fas fa-plus"></i>
+            {{ "teacher_profile.add_certificate" | translate }}
+          </button>
+        </div>
+        <div class="certificate-grid">
+          <!-- If certifications is an array of objects -->
+          <div
+            *ngFor="let cert of UserData?.profile?.certifications"
+            class="certificate-card"
+          >
+            <img
+              src="./../../../../../assets/icons/certtificate.svg"
+              alt="Certificate"
+              class="certificate-image"
+            />
+            <button
+              class="edit-cert-btn floating-edit-btn"
+              (click)="openCertificationModal(cert)"
+            >
+              <i class="fas fa-edit"></i>
+            </button>
+            <div class="certificate-details">
+              <!-- Show only title, description and issuing authority -->
+              <p class="certificate-name">{{ cert.title || cert.name }}</p>
+              <p class="certificate-description">{{ cert.description }}</p>
+              <p class="certificate-issuer">
+                {{ "teacher_profile.certificate_issued_by" | translate }}:
+                {{ cert.issuingAuthority || cert.issuingOrganization }}
+              </p>
+            </div>
+          </div>
+
+          <div
+            *ngIf="!UserData?.profile?.certifications?.length"
+            class="no-certs"
+          >
+            {{ "teacher_profile.no_certificates" | translate }}
+          </div>
+        </div>
+      </div>
+
+      <div class="language mt-4">
+        <h3 class="section-title">
+          <img src="../../../../../assets/icons/lang.svg" alt="lang" />
+
+          {{ "teacher_profile.languages_title" | translate }}
+          <span style="font-size: 12px; color: #666; margin-left: 10px">
+            ({{ teacherLanguagesData.length || 0 }} languages)
+          </span>
+        </h3>
+        <div class="language-list d-flex flex-wrap gap-3">
+          <!-- languages from API: { language: string, proficiencyLevel: string, createdAt: string } -->
+          <div
+            *ngFor="let langObj of teacherLanguagesData; let i = index"
+            class="language-item d-flex align-items-center"
+          >
+            <div class="language-icon">
+              <img src="../../../../../assets/icons/lang.svg" alt="lang" />
+            </div>
+
+            <div class="language-meta">
+              <div class="language-name">
+                {{ langObj?.language || "Unknown" }}
+              </div>
+              <!-- show proficiency level if present -->
+              <div class="language-level" *ngIf="langObj?.proficiencyLevel">
+                {{ langObj?.proficiencyLevel }}
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="teacherLanguagesData.length === 0" class="no-langs">
+            {{ "teacher_profile.no_languages" | translate }}
+            <br />
+            <small style="color: #999; font-size: 12px">
+              (Please add languages from the edit profile menu)
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Side Menu -->
+  <app-side-menu
+    [open]="menuOpen"
+    (openChange)="menuOpen = $event"
+    position="right"
+    width="450px"
+    (closed)="closeProfileEdit()"
+  >
+    <div slot="header">
+      <h4 class="edit-profile-title">
+        {{ "teacher_profile.edit_profile_title" | translate }}
+      </h4>
+    </div>
+
+    <div class="edit-profile-content">
+      <form
+        *ngIf="profileForm"
+        [formGroup]="profileForm"
+        (ngSubmit)="onSubmitProfile()"
+        class="profile-form"
+      >
+        <!-- Profile Picture Upload -->
+        <div class="form-group">
+          <label class="form-label">{{
+            "teacher_profile.profile_picture" | translate
+          }}</label>
+          <div class="upload-area" (click)="triggerFileInput()">
+            <div
+              *ngIf="previewUrl; else defaultUpload"
+              class="preview-container"
+            >
+              <img [src]="previewUrl" class="preview-image" alt="Preview" />
+              <div class="upload-overlay">
+                <i class="fas fa-camera"></i>
+                <span>{{ "teacher_profile.change_photo" | translate }}</span>
+              </div>
+            </div>
+            <ng-template #defaultUpload>
+              <div class="upload-placeholder">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">
+                  {{ "teacher_profile.upload_file" | translate }}
+                </p>
+                <p class="upload-hint">
+                  {{ "teacher_profile.max_size" | translate }}
+                </p>
+              </div>
+            </ng-template>
+            <input
+              type="file"
+              class="file-input"
+              id="profilePicture"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+          <app-form-validation
+            [control]="profileForm.get('profilePictureUrl')"
+            fieldType="file"
+          ></app-form-validation>
+        </div>
+
+        <!-- Name Fields -->
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label required">{{
+              "teacher_profile.first_name" | translate
+            }}</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="firstName"
+              [placeholder]="
+                'teacher_profile.first_name_placeholder' | translate
+              "
+              [class.invalid]="
+                profileForm.get('firstName')?.invalid &&
+                profileForm.get('firstName')?.touched
+              "
+              [class.valid]="
+                profileForm.get('firstName')?.valid &&
+                profileForm.get('firstName')?.touched
+              "
+            />
+            <app-form-validation
+              [control]="profileForm.get('firstName')"
+              fieldType="text"
+            ></app-form-validation>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label required">{{
+              "teacher_profile.last_name" | translate
+            }}</label>
+            <input
+              type="text"
+              class="form-control"
+              formControlName="lastName"
+              [placeholder]="
+                'teacher_profile.last_name_placeholder' | translate
+              "
+              [class.invalid]="
+                profileForm.get('lastName')?.invalid &&
+                profileForm.get('lastName')?.touched
+              "
+              [class.valid]="
+                profileForm.get('lastName')?.valid &&
+                profileForm.get('lastName')?.touched
+              "
+            />
+            <app-form-validation
+              [control]="profileForm.get('lastName')"
+              fieldType="text"
+            ></app-form-validation>
+          </div>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.phone_number" | translate
+          }}</label>
+          <input
+            type="tel"
+            class="form-control"
+            formControlName="phoneNumber"
+            [placeholder]="'teacher_profile.phone_placeholder' | translate"
+            [class.invalid]="
+              profileForm.get('phoneNumber')?.invalid &&
+              profileForm.get('phoneNumber')?.touched
+            "
+            [class.valid]="
+              profileForm.get('phoneNumber')?.valid &&
+              profileForm.get('phoneNumber')?.touched
+            "
+          />
+          <app-form-validation
+            [control]="profileForm.get('phoneNumber')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Bio -->
+        <div class="bio">
+          <p class="bio-text" *ngIf="!menuOpen">
+            {{
+              UserData?.profile?.bio || ("teacher_profile.no_bio" | translate)
+            }}
+          </p>
+
+          <!-- Editable bio inside the edit form -->
+          <div *ngIf="menuOpen" class="form-group">
+            <label class="form-label">{{
+              "teacher_profile.bio" | translate
+            }}</label>
+            <textarea
+              class="form-control bio-textarea"
+              formControlName="bio"
+              rows="5"
+              [value]="UserData?.profile?.bio"
+              [placeholder]="'teacher_profile.bio_placeholder' | translate"
+            ></textarea>
+            <app-form-validation
+              [control]="profileForm.get('bio')"
+              fieldType="text"
+            ></app-form-validation>
+          </div>
+        </div>
+
+        <!-- Specializations (editable) -->
+        <div class="form-section">
+          <h3 class="section-title">
+            {{ "teacher_create_profile.specializations" | translate }}
+          </h3>
+
+          <div class="specializations-grid">
+            <div
+              *ngFor="let spec of availableSpecializations"
+              class="specialization-card"
+              [class.selected]="isSpecializationSelected(spec.value)"
+              (click)="toggleSpecialization(spec.value)"
+            >
+              <div class="spec-icon">
+                <i [class]="spec.icon"></i>
+              </div>
+              <h4 class="spec-title">{{ spec.label | translate }}</h4>
+              <p class="spec-description">
+                {{ spec.description | translate }}
+              </p>
+
+              <div
+                class="selection-check"
+                *ngIf="isSpecializationSelected(spec.value)"
+              >
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+          </div>
+
+          <div
+            *ngIf="
+              selectedSpecializations?.length === 0 &&
+              profileForm.get('specializations')?.touched
+            "
+            class="invalid-feedback d-block mt-2"
+          >
+            {{
+              "teacher_create_profile.validation.specializations_required"
+                | translate
+            }}
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeProfileEdit()"
+          >
+            <i class="fas fa-times"></i>
+            {{ "common.cancel" | translate }}
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="profileForm.invalid || isSubmitting"
+            [class.loading]="isSubmitting"
+            (click)="onSubmitProfile()"
+          >
+            <i class="fas fa-save"></i>
+            {{ "common.save" | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div slot="footer"></div>
+  </app-side-menu>
+
+  <!-- Withdraw Modal -->
+  <app-side-menu
+    [open]="withdrawMenuOpen"
+    (openChange)="withdrawMenuOpen = $event"
+    position="right"
+    width="450px"
+    (closed)="closeWithdrawModal()"
+  >
+    <div slot="header">
+      <h4 class="withdraw-title">
+        {{ "teacher_profile.withdraw_profits" | translate }}
+      </h4>
+    </div>
+
+    <div class="withdraw-content">
+      <form
+        *ngIf="withdrawForm"
+        [formGroup]="withdrawForm"
+        (ngSubmit)="onSubmitWithdraw()"
+        class="withdraw-form"
+      >
+        <!-- Payment Method Selection -->
+        <div class="form-group">
+          <label class="form-label required">
+            {{ "teacher_profile.payment_method" | translate }}
+          </label>
+          <div class="payment-method-options">
+            <label
+              class="payment-option"
+              [class.selected]="selectedPaymentMethod === 'paypal'"
+            >
+              <input
+                type="radio"
+                formControlName="paymentMethod"
+                value="paypal"
+                (change)="onPaymentMethodChange()"
+              />
+              <div class="option-content">
+                <i class="fab fa-paypal"></i>
+                <span>PayPal</span>
+              </div>
+            </label>
+
+            <label
+              class="payment-option"
+              [class.selected]="selectedPaymentMethod === 'visa'"
+            >
+              <input
+                type="radio"
+                formControlName="paymentMethod"
+                value="visa"
+                (change)="onPaymentMethodChange()"
+              />
+              <div class="option-content">
+                <i class="fab fa-cc-visa"></i>
+                <span>Visa/Bank Account</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Payment Account Field (Dynamic based on payment method) -->
+        <div class="form-group">
+          <label class="form-label required">
+            <ng-container *ngIf="selectedPaymentMethod === 'paypal'">
+              {{ "teacher_profile.paypal_email" | translate }}
+            </ng-container>
+            <ng-container *ngIf="selectedPaymentMethod === 'visa'">
+              {{ "teacher_profile.bank_account_number" | translate }}
+            </ng-container>
+          </label>
+
+          <input
+            *ngIf="selectedPaymentMethod === 'paypal'"
+            type="email"
+            class="form-control"
+            formControlName="paymentAccount"
+            [placeholder]="
+              'teacher_profile.paypal_email_placeholder' | translate
+            "
+            [class.invalid]="
+              withdrawForm.get('paymentAccount')?.invalid &&
+              withdrawForm.get('paymentAccount')?.touched
+            "
+            [class.valid]="
+              withdrawForm.get('paymentAccount')?.valid &&
+              withdrawForm.get('paymentAccount')?.touched
+            "
+          />
+
+          <input
+            *ngIf="selectedPaymentMethod === 'visa'"
+            type="text"
+            class="form-control"
+            formControlName="paymentAccount"
+            [placeholder]="
+              'teacher_profile.bank_account_placeholder' | translate
+            "
+            [class.invalid]="
+              withdrawForm.get('paymentAccount')?.invalid &&
+              withdrawForm.get('paymentAccount')?.touched
+            "
+            [class.valid]="
+              withdrawForm.get('paymentAccount')?.valid &&
+              withdrawForm.get('paymentAccount')?.touched
+            "
+          />
+
+          <app-form-validation
+            [control]="withdrawForm.get('paymentAccount')"
+            [fieldType]="selectedPaymentMethod === 'paypal' ? 'email' : 'text'"
+          ></app-form-validation>
+        </div>
+
+        <!-- Amount Field -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.withdraw_amount" | translate
+          }}</label>
+          <div class="amount-input-wrapper">
+            <span class="currency-symbol">$</span>
+            <input
+              type="number"
+              class="form-control with-currency"
+              formControlName="amount"
+              [placeholder]="
+                'teacher_profile.withdraw_amount_placeholder' | translate
+              "
+              min="1"
+              step="0.01"
+              [class.invalid]="
+                withdrawForm.get('amount')?.invalid &&
+                withdrawForm.get('amount')?.touched
+              "
+              [class.valid]="
+                withdrawForm.get('amount')?.valid &&
+                withdrawForm.get('amount')?.touched
+              "
+            />
+          </div>
+          <small class="form-text text-muted">
+            Available Balance:
+            {{
+              UserData?.profile?.walletBalance
+                | currency : "USD" : "symbol" : "1.2-2"
+            }}
+          </small>
+          <app-form-validation
+            [control]="withdrawForm.get('amount')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Notes Field (Optional) -->
+        <div class="form-group">
+          <label class="form-label">
+            {{ "teacher_profile.notes" | translate }}
+            <span class="optional-label">(Optional)</span>
+          </label>
+          <textarea
+            class="form-control"
+            formControlName="notes"
+            rows="3"
+            [placeholder]="'teacher_profile.notes_placeholder' | translate"
+          ></textarea>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeWithdrawModal()"
+          >
+            <i class="fas fa-times"></i>
+            {{ "common.cancel" | translate }}
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="withdrawForm.invalid || isSubmitting"
+            [class.loading]="isSubmitting"
+          >
+            <i *ngIf="!isSubmitting" class="fas fa-paper-plane"></i>
+            <i *ngIf="isSubmitting" class="fas fa-spinner fa-spin"></i>
+            {{
+              isSubmitting
+                ? ("common.loading" | translate)
+                : ("teacher_profile.submit_withdraw" | translate)
+            }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div slot="footer"></div>
+  </app-side-menu>
+
+  <!-- Certification Modal -->
+  <app-side-menu
+    [open]="certificationMenuOpen"
+    (openChange)="certificationMenuOpen = $event"
+    position="right"
+    width="450px"
+    (closed)="closeCertificationModal()"
+  >
+    <div slot="header">
+      <h4 class="edit-profile-title">
+        {{
+          selectedCertification
+            ? ("teacher_profile.edit_certificate" | translate)
+            : ("teacher_profile.add_certificate" | translate)
+        }}
+      </h4>
+    </div>
+
+    <div class="edit-profile-content">
+      <form
+        *ngIf="certificationForm"
+        [formGroup]="certificationForm"
+        (ngSubmit)="onSubmitCertification()"
+        class="profile-form"
+      >
+        <!-- Title -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.certificate_title" | translate
+          }}</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="title"
+            [placeholder]="
+              'teacher_profile.certificate_title_placeholder' | translate
+            "
+            [class.invalid]="
+              certificationForm.get('title')?.invalid &&
+              certificationForm.get('title')?.touched
+            "
+            [class.valid]="
+              certificationForm.get('title')?.valid &&
+              certificationForm.get('title')?.touched
+            "
+          />
+          <app-form-validation
+            [control]="certificationForm.get('title')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Issuing Authority -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.issuing_authority" | translate
+          }}</label>
+          <input
+            type="text"
+            class="form-control"
+            formControlName="issuingAuthority"
+            [placeholder]="
+              'teacher_profile.issuing_authority_placeholder' | translate
+            "
+            [class.invalid]="
+              certificationForm.get('issuingAuthority')?.invalid &&
+              certificationForm.get('issuingAuthority')?.touched
+            "
+            [class.valid]="
+              certificationForm.get('issuingAuthority')?.valid &&
+              certificationForm.get('issuingAuthority')?.touched
+            "
+          />
+          <app-form-validation
+            [control]="certificationForm.get('issuingAuthority')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Issue Date -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.issue_date" | translate
+          }}</label>
+          <input
+            type="date"
+            class="form-control"
+            formControlName="issueDate"
+            [class.invalid]="
+              certificationForm.get('issueDate')?.invalid &&
+              certificationForm.get('issueDate')?.touched
+            "
+            [class.valid]="
+              certificationForm.get('issueDate')?.valid &&
+              certificationForm.get('issueDate')?.touched
+            "
+          />
+          <app-form-validation
+            [control]="certificationForm.get('issueDate')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Expiry Date -->
+        <div class="form-group">
+          <label class="form-label">
+            {{ "teacher_profile.expiry_date" | translate }}
+            <span class="optional-label">(Optional)</span>
+          </label>
+          <input
+            type="date"
+            class="form-control"
+            formControlName="expiryDate"
+          />
+        </div>
+
+        <!-- Description -->
+        <div class="form-group">
+          <label class="form-label required">{{
+            "teacher_profile.description" | translate
+          }}</label>
+          <textarea
+            class="form-control"
+            formControlName="description"
+            rows="4"
+            [placeholder]="
+              'teacher_profile.description_placeholder' | translate
+            "
+            [class.invalid]="
+              certificationForm.get('description')?.invalid &&
+              certificationForm.get('description')?.touched
+            "
+            [class.valid]="
+              certificationForm.get('description')?.valid &&
+              certificationForm.get('description')?.touched
+            "
+          ></textarea>
+          <app-form-validation
+            [control]="certificationForm.get('description')"
+            fieldType="text"
+          ></app-form-validation>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeCertificationModal()"
+          >
+            <i class="fas fa-times"></i>
+            {{ "common.cancel" | translate }}
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="certificationForm.invalid || isSubmitting"
+            [class.loading]="isSubmitting"
+          >
+            <i class="fas fa-save"></i>
+            {{ "common.save" | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div slot="footer"></div>
+  </app-side-menu>
+
+  <!-- Response Modal -->
+  <div
+    class="response-modal-overlay"
+    *ngIf="showResponseModal"
+    (click)="closeResponseModal()"
+  >
+    <div
+      class="response-modal"
+      [class.success]="responseModalData?.type === 'success'"
+      [class.error]="responseModalData?.type === 'error'"
+      (click)="$event.stopPropagation()"
+    >
+      <!-- Icon -->
+      <div class="modal-icon">
+        <i
+          *ngIf="responseModalData?.type === 'success'"
+          class="fas fa-check-circle"
+        ></i>
+        <i
+          *ngIf="responseModalData?.type === 'error'"
+          class="fas fa-times-circle"
+        ></i>
+      </div>
+
+      <!-- Title -->
+      <h3 class="modal-title">{{ responseModalData?.title }}</h3>
+
+      <!-- Message -->
+      <p class="modal-message">{{ responseModalData?.message }}</p>
+
+      <!-- Details (Optional - for debugging) -->
+      <div class="modal-details" *ngIf="responseModalData?.details && false">
+        <details>
+          <summary>View Details</summary>
+          <pre>{{ responseModalData?.details | json }}</pre>
+        </details>
+      </div>
+
+      <!-- Action Button -->
+      <button class="modal-close-btn" (click)="closeResponseModal()">
+        <i class="fas fa-check"></i>
+        {{ responseModalData?.type === "success" ? "Got it!" : "Close" }}
+      </button>
+
+      <!-- Auto-close Progress Bar (only for success) -->
+      <div
+        class="auto-close-progress"
+        *ngIf="responseModalData?.type === 'success'"
+      >
+        <div class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdrawal History Modal -->
+  <div
+    class="withdrawal-history-modal-overlay"
+    *ngIf="showWithdrawalHistory"
+    (click)="toggleWithdrawalHistory()"
+  >
+    <div class="withdrawal-history-modal" (click)="$event.stopPropagation()">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fas fa-history"></i>
+          {{ "teacher_profile.withdrawal_history" | translate }}
+        </h3>
+        <button class="close-btn" (click)="toggleWithdrawalHistory()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        <div class="withdrawal-requests-list">
+          <div *ngIf="withdrawalRequests.length === 0" class="no-requests">
+            <i class="fas fa-inbox"></i>
+            <p>{{ "teacher_profile.no_withdrawal_requests" | translate }}</p>
+          </div>
+
+          <div
+            *ngFor="let request of withdrawalRequests"
+            class="request-item"
+            [ngClass]="getRequestStatusClass(request.status)"
+          >
+            <div class="request-header">
+              <div class="request-info">
+                <span class="request-amount"
+                  >${{ request.amount?.toFixed(2) }}</span
+                >
+                <span class="request-method">
+                  <i
+                    [class]="
+                      request.paymentMethod === 'paypal'
+                        ? 'fab fa-paypal'
+                        : 'fab fa-cc-visa'
+                    "
+                  ></i>
+                  {{ request.paymentMethod }}
+                </span>
+              </div>
+              <span
+                class="request-status"
+                [ngClass]="getRequestStatusClass(request.status)"
+              >
+                {{ request.status }}
+              </span>
+            </div>
+
+            <div class="request-details">
+              <div class="detail-item">
+                <i class="fas fa-envelope"></i>
+                <span>{{ request.paymentAccount }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-calendar"></i>
+                <span>{{ formatRequestDate(request.createdAt) }}</span>
+              </div>
+              <div class="detail-item" *ngIf="request.notes">
+                <i class="fas fa-sticky-note"></i>
+                <span>{{ request.notes }}</span>
+              </div>
+              <div
+                class="detail-item"
+                *ngIf="request.adminNotes && request.status !== 'Pending'"
+              >
+                <i class="fas fa-comment-alt"></i>
+                <span><strong>Admin:</strong> {{ request.adminNotes }}</span>
+              </div>
+            </div>
+
+            <div class="request-actions" *ngIf="request.status === 'Pending'">
+              <button
+                class="cancel-btn"
+                (click)="cancelWithdrawalRequest(request.id)"
+              >
+                <i class="fas fa-times"></i>
+                {{ "common.cancel" | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Add Availability Slot Modal -->
+<div class="modal-overlay" *ngIf="showAddAvailabilityModal" (click)="closeAddAvailabilityModal()">
+  <div class="modal-container availability-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "teacher_profile.availability_modal.add_title" | translate }}</h3>
+      <button class="close-btn" (click)="closeAddAvailabilityModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="newAvailabilityForm">
+        <!-- Date Selection -->
+        <div class="form-group">
+          <label class="form-label">{{ "teacher_profile.availability_modal.date" | translate }}</label>
+          <input type="date" class="form-control" formControlName="date" [min]="minDate" />
+        </div>
+
+        <!-- Time Range -->
+        <div class="time-range-group">
+          <div class="form-group">
+            <label class="form-label">{{ "teacher_profile.add_availability_modal.from_time" | translate }}</label>
+            <input type="time" class="form-control" formControlName="fromTime" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">{{ "teacher_profile.add_availability_modal.to_time" | translate }}</label>
+            <input type="time" class="form-control" formControlName="toTime" />
+          </div>
+        </div>
+
+        <!-- Duration Info -->
+        <div class="duration-info" *ngIf="newAvailabilityForm.value.fromTime && newAvailabilityForm.value.toTime">
+          <i class="fas fa-clock"></i>
+          <span>{{ "teacher_profile.add_availability_modal.duration" | translate }}: {{ calculateDuration(newAvailabilityForm.value.fromTime, newAvailabilityForm.value.toTime) }} {{ "teacher_profile.booking_details.minutes" | translate }}</span>
+        </div>
+
+        <!-- Recurring Option -->
+        <div class="form-group recurring-group">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="isRecurring" />
+            <span class="checkmark"></span>
+            {{ "teacher_profile.availability_modal.repeat_weekly" | translate }}
+          </label>
+          <p class="recurring-hint" *ngIf="newAvailabilityForm.value.isRecurring">
+            {{ "teacher_profile.availability_modal.recurring_hint" | translate }}
+          </p>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeAddAvailabilityModal()">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="saveNewAvailability()"
+        [disabled]="newAvailabilityForm.invalid || isSavingAvailability"
+      >
+        <span *ngIf="!isSavingAvailability">{{ "common.save" | translate }}</span>
+        <span *ngIf="isSavingAvailability">{{ "common.saving" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Pattern Modal -->
+<div class="modal-overlay" *ngIf="showWeeklyPatternModal" (click)="closeWeeklyPatternModal()">
+  <div class="modal-container weekly-pattern-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "teacher_profile.weekly_pattern.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeWeeklyPatternModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-description">{{ "teacher_profile.weekly_pattern.description" | translate }}</p>
+      
+      <div class="weekly-slots">
+        <div class="day-slot" *ngFor="let day of weekDays; let i = index">
+          <div class="day-header">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox" 
+                [(ngModel)]="day.enabled"
+                (change)="onWeeklyDayToggle(i)"
+              />
+              <span class="checkmark"></span>
+              {{ day.label | translate }}
+            </label>
+          </div>
+          <div class="day-times" *ngIf="day.enabled">
+            <div class="time-slot" *ngFor="let slot of day.slots; let j = index">
+              <input 
+                type="time" 
+                [(ngModel)]="slot.fromTime" 
+                class="form-control time-input"
+              />
+              <span class="time-separator">-</span>
+              <input 
+                type="time" 
+                [(ngModel)]="slot.toTime" 
+                class="form-control time-input"
+              />
+              <button 
+                type="button" 
+                class="btn-remove-slot" 
+                (click)="removeWeeklySlot(i, j)"
+                *ngIf="day.slots.length > 1"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="btn-add-slot" 
+              (click)="addWeeklySlot(i)"
+              *ngIf="day.slots.length < 3"
+            >
+              <i class="fas fa-plus"></i>
+              {{ "teacher_profile.weekly_pattern.add_time" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeWeeklyPatternModal()">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="saveWeeklyPattern()"
+        [disabled]="isSavingPattern"
+      >
+        <span *ngIf="!isSavingPattern">{{ "teacher_profile.weekly_pattern.apply" | translate }}</span>
+        <span *ngIf="isSavingPattern">{{ "common.saving" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Details Modal -->
+<div class="modal-overlay" *ngIf="showBookingDetailsModal" (click)="closeBookingDetailsModal()">
+  <div class="modal-container booking-details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "teacher_profile.booking_details.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeBookingDetailsModal()">&times;</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedBookingDetails">
+      <!-- Status Badge -->
+      <div class="booking-status" [ngClass]="selectedBookingDetails.status">
+        {{ selectedBookingDetails.status | titlecase }}
+      </div>
+
+      <!-- Date & Time -->
+      <div class="detail-row">
+        <i class="fas fa-calendar-alt"></i>
+        <div class="detail-content">
+          <span class="detail-label">{{ "teacher_profile.booking_details.date_time" | translate }}</span>
+          <span class="detail-value">{{ selectedBookingDetails.datetime }}</span>
+        </div>
+      </div>
+
+      <!-- Student Info (if booked) -->
+      <div class="detail-row" *ngIf="selectedBookingDetails.studentName">
+        <i class="fas fa-user-graduate"></i>
+        <div class="detail-content">
+          <span class="detail-label">{{ "teacher_profile.booking_details.student" | translate }}</span>
+          <span class="detail-value">{{ selectedBookingDetails.studentName }}</span>
+          <span class="detail-sub" *ngIf="selectedBookingDetails.studentEmail">{{ selectedBookingDetails.studentEmail }}</span>
+        </div>
+      </div>
+
+      <!-- Lesson Title -->
+      <div class="detail-row" *ngIf="selectedBookingDetails.title">
+        <i class="fas fa-book"></i>
+        <div class="detail-content">
+          <span class="detail-label">{{ "teacher_profile.booking_details.lesson" | translate }}</span>
+          <span class="detail-value">{{ selectedBookingDetails.title }}</span>
+        </div>
+      </div>
+
+      <!-- Price -->
+      <div class="detail-row" *ngIf="selectedBookingDetails.price">
+        <i class="fas fa-dollar-sign"></i>
+        <div class="detail-content">
+          <span class="detail-label">{{ "teacher_profile.booking_details.price" | translate }}</span>
+          <span class="detail-value">${{ selectedBookingDetails.price }}</span>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="detail-row" *ngIf="selectedBookingDetails.notes">
+        <i class="fas fa-sticky-note"></i>
+        <div class="detail-content">
+          <span class="detail-label">{{ "teacher_profile.booking_details.notes" | translate }}</span>
+          <span class="detail-value">{{ selectedBookingDetails.notes }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <!-- Actions based on status -->
+      <button 
+        class="btn btn-success" 
+        *ngIf="selectedBookingDetails?.status === 'booked' || selectedBookingDetails?.status === 'confirmed'"
+        (click)="joinBookedLesson()"
+      >
+        <i class="fas fa-video"></i>
+        {{ "teacher_profile.booking_details.join_session" | translate }}
+      </button>
+      <button 
+        class="btn btn-danger" 
+        *ngIf="selectedBookingDetails?.status === 'available'"
+        (click)="deleteAvailabilitySlot()"
+      >
+        <i class="fas fa-trash"></i>
+        {{ "teacher_profile.booking_details.delete_slot" | translate }}
+      </button>
+      <button class="btn btn-secondary" (click)="closeBookingDetailsModal()">
+        {{ "common.close" | translate }}
+      </button>
+    </div>
+  </div>
+</div>

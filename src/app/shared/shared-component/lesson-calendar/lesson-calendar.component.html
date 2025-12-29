@@ -1,0 +1,23 @@
+<div class="lesson-calendar-wrapper">
+  <!-- Loading State -->
+  <div class="calendar-loading" *ngIf="isLoading">
+    <div class="loading-spinner"></div>
+    <p>{{ 'calendar.loading' | translate }}</p>
+  </div>
+
+  <!-- Calendar -->
+  <div class="calendar-container" *ngIf="!isLoading">
+    <full-calendar [options]="calendarOptions"></full-calendar>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && lessons.length === 0">
+    <div class="empty-icon">
+      <i class="fas fa-calendar-alt"></i>
+    </div>
+    <h3 *ngIf="userRole === 'teacher'">{{ 'calendar.empty.teacher_title' | translate }}</h3>
+    <h3 *ngIf="userRole === 'student'">{{ 'calendar.empty.student_title' | translate }}</h3>
+    <p *ngIf="userRole === 'teacher'">{{ 'calendar.empty.teacher_hint' | translate }}</p>
+    <p *ngIf="userRole === 'student'">{{ 'calendar.empty.student_hint' | translate }}</p>
+  </div>
+</div>

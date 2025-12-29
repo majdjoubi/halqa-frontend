@@ -1,0 +1,15 @@
+<div class="bar-card">
+  <div class="bar-card__header">
+    <div class="bar-card__header-left">
+      <div class="bar-card__subtitle">
+        {{ headerSubtitle || "This Week Statistics" }}
+      </div>
+    </div>
+    <div class="bar-card__header-right">
+      <div class="bar-card__value">{{ headerValue || "$7,650" }}</div>
+    </div>
+  </div>
+  <div class="bar-card__body">
+    <div #barChart class="bar-chart-container"></div>
+  </div>
+</div>

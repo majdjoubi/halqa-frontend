@@ -1,0 +1,52 @@
+<div
+  class="side-menu-backdrop"
+  [class.show]="open"
+  (click)="onBackdropClick()"
+  aria-hidden="true"
+  [style.background]="'rgba(0,0,0,' + backdropOpacity + ')'"
+  [style.transition]="'opacity ' + transition"
+  [style.zIndex]="2147483646"
+></div>
+<aside
+  class="side-menu"
+  [class.open]="open"
+  [class.right]="position === 'right'"
+  role="dialog"
+  aria-modal="true"
+  [style.--side-menu-width]="width"
+  [style.--side-menu-top]="'var(--side-menu-top, 0px)'"
+  [style.transition]="'transform ' + transition"
+  [style.background]="backgroundColor"
+  [style.zIndex]="2147483647"
+>
+  <header class="side-menu__header">
+    <ng-content select="[slot=header]"></ng-content>
+    <button
+      class="side-menu__close"
+      aria-label="Close menu"
+      (click)="closeMenu()"
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </header>
+
+  <section class="side-menu__body">
+    <ng-content></ng-content>
+  </section>
+
+  <footer class="side-menu__footer">
+    <ng-content select="[slot=footer]"></ng-content>
+  </footer>
+</aside>

@@ -1,0 +1,1386 @@
+@import "../../../shared/styles/color-variable";
+
+:host {
+  display: block;
+}
+
+.teacher-cards {
+  .teacher-cards-grid {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .teacher-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px 22px;
+    border: 1px solid rgba(16, 24, 40, 0.1);
+    flex: 1 1 calc(100% - 18px);
+    min-width: 240px;
+  }
+
+  /* Breakpoints for columns */
+  @media (min-width: 576px) {
+    .teacher-card {
+      flex: 1 1 calc(50% - 18px);
+    }
+  }
+
+  @media (min-width: 992px) {
+    .teacher-card {
+      /* Keep two cards per row on desktop instead of three */
+      flex: 1 1 calc(50% - 18px);
+    }
+  }
+
+  /* Internal stacking on very small screens */
+  @media (max-width: 575px) {
+    .teacher-card {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      padding: 14px;
+    }
+
+    .teacher-left .avatar-wrap {
+      width: 100%;
+      height: 180px;
+      border-radius: 10px;
+    }
+    .teacher-center {
+      padding: 10px 0;
+    }
+    .teacher-right {
+      align-items: flex-start;
+      flex-direction: row;
+      gap: 12px;
+    }
+  }
+
+  .teacher-left {
+    .avatar-wrap {
+      width: 120px;
+      height: 120px;
+      overflow: hidden;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(180deg, #f6f1ff 0%, #fff 100%);
+      box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+      transition: transform 220ms ease, box-shadow 220ms ease;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center; /* always center-crop */
+      display: block;
+      transition: transform 360ms ease;
+      will-change: transform;
+    }
+
+    /* subtle hover/press effect on larger screens to give the image some depth */
+    @media (hover: hover) and (min-width: 576px) {
+      .avatar-wrap:hover img {
+        transform: scale(1.03);
+      }
+    }
+  }
+
+  .teacher-center {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    /* Prevent very long inline content from expanding and pushing the right column */
+    min-width: 0;
+
+    /* ensure long words wrap inside the center column */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    .teacher-name-row {
+      display: flex;
+      flex-direction: column;
+
+      .name {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #0f172a;
+      }
+
+      .role {
+        margin: 4px 0 0 0;
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .specializations {
+        margin-top: 8px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .spec-chip {
+        background: #f3f4f6;
+        color: #111827;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        display: inline-block;
+      }
+    }
+
+    .teacher-meta {
+      .students {
+        color: #6b7280;
+        font-size: 14px;
+
+        span {
+          color: #9ca3af;
+          font-weight: 400;
+          margin-left: 6px;
+        }
+      }
+
+      .rating-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff3d9;
+        padding: 4px 6px;
+        border-radius: 8px;
+        border: 1px solid #ffecb5;
+        .rating-value {
+          font-weight: 600;
+          color: #c77b00;
+        }
+
+        img {
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+  }
+
+  .teacher-right {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 10px;
+    justify-content: center;
+    /* Reserve some horizontal space so the buttons have room and won't be pushed
+       below when center content grows. Adjust as needed. */
+    min-width: 140px;
+
+    .hourly-rate {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 18px;
+
+      span {
+        font-weight: 500;
+        color: #6b7280;
+        margin-left: 4px;
+        font-size: 12px;
+      }
+    }
+
+    .btn-book {
+      background: #0b8043; /* green similar to image */
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: none;
+      margin-right: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      line-height: 1;
+      /* darken slightly on hover/click (no transitions) */
+      &:hover {
+        background: darken(#0b8043, 6%);
+      }
+      &:active {
+        background: darken(#0b8043, 10%);
+      }
+    }
+    .btn-view {
+      background: #c77b00;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: none;
+      margin-right: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      line-height: 1;
+      /* darken slightly on hover/click (no transitions) */
+      &:hover {
+        background: darken(#c77b00, 6%);
+      }
+      &:active {
+        background: darken(#c77b00, 10%);
+      }
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* small inline spinner used beside button labels */
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      animation: spin 800ms linear infinite;
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    object-position: center center; /* always center-crop */
+    /* make the unit text use primary color for emphasis */
+    .hourly-rate span {
+      color: $primary-color;
+      font-weight: 600;
+    }
+
+    /* Ensure buttons always sit side-by-side and do not wrap vertically */
+    .buttons-group {
+      display: flex;
+      flex-direction: row;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: nowrap; /* important: prevent stacking */
+    }
+
+    .buttons-group .btn-book,
+    .buttons-group .btn-view {
+      white-space: nowrap; /* keep label on one line */
+      flex: 0 0 auto; /* do not grow or shrink to cause wrapping */
+      margin-right: 0; /* spacing controlled by gap above */
+      min-height: 44px; /* ensure comfortable tap area */
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  .teacher-cards .teacher-card {
+    /* On small screens show a single card per row (already ensured by flex basis),
+       but layout the card content as a row with image on the left and content on the right */
+    flex-direction: row;
+    align-items: stretch;
+    width: 100%;
+  }
+  .teacher-left {
+    flex: 0 0 110px; /* image column width */
+    .avatar-wrap {
+      width: 100%;
+      height: 110px;
+      border-radius: 10px;
+    }
+  }
+
+  .teacher-center {
+    padding: 8px 12px;
+  }
+
+  .teacher-right {
+    flex: 0 0 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  /* Buttons group: make them sit side-by-side under the main row on very small widths */
+  .teacher-card .buttons-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* For very narrow phones, stack buttons but keep them visible as full width */
+  @media (max-width: 420px) {
+    .teacher-card {
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .teacher-left {
+      .avatar-wrap {
+        width: 100%;
+        height: 180px;
+      }
+      flex: none;
+    }
+
+    .teacher-right {
+      width: 100%;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .teacher-card .buttons-group {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+}
+@import "../../../shared/styles/color-variable";
+
+.all-teachers {
+  margin-top: 130px;
+}
+
+/* Side menu teacher profile styles */
+.teacher-profile {
+  .profile-row {
+    display: flex;
+    /* reduced gap to tighten vertical spacing between avatar and meta */
+    gap: 0.4rem;
+    align-items: center;
+
+    .profile-avatar {
+      width: 8rem;
+      height: 8rem;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      border: 4px solid rgba(11, 128, 67, 0.06);
+      background: linear-gradient(180deg, #fff, #f8fafc);
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-direction: column;
+      /* smaller vertical gap between stacked meta items */
+      gap: 2px;
+
+      .profile-name {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .role {
+        margin: 0;
+        color: #0b8043; /* green as in design */
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .rating-row {
+        display: flex;
+        align-items: center;
+        /* tighten spacing between rating elements */
+        gap: 6px;
+        margin-top: 4px;
+
+        .rating-star {
+          width: 18px;
+          height: 18px;
+        }
+
+        .rating-value {
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .review-count {
+          color: #6b7280;
+          font-size: 13px;
+        }
+      }
+      .specializations {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .rate-row {
+        color: $primary-color;
+
+        .rate-unit {
+          color: $primary-color;
+          font-weight: 600;
+        }
+      }
+
+      .spec-chip {
+        display: inline-block;
+        background: #f3f4f6;
+        color: #111827;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 999px;
+      }
+    }
+  }
+
+  .profile-bio {
+    /* slightly reduced top margin so bio sits closer to the profile row */
+    margin-top: 8px;
+  }
+
+  /* Profile sub-sections like specializations */
+  .profile-section {
+    margin-top: 12px;
+
+    .section-title {
+      margin: 0 0 12px 0;
+
+      font-size: 1.05rem;
+      color: $primary-color; /* use project primary color for title */
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 6px; /* small breathing room when stacked */
+
+      /* left vertical bar like the reference image */
+      &::before {
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 22px;
+        background: $primary-color;
+        border-radius: 2px;
+        margin-right: 6px;
+      }
+    }
+
+    .specializations {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* Smaller, darker chips that fit the side menu's subtle look */
+    .spec-chip {
+      display: inline-block;
+      padding: 4px 8px;
+      background: $primary-color; /* dark chip background */
+      color: #fff; /* white text for contrast */
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      opacity: 0.95;
+    }
+  }
+
+  /* Certificates / certifications block in side menu */
+  .certificate {
+    margin-top: 12px;
+
+    .section-title {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      color: $primary-color;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cert-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* two small cards side-by-side */
+      gap: 12px;
+    }
+
+    .cert-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      box-shadow: 0 4px 10px rgba(31, 45, 61, 0.03);
+    }
+
+    .cert-icon {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11, 128, 67, 0.06);
+      border: 1px solid rgba(11, 128, 67, 0.08);
+
+      img {
+        width: 20px;
+        height: 20px;
+        display: block;
+      }
+    }
+
+    .cert-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .cert-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .cert-sub {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+
+      .cert-years {
+        font-size: 11px;
+        color: #c7c7c7;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cert-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  /* Languages section styling to match Bio / section-title */
+
+  .language-section {
+    .language-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* two cards per row */
+      gap: 10px;
+      margin-top: 6px;
+      align-items: start;
+    }
+
+    .lang-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      width: 100%;
+    }
+
+    .lang-icon {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(1, 104, 54, 0.06);
+      flex: 0 0 36px;
+    }
+
+    .lang-label {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 14px;
+    }
+
+    .lang-sub {
+      margin-left: auto;
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 600;
+    }
+    img {
+      width: 20px;
+      height: 20px;
+      border-radius: 999px;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  /* Bio paragraph tweaks: slightly smaller, tighter lines to match design */
+  .profile-bio {
+    p {
+      margin: 0;
+      font-size: 13px; /* slightly smaller */
+      line-height: 1.45; /* tighter reading line-height */
+      color: #111827;
+      max-height: 8.6rem; /* limit to ~6 lines */
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .profile-actions {
+    margin-top: 14px;
+
+    .btn-book {
+      display: block;
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 10px;
+      background: #065a33; /* slightly darker green for better contrast */
+      color: #fff;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 18px rgba(6, 90, 51, 0.12);
+      height: 44px;
+      line-height: 20px;
+
+      &:hover {
+        filter: brightness(0.98);
+      }
+
+      &:active {
+        transform: translateY(1px);
+      }
+    }
+  }
+}
+
+/* Booking / availability cards styles (used inside booking side-menu) */
+.availability-cards {
+  padding: 8px 4px;
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .availability-card {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 150ms ease, box-shadow 150ms ease,
+      border-color 150ms ease;
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .day {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 14px;
+      }
+
+      .date {
+        font-size: 12px;
+        color: #9ca3af;
+        margin: 0 8px;
+        white-space: nowrap;
+        opacity: 0.95;
+      }
+
+      .time {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 600;
+      }
+    }
+
+    .card-bottom {
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+
+      .status {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+      }
+
+      .available {
+        background: rgba(11, 128, 67, 0.08);
+        color: #0b8043;
+        border: 1px solid rgba(11, 128, 67, 0.12);
+      }
+
+      .unavailable {
+        background: rgba(31, 45, 61, 0.04);
+        color: #9ca3af;
+        border: 1px solid rgba(31, 45, 61, 0.04);
+      }
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 20px rgba(31, 45, 61, 0.06);
+    }
+
+    &.selected {
+      border-color: $primary-color;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      transform: translateY(-2px);
+    }
+
+    &.disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      pointer-events: none;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  .booking-actions {
+    display: flex;
+    justify-content: center;
+
+    .btn-primary {
+      background: $primary-color;
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      animation: spin 800ms linear infinite;
+      display: inline-block;
+    }
+  }
+}
+
+/* Simple availability view - grouped by day */
+.availability-simple {
+  padding: 8px 0;
+
+  .no-availability {
+    text-align: center;
+    color: #9ca3af;
+    padding: 20px;
+  }
+
+  .day-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .day-group {
+    .day-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 10px;
+
+      .day-name {
+        font-weight: 700;
+        font-size: 15px;
+        color: #0f172a;
+      }
+
+      .day-date {
+        font-size: 13px;
+        color: #6b7280;
+      }
+    }
+
+    .time-slots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .time-slot {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #374151;
+      cursor: pointer;
+      transition: all 150ms ease;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      min-width: 90px;
+
+      .slot-time {
+        font-family: 'Roboto Mono', 'Courier New', monospace;
+      }
+
+      .slot-price {
+        font-size: 12px;
+        color: #10b981;
+        font-weight: 700;
+      }
+
+      &:hover:not(.disabled) {
+        background: #f0fdf4;
+        border-color: #10b981;
+        color: #059669;
+      }
+
+      &.selected {
+        background: #10b981;
+        border-color: #10b981;
+        color: #fff;
+
+        .slot-price {
+          color: #fff;
+        }
+      }
+
+      &.disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        text-decoration: line-through;
+      }
+    }
+  }
+
+  .booking-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+
+    .btn-primary {
+      background: $primary-color;
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.45);
+      border-top-color: #fff;
+      animation: spin 800ms linear infinite;
+      display: inline-block;
+    }
+  }
+}
+
+/* Simple popup/modal used for errors in AllTeachers component */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.popup-container {
+  background: #fff;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 420px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+}
+
+.popup-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.popup-close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.popup-body {
+  padding: 8px 0 12px 0;
+}
+
+.popup-title {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.popup-message {
+  margin: 0;
+  color: #374151;
+}
+
+.popup-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.btn-error {
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-success {
+  background: #0b8043;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* allow container color variants */
+.popup-container.success .popup-title {
+  color: #0b8043;
+}
+.popup-container.error .popup-title {
+  color: #ef4444;
+}
+.teacher-filter {
+  .filter-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .filter-item {
+    flex: 1 1 220px;
+  }
+
+  .search-item {
+    flex: 2 1 420px;
+  }
+
+  .search-input {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    border: 1px solid $primary-color;
+    border-radius: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+  }
+
+  .search-input input {
+    border: none;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+    padding: 4px 8px;
+  }
+
+  .search-icon {
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid $primary-color;
+    background: #fff;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  .select-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    border: 1px solid $primary-color;
+    border-radius: 8px;
+  }
+
+  /* hide native arrow for most browsers */
+  .select-wrapper select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding-right: 36px; /* space for custom arrow */
+  }
+
+  .select-wrapper .arrow {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    transition: transform 180ms ease;
+    pointer-events: none;
+  }
+
+  /* rotate arrow when select is focused or wrapper has open class */
+  .select-wrapper:focus-within .arrow,
+  .select-wrapper.open .arrow {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  /* custom dropdown list */
+  .custom-dropdown .options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin-top: 8px;
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 6px;
+    max-height: 220px;
+    overflow: auto;
+    z-index: 40;
+    box-shadow: 0 8px 20px rgba(31, 45, 61, 0.08);
+    padding: 6px 0;
+  }
+
+  .custom-dropdown .options li {
+    list-style: none;
+    padding: 10px 12px;
+    cursor: pointer;
+    color: #222;
+    transition: background 120ms ease, color 120ms ease;
+  }
+
+  .custom-dropdown .options li:hover {
+    background: lighten($primary-color, 12%);
+    border-radius: 8px;
+  }
+
+  /* selected/active option style (blue) */
+  .custom-dropdown .options li.selected {
+    background: $primary-color;
+    color: #fff;
+    border-radius: 8px;
+  }
+
+  /* ensure selected-value box aligns with design */
+  .custom-dropdown .selected-value {
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    background: #fff;
+    color: #222;
+  }
+
+  .visually-hidden {
+    position: absolute !important;
+    height: 1px;
+    width: 1px;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    white-space: nowrap;
+  }
+}
+
+/* Pagination styles */
+.pagination-wrap {
+  margin-top: 20px;
+  .pagination-inner {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+  }
+
+  .page-size select {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid $primary-color;
+    background: #fff;
+  }
+
+  .pager {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .pager-btn {
+    min-width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(16, 24, 40, 0.06);
+    background: #fff;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .pager-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .pager-btn.active {
+    background: $primary-color;
+    color: #fff;
+    border-color: $primary-color;
+  }
+
+  .dots {
+    padding: 0 6px;
+    color: #6b7280;
+  }
+
+  .pagination-info {
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    .pagination-inner {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 6px;
+    }
+
+    .pager {
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+  }
+}
+
+/* Stronger mobile overrides for very small screens to ensure cards are
+   stacked, touch-friendly, and visually balanced on phones. */
+@media (max-width: 480px) {
+  .teacher-cards {
+    .teacher-cards-grid {
+      /* use a column flex to preserve the gap property and create
+         consistent vertical spacing between stacked cards */
+      display: flex;
+      flex-direction: column;
+      gap: 18px; /* increased spacing for mobile */
+      width: 100%;
+    }
+
+    .teacher-card {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100% !important;
+      padding: 12px;
+      gap: 10px;
+      min-width: 0;
+      border-radius: 10px;
+    }
+
+    .teacher-left {
+      .avatar-wrap {
+        width: 100%;
+        /* predictable crop across images: 16:9 gives a wider frame so
+           upper body / head are less likely to be cut */
+        aspect-ratio: 16 / 9;
+        height: auto;
+        border-radius: 8px;
+        overflow: hidden;
+        display: block;
+      }
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        /* shift crop slightly upward so faces/upper chest remain visible */
+        object-position: center 22%;
+      }
+    }
+
+    .teacher-center {
+      padding: 6px 0;
+
+      .teacher-name-row {
+        .name {
+          font-size: 18px;
+        }
+        .role {
+          font-size: 13px;
+        }
+        .specializations {
+          gap: 6px;
+        }
+      }
+
+      .teacher-meta {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
+
+    .teacher-right {
+      width: 100%;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      min-width: 0;
+
+      .hourly-rate {
+        font-size: 16px;
+        font-weight: 700;
+      }
+
+      .buttons-group {
+        width: 100%;
+        display: flex;
+        gap: 8px;
+      }
+
+      .buttons-group .btn-book,
+      .buttons-group .btn-view {
+        flex: 1 1 auto;
+        width: 100%;
+        padding: 12px 10px;
+        font-size: 15px;
+        border-radius: 10px;
+        min-height: 44px; /* ensure comfortable tap target */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+  }
+
+  /* Filters: stack vertically and make inputs full width and touch friendly */
+  .teacher-filter {
+    .filter-row {
+      flex-direction: column;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    .filter-item,
+    .search-item {
+      flex: 1 1 100% !important;
+      width: 100%;
+    }
+
+    .search-input {
+      padding: 10px;
+    }
+
+    select,
+    .custom-dropdown .selected-value {
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+  }
+}
+
+/* Extra narrow phones: slightly larger avatar and stacked actions */
+@media (max-width: 375px) {
+  .teacher-cards .teacher-cards-grid {
+    gap: 20px; /* slightly larger gap for very narrow phones */
+  }
+  .teacher-cards .teacher-card {
+    padding: 10px;
+  }
+
+  .teacher-left .avatar-wrap {
+    /* keep consistent aspect ratio on very narrow phones and allow
+       some extra visual height so head/upper body are visible */
+    aspect-ratio: 16 / 9;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  /* nudge crop slightly more upwards on very narrow phones */
+  .teacher-left .avatar-wrap img {
+    object-position: center 18%;
+  }
+
+  .teacher-right .buttons-group {
+    flex-direction: column;
+  }
+
+  .teacher-right .buttons-group .btn-book,
+  .teacher-right .buttons-group .btn-view {
+    width: 100%;
+    min-height: 44px;
+  }
+}

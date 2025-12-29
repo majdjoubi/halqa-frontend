@@ -1,0 +1,29 @@
+<div class="all-user-wrapper">
+  <!-- Role Filter Buttons -->
+  <div class="role-filter-container">
+    <div class="role-filter-buttons">
+      <button 
+        *ngFor="let role of roleOptions"
+        class="role-filter-btn"
+        [class.active]="selectedRoleFilter === role.key"
+        (click)="filterByRole(role.key)"
+      >
+        {{ role.label }}
+        <span class="count" *ngIf="role.key === 'all'">({{ AllUsers.length }})</span>
+        <span class="count" *ngIf="role.key === 'teacher'">({{ (AllUsers | filterByRole:'teacher').length }})</span>
+        <span class="count" *ngIf="role.key === 'student'">({{ (AllUsers | filterByRole:'student').length }})</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- The shared show-users handles status filters; pass filtered list and a custom statusOptions -->
+  <app-show-users
+    [users]="usersFilteredByRole"
+    [mapFn]="userMapFn"
+    [title]="'All Users'"
+    [showCount]="true"
+    [actionButtons]="switchButtons"
+    [statusOptions]="statusOptions"
+    (action)="handleAction($event)"
+  ></app-show-users>
+</div>

@@ -1,0 +1,144 @@
+<section class="login-section">
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      <!-- Main Content -->
+      <div
+        class="col-lg-7 col-md-7 col-12 d-flex flex-column justify-content-center p-4"
+      >
+        <!-- Header Section -->
+        <div class="header-section text-center mb-5">
+          <h1>{{ "login_page.title" | translate }}</h1>
+          <p class="subtitle-text">
+            {{ "login_page.subtitle" | translate }}
+          </p>
+        </div>
+
+        <!-- Login Form -->
+        <div class="form-container d-flex flex-column align-items-center">
+          <form
+            [formGroup]="loginForm"
+            (ngSubmit)="onSubmit()"
+            class="login-form w-100"
+          >
+            <!-- Email Field -->
+            <div class="form-group mb-4">
+              <label class="form-label">{{
+                "login_page.email_label" | translate
+              }}</label>
+              <div class="input-container">
+                <input
+                  type="email"
+                  class="form-control"
+                  [placeholder]="'login_page.email_placeholder' | translate"
+                  formControlName="email"
+                  [class.is-invalid]="isFieldInvalid('email')"
+                  [class.is-valid]="isFieldValid('email')"
+                />
+              </div>
+
+              <!-- Email Validation -->
+              <app-form-validation
+                *ngIf="loginForm.get('email')"
+                [control]="loginForm.get('email')!"
+                [fieldType]="'email'"
+                [config]="{
+                  showSuccessMessage: false,
+                  showRequirements: false
+                }"
+              >
+              </app-form-validation>
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group mb-4">
+              <label class="form-label">{{
+                "login_page.password_label" | translate
+              }}</label>
+              <div class="input-container">
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
+                  class="form-control"
+                  [placeholder]="'login_page.password_placeholder' | translate"
+                  formControlName="password"
+                  autocomplete="current-password"
+                  [class.is-invalid]="isFieldInvalid('password')"
+                  [class.is-valid]="isFieldValid('password')"
+                />
+                <button
+                  type="button"
+                  class="password-toggle"
+                  (click)="togglePasswordVisibility()"
+                >
+                  <i
+                    [class]="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'"
+                  ></i>
+                </button>
+              </div>
+
+              <!-- Password Validation -->
+              <app-form-validation
+                *ngIf="loginForm.get('password')"
+                [control]="loginForm.get('password')!"
+                [fieldType]="'password'"
+                [config]="{
+                  showSuccessMessage: false,
+                  showRequirements: false
+                }"
+              >
+              </app-form-validation>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div
+              class="form-options d-flex justify-content-between align-items-center mb-4"
+            >
+              <a routerLink="/forgot-password" class="forgot-password-link">
+                {{ "login_page.forgot_password" | translate }}
+              </a>
+            </div>
+
+            <!-- Error Message -->
+            <div
+              *ngIf="errorMessage"
+              class="alert alert-danger mb-3"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-circle me-2"></i>
+              {{ errorMessage }}
+            </div>
+
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="btn login-btn w-100 mb-4"
+              [disabled]="loginForm.invalid || isLoading"
+            >
+              <span *ngIf="!isLoading">{{
+                "login_page.login_button" | translate
+              }}</span>
+              <span *ngIf="isLoading">
+                <i class="fas fa-spinner fa-spin me-2"></i>
+                {{ "common.loading" | translate }}
+              </span>
+            </button>
+
+            <!-- Register Link -->
+            <div class="register-link text-center" routerLink="/join-us">
+              <span class="text-muted">{{
+                "login_page.no_account" | translate
+              }}</span>
+              <a routerLink="/join-us" class="register-link-text ms-2">
+                {{ "login_page.register_link" | translate }}
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Side Image - Hidden on mobile -->
+      <div class="col-lg-5 col-md-5 d-none d-md-block">
+        <app-side-image></app-side-image>
+      </div>
+    </div>
+  </div>
+</section>

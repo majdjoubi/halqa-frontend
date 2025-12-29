@@ -1,0 +1,126 @@
+<!-- Success Message -->
+<div
+  *ngIf="isValid && config.showSuccessMessage"
+  class="validation-feedback valid-feedback"
+>
+  {{ config.successMessageKey || "validation.field_valid" | translate }}
+</div>
+
+<!-- Password Requirements (for password fields) -->
+<div
+  *ngIf="fieldType === 'password' && config.showRequirements && showValidation"
+  class="password-requirements mt-2"
+  [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+>
+  <!-- Length requirement (8-20 characters) -->
+  <small
+    class="requirement-item"
+    [ngClass]="
+      getValidationClass(hasMinLength(value, 8) && hasMaxLength(value, 20))
+    "
+  >
+    <i
+      [class]="
+        getValidationIcon(hasMinLength(value, 8) && hasMaxLength(value, 20))
+      "
+      [attr.aria-hidden]="true"
+    ></i>
+    8-20 {{ "validation.character" | translate }}
+  </small>
+
+  <!-- Uppercase letter requirement -->
+  <small
+    class="requirement-item"
+    [ngClass]="getValidationClass(hasUpperCase(value))"
+  >
+    <i
+      [class]="getValidationIcon(hasUpperCase(value))"
+      [attr.aria-hidden]="true"
+    ></i>
+    {{ "validation.at_least_one_capital_letter" | translate }}
+  </small>
+
+  <!-- Number requirement -->
+  <small
+    class="requirement-item"
+    [ngClass]="getValidationClass(hasNumber(value))"
+  >
+    <i
+      [class]="getValidationIcon(hasNumber(value))"
+      [attr.aria-hidden]="true"
+    ></i>
+    {{ "validation.at_least_one_number" | translate }}
+  </small>
+
+  <!-- No spaces requirement -->
+  <small
+    class="requirement-item"
+    [ngClass]="getValidationClass(hasNoSpaces(value))"
+  >
+    <i
+      [class]="getValidationIcon(hasNoSpaces(value))"
+      [attr.aria-hidden]="true"
+    ></i>
+    {{ "validation.no_spaces" | translate }}
+  </small>
+</div>
+
+<!-- Custom Validations -->
+<div
+  *ngIf="config.customValidations && showValidation"
+  class="custom-validations mt-2"
+  [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+>
+  <small
+    *ngFor="let validation of config.customValidations"
+    class="requirement-item"
+    [ngClass]="getValidationClass(checkCustomValidation(validation))"
+  >
+    <i
+      [class]="getValidationIcon(checkCustomValidation(validation))"
+      [attr.aria-hidden]="true"
+    ></i>
+    {{ validation.messageKey | translate }}
+  </small>
+</div>
+
+<!-- Error Messages -->
+<div *ngIf="isInvalid" class="invalid-feedback">
+  <!-- Required field error -->
+  <small *ngIf="errors['required']">
+    {{ "validation.field_required" | translate }}
+  </small>
+
+  <!-- Email validation error -->
+  <small *ngIf="errors['email']">
+    {{ "validation.invalid_email" | translate }}
+  </small>
+
+  <!-- Min length error -->
+  <small *ngIf="errors['minlength']">
+    {{
+      "validation.min_length"
+        | translate : { min: errors["minlength"].requiredLength }
+    }}
+  </small>
+
+  <!-- Max length error -->
+  <small *ngIf="errors['maxlength']">
+    {{
+      "validation.max_length"
+        | translate : { max: errors["maxlength"].requiredLength }
+    }}
+  </small>
+
+  <!-- Password mismatch error -->
+  <small *ngIf="errors['passwordMismatch']">
+    {{ "validation.password_mismatch" | translate }}
+  </small>
+
+  <!-- Pattern error -->
+  <small *ngIf="errors['pattern']">
+    {{ "validation.invalid_format" | translate }}
+  </small>
+
+  <!-- Custom error messages can be added here as needed -->
+</div>

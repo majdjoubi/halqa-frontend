@@ -1,0 +1,22 @@
+@import "../../../shared/styles/color-variable";
+
+:host { display: block; }
+
+/* Minimal admin all-teachers styles — kept small intentionally. */
+.all-teachers {
+  margin-top: 120px;
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .cards-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  }
+
+  .empty-block { text-align: center; color: #6b7280; padding: 28px 12px; }
+}

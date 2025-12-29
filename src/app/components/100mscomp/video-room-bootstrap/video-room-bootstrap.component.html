@@ -1,0 +1,182 @@
+<div class="video-room-container">
+  <!-- Join Screen -->
+  <div *ngIf="!joined" class="join-screen">
+    <div class="join-card">
+      <div class="join-header">
+        <h2>🎓 غرفة الدرس المباشر</h2>
+        <p>أدخل بياناتك للانضمام للحصة</p>
+      </div>
+
+      <div class="join-form">
+        <div class="form-group">
+          <label>الاسم</label>
+          <input
+            [(ngModel)]="userName"
+            type="text"
+            class="form-input"
+            placeholder="اسمك (مثال: أحمد)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>الدور</label>
+          <select [(ngModel)]="role" class="form-select">
+            <option value="student">طالب</option>
+            <option value="broadcaster">معلم</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>رمز الدخول (Token)</label>
+          <textarea
+            [(ngModel)]="token"
+            rows="4"
+            class="form-textarea"
+            placeholder="ضع هنا Auth Token من 100ms"
+          ></textarea>
+        </div>
+
+        <button (click)="join()" class="btn-join">
+          <span>🚀 انضم للحصة</span>
+        </button>
+
+        <div class="join-info">
+          <small>💡 استخدم Auth Token من لوحة التحكم للاختبار</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Video Room -->
+  <div *ngIf="joined" class="room-active">
+    <!-- Main Video Area -->
+    <div class="video-grid">
+      <!-- Remote Participant (Main View) -->
+      <div class="main-video-container" *ngIf="remotePeers.length > 0">
+        <div class="video-wrapper">
+          <video #remoteVideo autoplay playsinline class="main-video"></video>
+          <div class="video-overlay">
+            <div class="participant-name">
+              <span class="name-badge">
+                👤
+                {{
+                  (remotePeers.length > 0 ? remotePeers[0].name : "") ||
+                    "المشارك"
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- No Remote Participant -->
+      <div
+        class="main-video-container waiting"
+        *ngIf="remotePeers.length === 0"
+      >
+        <div class="waiting-message">
+          <div class="waiting-icon">⏳</div>
+          <h3>في انتظار المشاركين...</h3>
+          <p>جاري انتظار انضمام المعلم أو الطلاب الآخرين</p>
+        </div>
+      </div>
+
+      <!-- Local Video (Small Preview) -->
+      <div class="local-video-container">
+        <div class="video-wrapper local">
+          <video
+            #localVideo
+            autoplay
+            playsinline
+            muted
+            class="local-video"
+          ></video>
+          <div class="local-overlay">
+            <span class="local-label">أنت</span>
+          </div>
+          <div class="video-status" *ngIf="!isVideoEnabled">
+            <span class="status-icon">📹</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Additional Remote Participants (if more than 1) -->
+    <div class="participants-sidebar" *ngIf="remotePeers.length > 1">
+      <h4>المشاركين ({{ remotePeers.length }})</h4>
+      <div class="participants-grid">
+        <div
+          *ngFor="let peer of remotePeers.slice(1); let i = index"
+          class="participant-card"
+        >
+          <video
+            #remoteVideo
+            autoplay
+            playsinline
+            class="participant-video"
+          ></video>
+          <div class="participant-info">
+            <span>{{ peer.name || "مشارك " + (i + 2) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Control Bar -->
+    <div class="control-bar">
+      <div class="controls-wrapper">
+        <!-- Room Info -->
+        <div class="room-info">
+          <span class="status-dot"></span>
+          <span class="room-name">{{ userName }}</span>
+          <span class="participant-count">
+            👥 {{ peers.length }} {{ peers.length === 1 ? "مشارك" : "مشاركين" }}
+          </span>
+        </div>
+
+        <!-- Control Buttons -->
+        <div class="control-buttons">
+          <!-- Microphone Button -->
+          <button
+            (click)="toggleAudio()"
+            class="control-btn"
+            [class.active]="isAudioEnabled"
+            [class.disabled]="!isAudioEnabled"
+          >
+            <span class="btn-icon" *ngIf="isAudioEnabled">🎤</span>
+            <span class="btn-icon" *ngIf="!isAudioEnabled">🔇</span>
+            <span class="btn-label">{{
+              isAudioEnabled ? "كتم الصوت" : "تشغيل الصوت"
+            }}</span>
+          </button>
+
+          <!-- Camera Button -->
+          <button
+            (click)="toggleVideo()"
+            class="control-btn"
+            [class.active]="isVideoEnabled"
+            [class.disabled]="!isVideoEnabled"
+          >
+            <span class="btn-icon" *ngIf="isVideoEnabled">📹</span>
+            <span class="btn-icon" *ngIf="!isVideoEnabled">🚫</span>
+            <span class="btn-label">{{
+              isVideoEnabled ? "إيقاف الكاميرا" : "تشغيل الكاميرا"
+            }}</span>
+          </button>
+
+          <!-- Leave Button -->
+          <button (click)="leave()" class="control-btn leave-btn">
+            <span class="btn-icon">📞</span>
+            <span class="btn-label">مغادرة</span>
+          </button>
+        </div>
+
+        <!-- Timer (Optional) -->
+        <div class="session-timer">
+          <span class="timer-icon">⏱️</span>
+          <span class="timer-text">متصل</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

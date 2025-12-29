@@ -1,0 +1,773 @@
+@import "../../../../shared/styles/_color-variable";
+
+.student-register {
+  min-height: 95vh;
+
+  .register-content {
+    padding: 2rem;
+  }
+
+  .header-section {
+    h1 {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #2c3e50;
+
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 1.75rem;
+      }
+    }
+
+    .subtitle-text {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: $text-color;
+      margin-bottom: 2rem;
+
+      @media (max-width: 768px) {
+        font-size: 1rem;
+      }
+
+      @media (max-width: 480px) {
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  // Steps Progress
+  .steps-progress {
+    margin: 2rem 0;
+
+    .step {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background-color: #f8f9fa;
+      border: 2px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+
+      &.active {
+        background-color: $primary-color;
+        border-color: $primary-color;
+        color: white;
+      }
+
+      &.completed {
+        background-color: $primary-color;
+        border-color: $primary-color;
+        color: white;
+      }
+
+      .step-number {
+        font-weight: bold;
+        font-size: 0.9rem;
+      }
+
+      @media (max-width: 480px) {
+        width: 40px;
+        height: 40px;
+
+        .step-number {
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .step-line {
+      width: 100px;
+      height: 2px;
+      background-color: #dee2e6;
+      transition: all 0.3s ease;
+
+      &.completed {
+        background-color: $primary-color;
+      }
+
+      @media (max-width: 480px) {
+        width: 60px;
+      }
+    }
+  }
+
+  .step-labels {
+    max-width: 300px;
+    margin: 0 auto;
+
+    .step-label {
+      font-size: 0.9rem;
+      color: $text-color;
+      font-weight: 500;
+
+      @media (max-width: 480px) {
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  // Form Styling
+  .form-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .register-form {
+    .form-group {
+      position: relative;
+
+      .form-label {
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 0.5rem;
+        display: block;
+        font-size: 0.875rem;
+
+        &.required::after {
+          content: " *";
+          color: #dc3545;
+        }
+      }
+
+      // Success indicator for valid fields
+      &.field-valid {
+        .form-control,
+        .form-select {
+          border-color: #10b981;
+
+          &:focus {
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+          }
+
+          &::after {
+            content: "✓";
+            position: absolute;
+            inset-inline-end: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #10b981;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 5;
+            pointer-events: none;
+          }
+        }
+
+        .validation-icon {
+          position: absolute;
+          inset-inline-end: 0.5rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #10b981;
+          font-size: 1.2rem;
+          z-index: 5;
+          pointer-events: none;
+        }
+      }
+
+      .form-control,
+      .form-select {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e1e5e9;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background-color: #fff;
+        position: relative;
+        min-height: 48px;
+
+        &:focus {
+          border-color: $primary-color;
+          box-shadow: none;
+          outline: none;
+        }
+
+        &:hover:not(:focus) {
+          border-color: #c6cbd1;
+        }
+
+        &.is-invalid {
+          border-color: #dc3545;
+        }
+
+        &.is-valid {
+          border-color: #10b981;
+          position: relative;
+        }
+
+        &::placeholder {
+          color: #9ca3af;
+          font-weight: 400;
+        }
+      }
+
+      .invalid-feedback {
+        display: block;
+        font-size: 0.75rem;
+        color: #dc3545;
+        margin-top: 0.375rem;
+        font-weight: 400;
+
+        small {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.25rem;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          &::before {
+            content: "•";
+            margin-right: 0.375rem;
+            font-weight: bold;
+          }
+        }
+      }
+
+      // Validation feedback styles for different states
+      .validation-feedback {
+        margin-top: 0.375rem;
+        font-size: 0.75rem;
+
+        &.valid-feedback {
+          color: #10b981;
+          display: flex;
+          align-items: center;
+          font-weight: 500;
+
+          &::before {
+            content: "✓";
+            margin-right: 0.375rem;
+            font-weight: bold;
+            color: #10b981;
+          }
+        }
+      }
+
+      // Password requirements styling
+      .password-requirements {
+        .requirement-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.375rem;
+          font-size: 0.75rem;
+          transition: all 0.3s ease;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          i {
+            margin-right: 0.5rem;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+          }
+
+          &.valid {
+            color: #10b981;
+
+            .fa-check {
+              color: #10b981;
+            }
+          }
+
+          &.invalid {
+            color: #dc3545;
+
+            .fa-times {
+              color: #dc3545;
+            }
+          }
+
+          &:not(.valid):not(.invalid) {
+            color: #6b7280;
+          }
+        }
+      }
+    }
+
+    // Phone Input Group
+    .phone-input-group {
+      display: flex;
+      gap: 0.5rem;
+
+      .country-code {
+        flex: 0 0 120px;
+      }
+
+      .phone-number {
+        flex: 1;
+      }
+    }
+
+    // RTL specific overrides for validation icons
+    [dir="rtl"] & {
+      .form-control {
+        &.is-valid {
+          background-position: left 0.375rem center !important;
+          padding-left: calc(1.5em + 0.75rem) !important;
+          padding-right: 0.75rem !important;
+        }
+
+        &.is-invalid {
+          background-position: left 0.375rem center !important;
+          padding-left: calc(1.5em + 0.75rem) !important;
+          padding-right: 0.75rem !important;
+        }
+      }
+
+      .password-input-group {
+        .password-toggle {
+          left: 0.5rem !important;
+          right: auto !important;
+        }
+
+        &.field-valid {
+          .password-toggle {
+            left: 3rem !important;
+            right: auto !important;
+          }
+
+          &::after {
+            left: 0.5rem !important;
+            right: auto !important;
+          }
+        }
+
+        .form-control {
+          padding-left: 3.25rem !important;
+          padding-right: 0.75rem !important;
+
+          &.is-valid {
+            padding-left: 5.5rem !important;
+          }
+        }
+      }
+
+      .validation-icon {
+        left: 0.5rem !important;
+        right: auto !important;
+      }
+
+      .field-valid::after {
+        left: 0.5rem !important;
+        right: auto !important;
+      }
+    }
+
+    // Password Input Group
+    .password-input-group {
+      position: relative;
+
+      .form-control {
+        padding-inline-end: 3.25rem;
+
+        &.is-valid {
+          padding-inline-end: 5.5rem; // Extra space for both icons
+        }
+      }
+
+      .password-toggle {
+        position: absolute;
+        inset-inline-end: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6b7280;
+        padding: 0;
+        width: 2.25rem;
+        height: 2.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 10;
+
+        &:active {
+          outline: none;
+        }
+        &:focus {
+          outline: none;
+        }
+
+        i {
+          font-size: 1rem;
+        }
+      }
+
+      // Success icon for password fields
+      &.field-valid {
+        .password-toggle {
+          inset-inline-end: 3rem; // Move eye icon to the left when valid
+        }
+
+        &::after {
+          content: "✓";
+          position: absolute;
+          inset-inline-end: 0.5rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: #10b981;
+          font-size: 1.2rem;
+          font-weight: bold;
+          z-index: 5;
+          pointer-events: none;
+        }
+      }
+    }
+
+    // File Upload
+    .file-upload-container {
+      .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          border-color: $primary-color;
+          background-color: rgba(1, 104, 54, 0.05);
+        }
+
+        &.has-file {
+          border-style: solid;
+          border-color: $primary-color;
+          background-color: rgba(1, 104, 54, 0.05);
+        }
+
+        .upload-placeholder {
+          .upload-icon {
+            font-size: 2rem;
+            color: $text-color;
+            margin-bottom: 1rem;
+          }
+
+          .upload-text {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+          }
+
+          .upload-hint {
+            color: $text-color;
+            font-size: 0.875rem;
+          }
+        }
+
+        .uploaded-file {
+          .preview-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 1rem;
+          }
+
+          .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+          }
+        }
+      }
+    }
+
+    // Buttons
+    .continue-btn,
+    .btn-primary,
+    .submit-btn {
+      background-color: $primary-color;
+      border-color: $primary-color;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.2),
+          transparent
+        );
+        transition: left 0.5s;
+      }
+
+      &:hover {
+        background-color: darken($primary-color, 10%);
+        border-color: darken($primary-color, 10%);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(1, 104, 54, 0.4);
+
+        &::before {
+          left: 100%;
+        }
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(1, 104, 54, 0.3);
+      }
+
+      &:disabled {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        opacity: 0.65;
+        transform: none;
+        box-shadow: none;
+        cursor: not-allowed;
+
+        &::before {
+          display: none;
+        }
+      }
+
+      &.btn-loading {
+        pointer-events: none;
+      }
+
+      .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+      }
+    }
+
+    .btn-outline-secondary,
+    .back-btn {
+      color: $text-color;
+      border-color: #dee2e6;
+      padding: 0.75rem 2rem;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      position: relative;
+
+      &:hover {
+        background-color: #f8f9fa;
+        border-color: #adb5bd;
+        color: #495057;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      &:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+    }
+
+    .form-actions {
+      margin-top: 2rem;
+
+      .btn {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    // Form Progress Info
+    .form-progress-info {
+      .text-muted {
+        font-size: 0.875rem;
+      }
+
+      .text-primary {
+        color: $primary-color !important;
+      }
+    }
+  }
+
+  // Login Link
+  .login-link {
+    color: $text-color;
+
+    .login-link-text {
+      color: $primary-color;
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: darken($primary-color, 10%);
+        text-decoration: underline;
+      }
+    }
+  }
+
+  // Mobile Responsiveness
+  @media (max-width: 768px) {
+    .container-fluid {
+      padding: 1rem;
+    }
+
+    .register-content {
+      padding: 1rem;
+    }
+
+    .row {
+      margin: 0;
+    }
+
+    .form-container {
+      max-width: 100%;
+    }
+
+    .phone-input-group {
+      flex-direction: column;
+
+      .country-code {
+        flex: 1;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .container-fluid {
+      padding: 0.5rem;
+    }
+
+    .register-content {
+      padding: 0.5rem;
+    }
+
+    .header-section {
+      .subtitle-text {
+        text-align: center;
+      }
+    }
+
+    .register-form {
+      .form-control,
+      .form-select {
+        font-size: 0.9rem;
+        padding: 0.6rem 0.8rem;
+      }
+
+      .password-input-group .password-toggle {
+        right: 0.6rem;
+        width: 1.5rem;
+        height: 1.5rem;
+      }
+
+      .file-upload-container .file-upload-area {
+        padding: 1.5rem 1rem;
+
+        .upload-placeholder .upload-icon {
+          font-size: 1.5rem;
+        }
+
+        .uploaded-file .preview-image {
+          width: 60px;
+          height: 60px;
+        }
+      }
+
+      .continue-btn,
+      .btn-primary,
+      .btn-outline-secondary {
+        padding: 0.6rem 1.5rem;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  // Extra large screens
+  @media (min-width: 1400px) {
+    .register-content {
+      padding: 3rem;
+
+      h1 {
+        font-size: 3rem;
+      }
+    }
+
+    .form-container {
+      max-width: 600px;
+    }
+
+    .register-form {
+      .form-control,
+      .form-select {
+        padding: 1rem 1.25rem;
+        font-size: 1.1rem;
+      }
+
+      .continue-btn,
+      .btn-primary,
+      .btn-outline-secondary {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  // Landscape mobile optimization
+  @media (max-width: 768px) and (orientation: landscape) {
+    min-height: auto;
+
+    .register-content {
+      padding: 1rem 2rem;
+    }
+
+    .header-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .steps-progress {
+      margin: 1rem 0;
+    }
+  }
+
+  // RTL Support
+  .rtl & {
+    .phone-input-group {
+      direction: rtl;
+    }
+
+    .password-input-group .password-toggle {
+      right: auto;
+      left: 0.75rem;
+    }
+
+    .form-control {
+      text-align: right;
+    }
+
+    .file-upload-container .file-upload-area {
+      .uploaded-file .file-name {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .password-input-group .password-toggle {
+        left: 0.6rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,277 @@
+.custom-marginTop {
+  margin-top: 12rem;
+}
+
+.Teacher-custom-marginTop {
+  margin-top: 5rem;
+}
+
+/* Force border radius for side menu */
+.side-menu {
+  border-radius: 12px !important;
+}
+
+:root {
+  /* use a very large z-index so the side-menu appears above everything else */
+  --side-menu-z: 2147483647; /* max signed 32-bit int */
+  --side-menu-radius: 12px !important;
+  --side-menu-shadow: 0 10px 40px rgba(0, 0, 0, 0.1),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+  --side-menu-backdrop-blur: 4px;
+}
+
+.side-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  backdrop-filter: blur(var(--side-menu-backdrop-blur));
+  -webkit-backdrop-filter: blur(var(--side-menu-backdrop-blur));
+  transition: opacity 250ms ease-out, visibility 250ms ease-out;
+  z-index: calc(var(--side-menu-z) - 1);
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.side-menu-backdrop.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.side-menu {
+  position: fixed;
+  top: 20px;
+  bottom: 20px;
+  left: 0;
+  transform: translateX(-100%);
+  width: var(--side-menu-width, 380px);
+  background: #fff;
+  box-shadow: var(--side-menu-shadow);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px !important;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: var(--side-menu-z);
+  display: flex;
+  flex-direction: column;
+  transition: transform 300ms ease-out;
+  margin-left: 20px;
+  /* Custom scrollbar */
+}
+.side-menu::-webkit-scrollbar {
+  width: 4px;
+}
+.side-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+.side-menu::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+}
+.side-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.side-menu.right {
+  left: auto;
+  right: 0;
+  transform: translateX(100%);
+  margin-left: 0;
+  margin-right: 20px;
+}
+
+.side-menu.open {
+  transform: translateX(0);
+  border-radius: 12px !important;
+}
+
+.side-menu__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  background: #fff;
+  color: #016836;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: var(--side-menu-radius) var(--side-menu-radius) 0 0;
+  position: relative;
+}
+.side-menu__header h1,
+.side-menu__header h2,
+.side-menu__header h3,
+.side-menu__header h4,
+.side-menu__header h5,
+.side-menu__header h6 {
+  margin: 0;
+  font-weight: 600;
+  color: #016836;
+  font-size: 1.1rem;
+}
+
+.side-menu__close {
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #8692a6;
+  transition: all 200ms ease;
+}
+.side-menu__close:hover {
+  background: #016836;
+  border-color: #016836;
+  color: #fff;
+  transform: translateY(-1px);
+}
+.side-menu__close:active {
+  transform: translateY(0);
+}
+.side-menu__close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.side-menu__body {
+  padding: 1.5rem;
+  flex: 1 1 auto;
+  color: #8692a6;
+  line-height: 1.6;
+  /* Modern typography */
+  /* Clean link styling */
+  /* Modern button styling */
+  /* List styling */
+}
+.side-menu__body h1,
+.side-menu__body h2,
+.side-menu__body h3,
+.side-menu__body h4,
+.side-menu__body h5,
+.side-menu__body h6 {
+  color: #016836;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+}
+.side-menu__body p {
+  margin-bottom: 1rem;
+  color: #8692a6;
+}
+.side-menu__body a {
+  color: #016836;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 200ms ease;
+}
+.side-menu__body a:hover {
+  color: rgb(0.2714285714, 28.2285714286, 14.6571428571);
+}
+.side-menu__body .btn,
+.side-menu__body button {
+  background: #016836;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 200ms ease;
+  font-size: 0.9rem;
+}
+.side-menu__body .btn:hover,
+.side-menu__body button:hover {
+  background: rgb(0.6114285714, 63.5885714286, 33.0171428571);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(1, 104, 54, 0.2);
+}
+.side-menu__body .btn:active,
+.side-menu__body button:active {
+  transform: translateY(0);
+}
+.side-menu__body ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.side-menu__body ul li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+.side-menu__body ul li:last-child {
+  border-bottom: none;
+}
+
+.side-menu__footer {
+  padding: 1rem 1.5rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 0 0 var(--side-menu-radius) var(--side-menu-radius);
+  color: #8692a6;
+  font-size: 0.9rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .side-menu {
+    top: 10px;
+    bottom: 10px;
+    margin-left: 10px;
+    width: calc(100vw - 40px) !important;
+    max-width: calc(100vw - 40px) !important;
+    border-radius: 12px !important;
+  }
+  .side-menu.right {
+    margin-right: 10px;
+    margin-left: 0;
+  }
+  .side-menu__header {
+    padding: 1rem 1.25rem;
+  }
+  .side-menu__body {
+    padding: 1.25rem;
+  }
+  .side-menu__footer {
+    padding: 1rem 1.25rem;
+  }
+}
+@media (max-width: 480px) {
+  .side-menu {
+    top: 0;
+    bottom: 0;
+    margin-left: 0;
+    border-radius: 12px !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+  .side-menu.right {
+    margin-right: 0;
+  }
+  .side-menu__header {
+    padding: 1rem;
+    border-radius: 12px 12px 0 0 !important;
+  }
+  .side-menu__body {
+    padding: 1rem;
+  }
+  .side-menu__footer {
+    padding: 1rem;
+    border-radius: 0 0 12px 12px !important;
+  }
+}
+/* Smooth animations */
+.side-menu {
+  /* Add subtle scale effect on open */
+}
+.side-menu.open {
+  transform: translateX(0);
+}
+.side-menu:not(.open) {
+  transform: translateX(-100%) scale(0.95);
+}
+.side-menu.right:not(.open) {
+  transform: translateX(100%) scale(0.95);
+}/*# sourceMappingURL=side-menu.component.css.map */

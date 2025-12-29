@@ -1,0 +1,402 @@
+<section class="all-lessons Teacher-custom-marginTop">
+  <div class="header">
+    <div class="header-content">
+      <div class="text-col">
+        <h1 class="title">
+          {{ "all_lessons_page.header.title_part1" | translate }}
+          <span
+            class="accent"
+            [innerHTML]="'all_lessons_page.header.title_accent' | translate"
+          ></span>
+        </h1>
+
+        <p class="subtitle">
+          {{ "all_lessons_page.header.subtitle" | translate }}
+        </p>
+
+        <a class="cta" routerLink="/all-lessons">{{
+          "all_lessons_page.header.cta" | translate
+        }}</a>
+      </div>
+
+      <div class="image-col">
+        <img
+          src="/assets/images/lessons.webp"
+          [alt]="'all_lessons_page.header.image_alt' | translate"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="all-lessons-content">
+    <div class="filters">
+      <h2 class="lessons-title">
+        {{ "all_lessons_page.filters.all_lessons_title" | translate }}
+      </h2>
+
+      <div class="filter-controls">
+        <div class="search-filter">
+          <div class="search-input-container">
+            <i class="search-icon"></i>
+            <input
+              type="text"
+              [placeholder]="
+                'all_lessons_page.filters.search_placeholder' | translate
+              "
+              class="search-input"
+              [value]="searchQuery"
+              (input)="onSearchChange($event)"
+            />
+          </div>
+        </div>
+
+        <div class="sort-filter custom-dropdown">
+          <button
+            type="button"
+            class="sort-trigger"
+            (click)="toggleSortDropdown($event)"
+            aria-haspopup="listbox"
+            [attr.aria-expanded]="sortDropdownOpen"
+          >
+            {{ getSortLabel(sortBy) }}
+            <span class="chev"></span>
+          </button>
+
+          <ul
+            *ngIf="sortDropdownOpen"
+            class="sort-options"
+            role="listbox"
+            tabindex="-1"
+          >
+            <li
+              *ngFor="let s of sortOptions"
+              role="option"
+              [attr.aria-selected]="s.value === sortBy"
+              (click)="setSort(s.value)"
+              [class.active]="s.value === sortBy"
+            >
+              {{ s.label }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="lessons-cards">
+      <div class="card" *ngFor="let lesson of lessons">
+        <div
+          class="card-image"
+          (click)="openLessonDetails(lesson.id, $event)"
+          style="cursor: pointer"
+        >
+          <img [src]="lesson.image" [alt]="lesson.title" />
+          <span class="card-tag">{{ lesson.duration }}</span>
+          <span class="card-price">${{ lesson.price }}</span>
+          <span class="card-date" *ngIf="lesson.scheduledDateTime">{{
+            formatScheduledDate(lesson.scheduledDateTime)
+          }}</span>
+        </div>
+
+        <div
+          class="card-body"
+          (click)="openLessonDetails(lesson.id, $event)"
+          style="cursor: pointer"
+        >
+          <h3 class="card-title">{{ lesson.title }}</h3>
+          <p class="card-desc">{{ lesson.description }}</p>
+          <div
+            class="card-meta d-flex justify-content-between align-items-center"
+          >
+            <div class="author">
+              {{ "all_lessons_page.card.by" | translate }} {{ lesson.author }}
+            </div>
+            <div class="meta-right">
+              <span class="rating"
+                >★ {{ lesson.rating }}
+                <span class="reviews">({{ lesson.reviews }})</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="api-error" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Side Menu for Lesson Details -->
+  <app-side-menu
+    [(open)]="isSideMenuOpen"
+    [width]="'480px'"
+    [position]="'right'"
+    [closable]="true"
+    (closed)="closeSideMenu()"
+  >
+    <div slot="header">
+      <h3 class="lesson-details-title">Lesson Details</h3>
+    </div>
+
+    <div class="lesson-details-content">
+      <!-- Loading State -->
+      <div *ngIf="loadingLessonDetails" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading lesson details...</p>
+      </div>
+
+      <!-- Error State -->
+      <div
+        *ngIf="lessonDetailsError && !loadingLessonDetails"
+        class="error-state"
+      >
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+        >
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <p>{{ lessonDetailsError }}</p>
+      </div>
+
+      <!-- Lesson Details -->
+      <div
+        *ngIf="selectedLessonDetails && !loadingLessonDetails"
+        class="details-wrapper"
+      >
+        <!-- Lesson Header -->
+        <div class="lesson-header">
+          <h2 class="lesson-title">{{ selectedLessonDetails.title }}</h2>
+          <div class="lesson-meta">
+            <div class="meta-item">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <span>{{ selectedLessonDetails.duration }}</span>
+            </div>
+            <div class="meta-item price-tag">
+              <span>${{ selectedLessonDetails.price }} per person </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="lesson-section">
+          <h4 class="section-title">Description</h4>
+          <p class="section-content">{{ selectedLessonDetails.description }}</p>
+        </div>
+
+        <!-- Class Info -->
+        <div class="lesson-section">
+          <h4 class="section-title">Session Information</h4>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">Maximum Participants</div>
+              <div class="info-value">
+                {{ selectedLessonDetails.maxParticipants }} Participants
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Current Participants</div>
+              <div class="info-value">
+                {{ selectedLessonDetails.currentParticipants }}
+              </div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Duration</div>
+              <div class="info-value">{{ selectedLessonDetails.duration }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Price</div>
+              <div class="info-value">${{ selectedLessonDetails.price }}</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">Scheduled Date & Time</div>
+              <div class="info-value">
+                {{
+                  formatScheduledDate(selectedLessonDetails.scheduledDateTime)
+                }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher Info -->
+        <div class="lesson-section teacher-section">
+          <h4 class="section-title">Teacher</h4>
+          <div class="teacher-card">
+            <div class="teacher-avatar">
+              <img
+                [src]="selectedLessonDetails.teacherProfilePictureUrl"
+                [alt]="selectedLessonDetails.teacherName"
+              />
+            </div>
+            <div class="teacher-info">
+              <h5 class="teacher-name">
+                {{ selectedLessonDetails.teacherName }}
+              </h5>
+              <!-- Rating -->
+              <div class="teacher-rating">
+                <span class="rating-stars">
+                  <svg
+                    *ngFor="let star of [1, 2, 3, 4, 5]"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    [attr.fill]="
+                      star <= selectedLessonDetails.teacherAverageRating
+                        ? '#ffc107'
+                        : '#e4e5e9'
+                    "
+                    stroke="#ffc107"
+                    stroke-width="2"
+                  >
+                    <polygon
+                      points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+                    ></polygon>
+                  </svg>
+                  <strong
+                    *ngIf="selectedLessonDetails.teacherAverageRating > 0"
+                    >{{
+                      selectedLessonDetails.teacherAverageRating.toFixed(1)
+                    }}</strong
+                  >
+                </span>
+              </div>
+
+              <div class="teacher-details">
+                <div class="teacher-detail-item">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <rect
+                      x="3"
+                      y="4"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                  <span
+                    >{{ selectedLessonDetails.teacherYearsOfExperience }} years
+                    experience</span
+                  >
+                </div>
+                <div
+                  class="teacher-detail-item"
+                  *ngIf="selectedLessonDetails.teacherLanguages.length > 0"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+                    ></path>
+                  </svg>
+                  <span>{{
+                    selectedLessonDetails.teacherLanguages.join(", ")
+                  }}</span>
+                </div>
+                <div
+                  class="teacher-detail-item"
+                  *ngIf="
+                    selectedLessonDetails.teacherSpecializations.length > 0
+                  "
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                  <span>{{
+                    selectedLessonDetails.teacherSpecializations.join(", ")
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="lesson-actions">
+          <button
+            class="btn-enroll"
+            (click)="bookSession()"
+            [disabled]="isBooking"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span *ngIf="!isBooking">Enroll Now</span>
+            <span *ngIf="isBooking">Booking...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </app-side-menu>
+
+  <!-- Booking Modal -->
+  <div
+    *ngIf="isBookingModalOpen"
+    class="modal-overlay"
+    (click)="closeBookingModal()"
+  >
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 [class.error]="bookingError" [class.success]="!bookingError">
+          {{ bookingError ? "Booking Failed" : "Booking Successful" }}
+        </h3>
+        <button class="close-btn" (click)="closeBookingModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p>{{ bookingMessage }}</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ok" (click)="closeBookingModal()">OK</button>
+      </div>
+    </div>
+  </div>
+</section>

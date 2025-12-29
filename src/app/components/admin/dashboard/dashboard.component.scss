@@ -1,0 +1,112 @@
+.admin-dashboard {
+  margin-top: 85px;
+}
+
+:host {
+  display: block;
+  background-color: #fafafb;
+  min-height: 100vh;
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+
+  .loading-text {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .spinner-border {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+
+// Error State
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  text-align: center;
+
+  .error-icon {
+    font-size: 3rem;
+    color: #ef4444;
+  }
+
+  .error-text {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .retry-btn {
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+  }
+}
+
+// Chart Cards
+.chart-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  height: 100%;
+
+  .chart-title {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f3f4f6;
+
+    i {
+      color: #3b82f6;
+    }
+  }
+}
+
+.charts-row {
+  display: flex;
+  gap: 18px;
+}
+
+.chart-col {
+  background: transparent;
+}
+
+.chart-col--wide {
+  flex: 2 1 0%;
+}
+
+.chart-col--narrow {
+  flex: 1 1 0%;
+}
+
+@media (max-width: 900px) {
+  .charts-row {
+    flex-direction: column;
+  }
+
+  .chart-card {
+    padding: 16px;
+  }
+}

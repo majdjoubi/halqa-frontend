@@ -1,0 +1,124 @@
+.all-user-wrapper {
+  margin-top: 100px;
+  padding: 0 1rem;
+
+  /* Role filter container styles */
+  .role-filter-container {
+    padding: 1rem 1.5rem;
+    background: #fff;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    
+    .role-filter-buttons {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      
+      .role-filter-btn {
+        padding: 0.6rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        background: #fff;
+        border-radius: 25px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #555;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        &:hover {
+          border-color: #27ae60;
+          color: #27ae60;
+          transform: translateY(-1px);
+        }
+        
+        &.active {
+          background: #27ae60;
+          border-color: #27ae60;
+          color: #fff;
+          box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+        
+        .count {
+          font-size: 0.85rem;
+          opacity: 0.9;
+          background: rgba(0, 0, 0, 0.1);
+          padding: 2px 8px;
+          border-radius: 12px;
+        }
+        
+        &.active .count {
+          background: rgba(255, 255, 255, 0.25);
+        }
+      }
+    }
+  }
+
+  /* Action buttons styling - make them proper buttons */
+  ::ng-deep .show-users .teacher-card .buttons-group {
+    display: flex !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+
+  ::ng-deep .show-users .teacher-card .buttons-group > .btn {
+    min-width: 100px !important;
+    padding: 8px 16px !important;
+    border-radius: 8px !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+  }
+
+  ::ng-deep .show-users .teacher-card .buttons-group > .btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  /* Remove toggle pseudo-elements */
+  ::ng-deep .show-users .teacher-card .buttons-group > .btn::after,
+  ::ng-deep .show-users .teacher-card .buttons-group > .btn::before {
+    content: none !important;
+    display: none !important;
+  }
+
+  /* Hide default buttons */
+  ::ng-deep .show-users .btn-book,
+  ::ng-deep .show-users .btn-view {
+    display: none !important;
+  }
+
+  /* Status badge styling */
+  ::ng-deep .show-users .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .all-user-wrapper {
+    .role-filter-container {
+      padding: 0.75rem 1rem;
+      
+      .role-filter-buttons {
+        justify-content: center;
+        
+        .role-filter-btn {
+          padding: 0.5rem 1rem;
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+<section class="join-us">
+  <div class="container-fluid">
+    <div class="row min-vh-100">
+      <!-- Main Content -->
+      <div
+        class="verify-otp col-lg-7 col-md-7 col-12 d-flex flex-column justify-content-center p-4"
+      >
+        <div class="otp-container">
+          <h2 class="otp-title">{{ "verify_otp.title" | translate }}</h2>
+          <p class="otp-subtitle">
+            {{ "verify_otp.description" | translate }}
+          </p>
+
+          <form class="otp-form">
+            <div class="otp-inputs">
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp0"
+                (input)="onOtpInput($event, 0)"
+                (keydown)="onOtpKeyDown($event, 0)"
+                (paste)="onOtpPaste($event)"
+                autocomplete="off"
+              />
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp1"
+                (input)="onOtpInput($event, 1)"
+                (keydown)="onOtpKeyDown($event, 1)"
+                autocomplete="off"
+              />
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp2"
+                (input)="onOtpInput($event, 2)"
+                (keydown)="onOtpKeyDown($event, 2)"
+                autocomplete="off"
+              />
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp3"
+                (input)="onOtpInput($event, 3)"
+                (keydown)="onOtpKeyDown($event, 3)"
+                autocomplete="off"
+              />
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp4"
+                (input)="onOtpInput($event, 4)"
+                (keydown)="onOtpKeyDown($event, 4)"
+                autocomplete="off"
+              />
+              <input
+                type="text"
+                class="otp-input"
+                maxlength="1"
+                #otpInput
+                name="otp5"
+                (input)="onOtpInput($event, 5)"
+                (keydown)="onOtpKeyDown($event, 5)"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="timer-container">
+                <span class="timer" *ngIf="!canResend">
+                  {{ formatTime(countdown) }}
+                </span>
+              </div>
+
+              <div class="resend-container">
+                <a
+                  href="#"
+                  class="resend-link"
+                  *ngIf="canResend"
+                  (click)="onResendCode(); $event.preventDefault()"
+                >
+                </a>
+                <span class="resend-disabled" *ngIf="!canResend">
+                  {{ "verify_otp.resend" | translate }}
+                </span>
+                <a href=""
+                  ><span class="resend-link" *ngIf="canResend">
+                    {{ "verify_otp.resend" | translate }}
+                  </span></a
+                >
+              </div>
+            </div>
+
+            <button type="submit" class="confirm-btn">
+              {{ "verify_otp.verify" | translate }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Side Image - Hidden on mobile -->
+      <div class="col-lg-5 col-md-5 d-none d-md-block">
+        <app-forget-img></app-forget-img>
+      </div>
+    </div>
+  </div>
+</section>

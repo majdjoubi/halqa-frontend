@@ -1,0 +1,863 @@
+{
+  "WELCOME": "أهلاً بكم في حلقة",
+  "GREETING": "مرحباً",
+  "HOME": "الرئيسية",
+  "ABOUT_US": "من نحن",
+  "BENEFITS": "الفوائد",
+  "OUR_MISSION": "مهمتنا",
+  "ALL_Teachers": "جميع المعلمين",
+  "my_Booked": "محجوزاتي",
+  "my_booked": "تقويمي",
+  "booking": {
+    "errors": {
+      "time_conflict": "لديك درس محجوز بالفعل في هذا الوقت. يرجى اختيار وقت آخر.",
+      "insufficient_balance": "رصيد المحفظة غير كافٍ. يرجى شحن محفظتك للمتابعة."
+    },
+    "top_up_wallet": "شحن المحفظة"
+  },
+  "my_booked_page": {
+    "header": {
+      "title": "تقويمي",
+      "subtitle": "إدارة أوقاتك المتاحة والدروس المجدولة. شاهد تقويمك وحدد ساعات عملك.",
+      "image_alt": "التقويم"
+    },
+    "filters": {
+      "upcoming_title": "الدروس القادمة",
+      "individual_title": "الدروس الفردية",
+      "group_title": "الدروس الجماعية",
+      "calendar_title": "التقويم",
+      "availability_title": "الأوقات المتاحة",
+      "all": "جميع دروسي",
+      "available_only": "الأوقات المتاحة",
+      "booked_only": "الدروس المحجوزة"
+    },
+    "card": {
+      "amount_paid": "المبلغ المدفوع:",
+      "booked_someone": "هناك من قام بالحجز",
+      "booking_label": "الحجز",
+      "btn_join": "انضم الآن",
+      "status": "الحالة",
+      "students": "طلاب"
+    },
+    "empty": {
+      "individual_title": "لا توجد دروس فردية محجوزة بعد",
+      "group_title": "لا توجد دروس جماعية محجوزة بعد",
+      "availability": "لم يتم تحديد أوقات متاحة. أضف أول وقت لتبدأ باستقبال الحجوزات."
+    },
+    "actions": {
+      "add_availability": "إضافة وقت متاح",
+      "weekly_pattern": "نمط أسبوعي",
+      "add_first_slot": "إضافة أول وقت"
+    },
+    "default_rate": {
+      "label": "سعر الساعة الافتراضي",
+      "saved": "تم تحديث سعر الساعة الافتراضي بنجاح",
+      "save_error": "فشل في تحديث سعر الساعة الافتراضي",
+      "min_error": "يجب أن يكون سعر الساعة دولار واحد على الأقل"
+    },
+    "availability_filters": {
+      "title": "تصفية:",
+      "all": "جميع دروسي",
+      "available_only": "الأوقات المتاحة",
+      "booked_only": "الدروس المحجوزة"
+    },
+    "legend": {
+      "available": "متاح",
+      "booked": "محجوز",
+      "completed": "مكتمل",
+      "past": "فائت"
+    },
+    "status": {
+      "available": "متاح للحجز",
+      "booked": "محجوز"
+    },
+    "recurring": "يتكرر أسبوعياً",
+    "add_modal": {
+      "title": "إضافة وقت متاح",
+      "date": "التاريخ",
+      "from_time": "من",
+      "to_time": "إلى",
+      "price": "السعر للساعة",
+      "price_hint": "يمكنك تحديد أسعار مختلفة لأوقات مختلفة",
+      "max_students": "عدد الطلاب",
+      "max_students_hint": "إذا كان العدد أكبر من 1، سيتم إنشاء درس جماعي",
+      "recurring": "تكرار أسبوعياً في هذا اليوم"
+    },
+    "weekly_modal": {
+      "title": "تحديد النمط الأسبوعي",
+      "description": "قم بإعداد جدول أوقاتك المتاحة الأسبوعية المتكررة. فعّل الأيام المتاحة وحدد أوقاتك المفضلة.",
+      "add_time": "إضافة وقت",
+      "save": "حفظ النمط",
+      "clear_pattern": "مسح الكل"
+    },
+    "details_modal": {
+      "title": "تفاصيل الوقت",
+      "day": "اليوم",
+      "time": "الوقت",
+      "student": "الطالب",
+      "price": "السعر",
+      "recurring": "متكرر",
+      "lesson": "الدرس",
+      "datetime": "التاريخ والوقت",
+      "amount": "المبلغ",
+      "delete": "حذف الوقت",
+      "delete_refund": "حذف واسترداد المبلغ"
+    },
+    "days": {
+      "sunday": "الأحد",
+      "monday": "الإثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت"
+    },
+    "messages": {
+      "save_success_title": "تم الحفظ بنجاح",
+      "save_success": "تم حفظ أوقاتك المتاحة.",
+      "save_error_title": "فشل الحفظ",
+      "save_error": "فشل حفظ الأوقات المتاحة. حاول مرة أخرى.",
+      "delete_title": "تم الحذف",
+      "delete_success_title": "تم الحذف بنجاح",
+      "delete_success": "تم حذف الوقت.",
+      "delete_refund_success": "تم حذف الوقت واسترداد المبلغ للطالب.",
+      "delete_error_title": "فشل الحذف",
+      "delete_error": "فشل حذف الوقت. حاول مرة أخرى.",
+      "refund_processing": "جاري معالجة الاسترداد...",
+      "refund_success": "تم استرداد المبلغ بنجاح. تمت إضافة المبلغ إلى محفظة الطالب.",
+      "refund_error": "فشل استرداد المبلغ. يرجى التواصل مع الدعم.",
+      "slot_added": "تم إضافة الموعد بنجاح.",
+      "recurring_added": "تم إضافة الموعد وسيتكرر كل {{day}}.",
+      "pattern_saved": "تم حفظ النمط الأسبوعي بنجاح.",
+      "pattern_cleared": "تم مسح النمط الأسبوعي بنجاح.",
+      "pattern_error": "فشل حفظ النمط الأسبوعي. حاول مرة أخرى.",
+      "slot_updated": "تم تحديث الموعد بنجاح.",
+      "past_date_error": "لا يمكن إضافة موعد في تاريخ ماضٍ. اختر تاريخاً مستقبلياً.",
+      "conflict_error": "هذا الوقت يتعارض مع درس أو موعد موجود مسبقاً."
+    },
+    "available": "متاح",
+    "booked": "محجوز",
+    "delete_confirm": {
+      "title": "حذف الوقت المتاح",
+      "message_available": "هل أنت متأكد من حذف هذا الوقت؟ لا يمكن التراجع عن هذا الإجراء.",
+      "message_booked": "هذا الوقت محجوز من قبل طالب. سيتم استرداد المبلغ تلقائياً للطالب عند الحذف.",
+      "refund_amount": "المبلغ المسترد",
+      "btn_delete": "حذف",
+      "btn_delete_refund": "حذف واسترداد المبلغ",
+      "recurring_question": "هذا وقت متكرر أسبوعياً. ماذا تريد أن تحذف؟",
+      "delete_single": "حذف هذا الوقت فقط",
+      "delete_single_desc": "سيتم حذف هذا الوقت المحدد فقط",
+      "delete_all_recurring": "حذف جميع الأوقات المتكررة",
+      "delete_all_recurring_desc": "سيتم حذف جميع الأوقات في هذا الوقت وهذا اليوم"
+    },
+    "recurring": "متكرر أسبوعياً",
+    "recurring_confirm": {
+      "title": "توفر متكرر",
+      "message": "سيتكرر هذا الوقت كل أسبوع تلقائياً. سيتمكن الطلاب من حجز هذا الوقت في هذا اليوم من كل أسبوع.",
+      "every_week": "يتكرر كل أسبوع",
+      "confirm": "تأكيد"
+    }
+  },
+  "my_booked_teachers_page": {
+    "header": {
+      "title": "معلمي المحجوزين",
+      "subtitle": "إدارة حجوزاتك ومعلميك هنا. عرض الجلسات القادمة وتتبع حجوزاتك.",
+      "image_alt": "الدروس"
+    },
+    "countdown": {
+      "next_lesson": "الدرس القادم",
+      "days": "يوم",
+      "hours": "ساعة",
+      "minutes": "دقيقة",
+      "seconds": "ثانية"
+    },
+    "filters": {
+      "schedule_title": "جدولي",
+      "individual_title": "الدروس الفردية",
+      "group_title": "الدروس الجماعية"
+    },
+    "card": {
+      "amount_paid": "المبلغ المدفوع:",
+      "booked_someone": "هناك من قام بالحجز",
+      "booking_label": "الحجز",
+      "btn_join": "انضم الآن"
+    },
+    "empty": {
+      "individual_title": "لا توجد دروس فردية محجوزة بعد",
+      "group_title": "لا توجد دروس جماعية محجوزة بعد",
+      "no_upcoming": "لا توجد دروس قادمة مجدولة"
+    },
+    "review_modal": {
+      "title": "قيّم المعلم",
+      "rating_label": "التقييم:",
+      "comment_label": "تعليقك (اختياري):",
+      "comment_placeholder": "شارك تجربتك مع المعلم...",
+      "btn_submit": "إرسال التقييم",
+      "btn_skip": "تخطي",
+      "notice": "يمكنك تقييم المعلم فقط بعد انتهاء الجلسة. سيظهر هذا النموذج تلقائياً عند اكتمال الجلسة."
+    }
+  },
+  "all_lessons_page": {
+    "header": {
+      "title_part1": "عمق إيمانك:",
+      "title_accent": "استكشف دروسنا في الدراسات الإسلامية",
+      "subtitle": "انطلق في رحلة من النمو الروحي والاكتشاف الفكري عبر دروسنا الشاملة في الفقه والحديث وعلوم القرآن والمزيد.",
+      "cta": "استعرض كل الدروس",
+      "image_alt": "الدروس"
+    },
+    "filters": {
+      "all_lessons_title": "جميع الجلسات الجماعية",
+      "search_placeholder": "ابحث عن الدروس...",
+      "sort_newest": "الأحدث أولاً",
+      "sort_oldest": "الأقدم أولاً"
+    },
+    "card": {
+      "by": "بواسطة",
+      "reviews": "التقييمات"
+    },
+    "side_menu": {
+      "lesson_details_title": "تفاصيل الدرس",
+      "loading": "جارٍ تحميل تفاصيل الدرس...",
+      "description": "الوصف",
+      "class_info": "معلومات الفصل",
+      "max_students": "أقصى عدد طلاب",
+      "duration": "المدة",
+      "price": "السعر",
+      "about_teacher": "عن المعلم",
+      "years_experience": "سنة خبرة",
+      "enroll_now": "سجل الآن"
+    }
+  },
+  "ALL_Lessons": "الجلسات الجماعية",
+  "lesson_manage": "الجلسات الجماعية",
+
+  "lesson_manage_page": {
+    "popup": {
+      "success": "نجاح!",
+      "error": "خطأ!",
+      "ok": "حسناً",
+      "lesson_created": "تم إنشاء الدرس بنجاح!",
+      "lesson_updated": "تم تحديث الدرس بنجاح!",
+      "lesson_deleted": "تم حذف الدرس بنجاح!",
+      "failed_delete": "فشل في حذف الدرس. حاول مرة أخرى.",
+      "failed_load": "فشل في تحميل بيانات الدرس. حاول مرة أخرى.",
+      "delete_confirm": "هل أنت متأكد أنك تريد حذف هذا الدرس؟"
+    },
+    "edit": {
+      "title": "تعديل الدرس",
+      "loading": "جاري تحميل بيانات الدرس..."
+    },
+    "create_new": {
+      "title": "قم بانشاء درس جماعي",
+      "description": "املأ التفاصيل أدناه لإنشاء درس جديد."
+    },
+    "label": {
+      "lesson_title": "عنوان الدرس",
+      "description": "الوصف",
+      "price": "السعر",
+      "max_students": "أقصى عدد طلاب",
+      "scheduled_at": "التاريخ والوقت المجدول",
+      "duration": "مدة الدرس"
+    },
+    "placeholder": {
+      "lesson_title": "اكتب عنوان الدرس",
+      "description": "صف محتوى وأهداف الدرس باختصار",
+      "price": "أدخل سعر الساعة",
+      "max_students": "أدخل عدد الطلاب",
+      "scheduled_at": "اختر التاريخ والوقت"
+    },
+    "btn": {
+      "cancel": "إلغاء",
+      "update_lesson": "تحديث الدرس",
+      "updating": "جاري التحديث...",
+      "creating_lesson": "جاري إنشاء السيشن...",
+      "create_lesson": "إنشاء درس",
+      "manage_lessons": "إدارة دروسك",
+      "active": "الدروس النشطة",
+      "previous": "الدروس السابقة"
+    },
+    "side": {
+      "active_heading": "الدروس النشطة",
+      "active_desc": "عرض وإدارة الدروس الجارية حالياً.",
+      "expired_heading": "الدروس المنتهية",
+      "previous_desc": "عرض الدروس السابقة والملخصات."
+    },
+    "card": {
+      "badge_active": "نشط",
+      "badge_expired": "منتهي",
+      "price": "السعر",
+      "duration": "المدة",
+      "mins": "دق",
+      "max_students": "أقصى عدد طلاب",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "validation": {
+      "title_required": "العنوان مطلوب",
+      "title_minlength": "يجب أن يكون العنوان على الأقل {{min}} حروف",
+      "description_required": "الوصف مطلوب",
+      "description_minlength": "يجب أن يكون الوصف على الأقل {{min}} حروف",
+      "price_required": "السعر مطلوب",
+      "price_min": "يجب أن يكون السعر أكبر من 0",
+      "max_students_required": "أقصى عدد طلاب مطلوب",
+      "max_students_min": "يجب أن يكون على الأقل {{min}} طالب",
+      "max_students_max": "يجب أن يكون الحد الأقصى للطلاب بين {{min}} و {{max}}",
+      "scheduled_at_required": "التاريخ والوقت المجدول مطلوب",
+      "scheduled_at_future": "يجب أن يكون التاريخ والوقت في المستقبل",
+      "duration_required": "مدة الدرس مطلوبة"
+    }
+  },
+
+  "ARABIC": "العربية",
+  "ENGLISH": "الإنجليزية",
+  "CHANGE_LANGUAGE": "تغيير اللغة",
+  "TITLE": "تطبيق حلقة",
+  "DESCRIPTION": "هذا تطبيق متعدد اللغات يدعم العربية والإنجليزية",
+  "QUOTES": "الاقتباسات",
+  "LOGIN": "تسجيل الدخول",
+  "REGISTER": "إنشاء حساب",
+  "LOGOUT": "تسجيل الخروج",
+  "MY_PROFILE": "ملفي الشخصي",
+  "STUDENT": "طالب",
+  "TEACHER": "معلم",
+
+  "hero_section": {
+    "title_part1": "تعلم القرآن",
+    "title_part2": "الكريم",
+    "title_part3": "في أي مكان",
+    "title_part4": "في أي وقت،",
+    "description": "باستخدام أنشطة وفيديوهات ومحتوى تفاعلي مخصص، يمكنك الانضمام إلى آلاف المتعلمين في رحلتهم لقراءة وتلاوة وحفظ القرآن بسهولة. دروس تدريجية مصممة لجميع الأعمار والمستويات. انضم لتحفيز طلابك وتشجيعهم على تحقيق أهدافهم التعليمية أثناء تقدمهم في الرحلة."
+  },
+  "our_benefits": {
+    "title": "فوائدنا",
+    "description": "اختبر الفرق في",
+    "description2": "تعلم القرآن الكريم",
+    "paragraph": "من خلال نهجنا الحديث، والمعلمين الم dedicated، وخيارات التعلم المرنة، نجعل رحلتك في القرآن بسيطة وملهمة وفعالة.",
+
+    "benefit1_title": "معلمون مؤهلون",
+    "benefit1_description": "تعلم مع معلمين ذوي خبرة يقدمون إرشادات ودعم شخصي.",
+    "benefit2_title": "تعلم خطوة بخطوة",
+    "benefit2_description": "دروس منظمة مصممة لإرشاد المتعلمين من جميع الأعمار، من المبتدئين إلى المتقدمين.",
+    "benefit3_title": "الوصول في أي وقت ومن أي مكان",
+    "benefit3_description": "ادرس القرآن على راحتك مع الوصول عبر الإنترنت المتاح على مدار الساعة طوال أيام الأسبوع."
+  },
+
+  "join_us_page": {
+    "title": "إنضم إلينا!",
+    "subtitle": "طالب",
+    "teacher-subtitle": "معلم",
+    "description": "اختار اي دور ستقوم به لتكملة الرحله",
+    "student-text": "طالب تريد تتعلم القراءن والتجويد وتقوية المستوى",
+    "student-subtitle": "طالب تريد تتعلم القراءن والتجويد وتقوية المستوى",
+    "teacher-text": "معلم ذو خبره تريد تعليمم الطلاب القراءن والتجويد",
+
+    "button": "إنضم إلينا"
+  },
+
+  "student_profile": {
+    "edit_profile_button": "تعديل الملف الشخصي",
+    "topup_wallet_button": "شحن المحفظة",
+    "edit_profile_title": "تعديل الملف الشخصي",
+    "wallet_balance": "الرصيد",
+    "available_balance": "الرصيد المتاح",
+    "dashboard": "لوحة التحكم",
+    "total_booking": "إجمالي الحجوزات",
+    "total_lessons": "إجمالي الدروس",
+    "completed_lessons": "الدروس المكتملة",
+    "upcoming_lessons": "الدروس القادمة",
+    "monthly_earnings": "الأرباح الشهرية",
+    "favorite_teachers": "المعلمين المفضلين",
+    "reviews_written": "التقييمات المكتوبة",
+    "lessons": "الدروس",
+    "btn_go_to_meet": "الذهاب إلى الاجتماع",
+    "btn_cancel": "إلغاء",
+    "profile_picture": "الصورة الشخصية",
+    "upload_file": "رفع ملف",
+    "max_size": "الحد الأقصى 5 ميجا",
+    "first_name": "الاسم الأول",
+    "first_name_placeholder": "أدخل اسمك الأول",
+    "last_name": "اسم العائلة",
+    "last_name_placeholder": "أدخل اسم العائلة",
+    "phone_number": "رقم الهاتف",
+    "phone_placeholder": "أدخل رقم الهاتف",
+    "age": "العمر",
+    "select_age": "اختر عمرك"
+  },
+
+  "About_section": {
+    "title": "من نحن",
+    "description": "تقريب القرآن إلى كل قلب.",
+    "mission": "نحن ملتزمون بجعل تعلم القرآن متاحًا للجميع، في كل مكان. مهمتنا هي مساعدة المتعلمين من جميع الأعمار على قراءة وتلاوة وحفظ القرآن الكريم بسهولة. من خلال دروس منظمة، ومعلمين مؤهلين، وأدوات حديثة، نهدف إلى إرشادك خطوة بخطوة نحو الإتقان وارتباط أعمق بكتاب الله."
+  },
+  "Our-Mission": {
+    "title": "مهمتنا",
+    "description": "رحلة من النور والمعرفة",
+    "paragraph": "في صميم مهمتنا هو الاعتقاد بأن القرآن يجب أن يكون متاحًا للجميع. نحن نقدم أدوات حديثة، دروس منظمة، وإرشادات خبراء لجعل التعلم ليس فقط بسيطًا ولكن أيضًا غنيًا روحيًا. سواء كنت تبدأ رحلتك أو تهدف إلى إتقان تلاوتك، نحن هنا لدعمك في كل خطوة على الطريق."
+  },
+
+  "student_register": {
+    "title": "سجل بياناتك",
+    "description": "أملأ البيانات الأتية",
+    "step1_label": "أدخل معلوماتك",
+    "step2_label": "اختر معلوماتك",
+    "first_name": "الإسم الأول",
+    "first_name_placeholder": "أدخل الإسم الأول",
+    "first_name_required": "الإسم الأول مطلوب",
+    "last_name": "إسم العائلة",
+    "last_name_placeholder": "أدخل إسم العائلة",
+    "last_name_required": "إسم العائلة مطلوب",
+    "email": "بريد إلكتروني",
+    "email_placeholder": "me@email.com",
+    "email_required": "البريد الإلكتروني مطلوب",
+    "email_invalid": "البريد الإلكتروني غير صحيح",
+    "phone": "رقم الهاتف",
+    "phone_placeholder": "مثال: +201234567890",
+    "phone_required": "رقم الهاتف مطلوب",
+    "phone_invalid_format": "يجب أن يبدأ الرقم بكود الدولة (مثال: +1)",
+    "egypt": "مصر",
+    "saudi": "السعودية",
+    "uae": "الإمارات",
+    "age": "العمر",
+    "age_placeholder": "22",
+    "age_required": "العمر مطلوب",
+    "password": "كلمة المرور",
+    "password_placeholder": "••••••••",
+    "password_required": "كلمة المرور مطلوبة",
+    "password_minlength": "كلمة المرور يجب أن تكون على الأقل 8 أحرف",
+    "confirm_password": "تأكيد كلمة المرور",
+    "confirm_password_placeholder": "••••••••",
+    "confirm_password_required": "تأكيد كلمة المرور مطلوب",
+    "password_mismatch": "كلمة المرور غير متطابقة",
+    "continue": "متابعة",
+    "birth_year": "سنة الميلاد",
+    "birth_year_placeholder": "اختر سنة الميلاد",
+    "birth_year_required": "سنة الميلاد مطلوبة",
+    "profile_picture": "الصورة الشخصية",
+    "upload_picture": "ارفع صورتك الشخصية",
+    "upload_hint": "PNG, JPG حتى 10MB",
+    "remove_picture": "إزالة الصورة",
+    "back": "رجوع",
+    "register": "تسجيل",
+    "have_account": "لديك حساب بالفعل؟",
+    "login_here": "سجل دخولك هنا",
+    "validating": "جاري التحقق...",
+    "submitting": "جاري التسجيل...",
+    "step_info": "الخطوة",
+    "of": "من",
+    "first_name_valid": "الاسم الأول صحيح",
+    "last_name_valid": "اسم العائلة صحيح",
+    "email_valid": "البريد الإلكتروني صحيح",
+    "password_match": "كلمات المرور متطابقة",
+    "character": "حرف",
+    "at_least_one_capital_letter": "حرف كبير واحد على الأقل",
+    "at_least_one_number": "رقم واحد على الأقل",
+    "no_spaces": "بدون مسافات",
+    "at_least_one_special_char": "رمز خاص واحد على الأقل (!@#$%^&* إلخ)",
+    "no_special_chars": "لا يحتوي على شرطة (-) أو نقطة (.)",
+    "password_no_special_chars": "كلمة المرور لا يجب أن تحتوي على شرطة (-) أو نقطة (.)",
+    "password_needs_special_char": "كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (!@#$%^&* إلخ)",
+    "phone_number": "رقم الهاتف",
+    "phone_valid": "رقم الهاتف صحيح",
+    "age_selected": "تم اختيار العمر",
+    "birth_year_selected": "تم اختيار سنة الميلاد",
+    "years_old": "سنة",
+    "reset_password": "تحديث كلمة المرور",
+    "registration_error": "فشل التسجيل",
+    "uploading": "جاري الرفع..."
+  },
+
+  "forget_password": {
+    "title": "إعادة تعيين كلمة المرور",
+    "description": "أدخل كلمة المرور الجديدة أدناه.",
+    "email": "البريد الإلكتروني",
+    "email_placeholder": "example@gmail.com",
+    "send": "إرسال",
+    "reset_password": "تأكيد كلمة المرور الجديدة",
+    "password_reset_success": "تم تحديث كلمة المرور بنجاح"
+  },
+
+  "verify_otp": {
+    "title": "التحقق من الرمز",
+    "description": "لقد أرسلنا رمز التحقق إلى بريدك الإلكتروني. يرجى إدخال الرمز المكون من 6 أرقام أدناه للتحقق من حسابك.",
+    "otp_label": "رمز التحقق",
+    "otp_placeholder": "أدخل الرمز المكون من 6 أرقام",
+    "verify": "تحقق",
+    "resend": "إعادة إرسال الرمز",
+    "didnt_receive": "لم تستلم الرمز؟",
+    "resend_in": "إعادة الإرسال خلال",
+    "seconds": "ثانية"
+  },
+
+  "validation": {
+    "field_valid": "الحقل صحيح",
+    "field_required": "هذا الحقل مطلوب",
+    "invalid_email": "البريد الإلكتروني غير صحيح",
+    "min_length": "يجب أن يكون على الأقل {{min}} أحرف",
+    "max_length": "يجب ألا يزيد عن {{max}} أحرف",
+    "password_mismatch": "كلمات المرور غير متطابقة",
+    "invalid_format": "التنسيق غير صحيح",
+    "character": "حرف",
+    "at_least_one_capital_letter": "حرف كبير واحد على الأقل",
+    "at_least_one_number": "رقم واحد على الأقل",
+    "no_spaces": "بدون مسافات"
+  },
+
+  "login_page": {
+    "title": "أهلاً بعودتك!",
+    "subtitle": "قم بتسجيل الدخول لمتابعة رحلة تعلم القرآن",
+    "email_label": "البريد الإلكتروني",
+    "email_placeholder": "أدخل بريدك الإلكتروني",
+    "password_label": "كلمة المرور",
+    "password_placeholder": "أدخل كلمة المرور",
+    "remember_me": "تذكرني",
+    "forgot_password": "نسيت كلمة المرور؟",
+    "login_button": "تسجيل الدخول",
+    "no_account": "ليس لديك حساب؟",
+    "register_link": "سجل هنا"
+  },
+
+  "teacher_create_profile": {
+    "title": "إنشاء الملف الشخصي",
+    "subtitle": "أكمل معلومات ملفك الشخصي لتتمكن من تقديم خدماتك التعليمية للطلاب",
+    "profile_picture": "الصورة الشخصية",
+    "click_to_upload": "انقر للرفع",
+    "basic_info": "المعلومات الأساسية",
+    "teaching_languages": "لغات التدريس",
+    "upload_picture": "إضافة صورة شخصية",
+    "upload_hint": "PNG, JPG أو JPEG (الحد الأقصى 5MB)",
+    "change_picture": "تغيير الصورة",
+    "remove_picture": "إزالة الصورة",
+    "years_experience": "سنوات الخبرة",
+    "years_experience_placeholder": "أدخل سنوات الخبرة",
+    "select_experience": "اختر سنوات الخبرة",
+    "experience_0_1": "أقل من سنة",
+    "experience_1_2": "1-2 سنة",
+    "experience_2_5": "2-5 سنوات",
+    "experience_5_10": "5-10 سنوات",
+    "experience_10_plus": "أكثر من 10 سنوات",
+    "hourly_rate": "السعر بالساعة (دولار أمريكي)",
+    "hourly_rate_placeholder": "مثال: $25",
+    "hourly_rate_currency": "دولار/ساعة",
+    "bio": "نبذة شخصية",
+    "bio_placeholder": "اكتب نبذة شخصية عنك وعن خبرتك في التدريس، مجالات تخصصك، وما يميزك كمعلم...",
+    "bio_character_count": "حرف",
+    "characters": "حرف",
+    "specializations": "التخصصات",
+    "specializations_hint": "اختر التخصصات التي تدرسها (يمكنك اختيار أكثر من تخصص)",
+    "save_profile": "حفظ الملف الشخصي",
+    "saving": "جاري الحفظ...",
+    "form_info": "تأكد من ملء جميع الحقول المطلوبة لإنشاء ملف شخصي متكامل",
+    "specialization_quran_memorization": "تحفيظ القرآن الكريم",
+    "specialization_tajweed": "التجويد (أحكام التلاوة)",
+    "specialization_qiraat_seven": "القراءات السبع",
+    "specialization_qiraat_ten": "القراءات العشر",
+    "specialization_qiraat_twentyseven": "القراءات السبع والعشرين",
+    "specialization_tafseer": "التفسير (تفسير القرآن)",
+    "specialization_hadith_explanation": "شروح الحديث",
+    "specialization_quran_memorization_desc": "تدريس طرق وتقنيات تحفيظ القرآن بفعالية.",
+    "specialization_tajweed_desc": "تقديم دروس في أحكام التجويد لتحسين النطق والتلاوة.",
+    "specialization_qiraat_seven_desc": "إرشاد الطلاب عبر القراءات السبع وفهم فروقها.",
+    "specialization_qiraat_ten_desc": "ممارسة وتعليم أساليب القراءة العشر المعروفة.",
+    "specialization_qiraat_twentyseven_desc": "استكشاف القراءات المتقدمة عبر القراءات السبع والعشرين عند الحاجة.",
+    "specialization_tafseer_desc": "شرح معاني الآيات وسياقاتها بوضوح.",
+    "specialization_hadith_explanation_desc": "مناقشة نصوص الحديث وتفسيرها وسياقاتها للمتعلمين.",
+    "validation": {
+      "experience_required": "يرجى اختيار سنوات الخبرة",
+      "hourly_rate_required": "يرجى إدخال السعر بالساعة",
+      "bio_required": "يرجى كتابة نبذة شخصية",
+      "bio_minlength": "النبذة الشخصية يجب أن تكون 50 حرف على الأقل",
+      "bio_maxlength": "النبذة الشخصية يجب أن تكون 500 حرف كحد أقصى",
+      "min_value": "القيمة أدنى من الحد الأدنى المسموح",
+      "max_value": "القيمة تتجاوز الحد الأقصى المسموح",
+      "min_length": "القيمة أقصر من الحد الأدنى للطول",
+      "max_length": "القيمة تتجاوز الحد الأقصى للطول",
+      "select_at_least_one": "يرجى اختيار خيار واحد على الأقل",
+      "specializations_required": "يرجى اختيار تخصص واحد على الأقل",
+      "invalid_format": "تنسيق غير صحيح",
+      "languages_required": "يرجى اختيار لغة واحدة على الأقل",
+      "invalid_time_range": "نطاق زمني غير صالح (يجب أن يكون النهاية بعد البداية وعلى الأقل 30 دقيقة)",
+      "max_slots_per_day": "يمكنك إضافة 3 فترات كحد أقصى لكل يوم",
+      "availability_invalid": "يرجى تصحيح فترات التوفر",
+      "field_required": "هذا الحقل مطلوب"
+    },
+    "success_message": "تم حفظ الملف الشخصي بنجاح!",
+    "error_message": "يرجى تصحيح الأخطاء في النموذج",
+    "languages_title": "اللغات التي يمكنك التدريس بها",
+    "selected_languages": "اللغات المختارة",
+    "availability": "توفر المواعيد",
+    "slot": "فترة",
+    "day": "اليوم",
+    "select_day": "اختر اليوم",
+    "from_time": "من",
+    "to_time": "إلى",
+    "is_recurring": "متكرر",
+    "add_time_slot": "إضافة فترة زمنية",
+    "sunday": "الأحد",
+    "monday": "الاثنين",
+    "tuesday": "الثلاثاء",
+    "wednesday": "الأربعاء",
+    "thursday": "الخميس",
+    "friday": "الجمعة",
+    "saturday": "السبت",
+    "language_arabic": "العربية",
+    "language_english": "الإنجليزية",
+    "language_german": "الألمانية",
+    "default_avatar_alt": "الصورة الافتراضية",
+    "add_availability": "إضافة توافر",
+    "certifications": "الشهادات",
+    "optional": "اختياري",
+    "certification": "شهادة",
+    "cert_title": "عنوان الشهادة",
+    "cert_title_placeholder": "مثال: دبلوم الدراسات القرآنية - الأزهر",
+    "cert_description": "وصف الشهادة",
+    "cert_description_placeholder": "صف شهادتك، الجهة المانحة، وسنة الإصدار...",
+    "add_certification": "إضافة شهادة",
+    "no_certifications": "لم تقم بإضافة أي شهادات بعد. اضغط 'إضافة شهادة' لإدخال مؤهلاتك.",
+    "cert_info": "أضف شهاداتك التعليمية والمهنية (اختياري)"
+  },
+
+  "teacher_profile": {
+    "edit_profile_button": "تعديل الملف الشخصي",
+    "withdraw_profits": "سحب الأرباح",
+    "withdraw_via_paypal": "سيتم السحب من خلال PayPal",
+    "payment_method": "طريقة الدفع",
+    "paypal_email": "البريد الإلكتروني لـ PayPal",
+    "paypal_email_placeholder": "أدخل بريدك الإلكتروني لـ PayPal",
+    "bank_account_number": "رقم الحساب البنكي",
+    "bank_account_placeholder": "أدخل رقم حسابك البنكي",
+    "withdraw_amount": "المبلغ المراد سحبه",
+    "withdraw_amount_placeholder": "أدخل المبلغ",
+    "notes": "ملاحظات",
+    "notes_placeholder": "أضف أي ملاحظات أو تعليقات (اختياري)",
+    "submit_withdraw": "إرسال طلب السحب",
+    "edit_profile_title": "تعديل الملف الشخصي",
+    "wallet_balance": "الرصيد",
+    "available_balance": "الرصيد المتاح",
+    "pending_balance": "الرصيد المعلق",
+    "dashboard": "لوحة التحكم",
+    "bio": "نبذة",
+    "bio_placeholder": "اكتب نبذة قصيرة عن نفسك (الخبرة، التخصصات وما يميزك كمعلم)",
+    "no_bio": "لا توجد نبذة",
+    "no_specialization": "لا توجد تخصصات",
+    "no_phone": "لا يوجد رقم هاتف",
+    "no_email": "لا يوجد بريد إلكتروني",
+    "total_student": "إجمالي الطلاب",
+    "certificates": "الشهادات",
+    "no_certificates": "لا توجد شهادات",
+    "certificate_issued_by": "صادر عن",
+    "certificate_view": "عرض الشهادة",
+    "certificate_no_expiry": "لا تنتهي صلاحيتها",
+    "add_certificate": "إضافة شهادة",
+    "edit_certificate": "تعديل الشهادة",
+    "certificate_title": "عنوان الشهادة",
+    "certificate_title_placeholder": "أدخل عنوان الشهادة",
+    "issuing_authority": "الجهة المانحة",
+    "issuing_authority_placeholder": "أدخل الجهة المانحة",
+    "issue_date": "تاريخ الإصدار",
+    "expiry_date": "تاريخ الانتهاء",
+    "description": "الوصف",
+    "description_placeholder": "أدخل وصف الشهادة",
+    "languages_title": "اللغات",
+    "no_languages": "لا توجد لغات",
+    "total_booking": "إجمالي الحجوزات",
+    "completed_lessons": "الدروس المكتملة",
+    "upcoming_lessons": "الدروس القادمة",
+    "favorite_students": "الطلاب المفضلون",
+    "pending_bookings": "الحجوزات المعلقة",
+    "reviews_received": "التقييمات المستلمة",
+    "total_reviews": "إجمالي التقييمات",
+    "profile_picture": "الصورة الشخصية",
+    "upload_file": "رفع ملف",
+    "max_size": "الحد الأقصى 5 ميجا",
+    "first_name": "الاسم الأول",
+    "first_name_placeholder": "أدخل اسمك الأول",
+    "last_name": "اسم العائلة",
+    "last_name_placeholder": "أدخل اسم العائلة",
+    "phone_number": "رقم الهاتف",
+    "phone_placeholder": "أدخل رقم الهاتف",
+    "reviews": "تقييمات",
+    "change_photo": "تغيير الصورة",
+    "withdrawal_history": "سجل طلبات السحب",
+    "no_withdrawal_requests": "لا توجد طلبات سحب حتى الآن",
+    "view_history": "عرض السجل",
+    "availability_calendar": {
+      "title": "جدول المواعيد المتاحة",
+      "legend_available": "متاح",
+      "legend_booked": "محجوز",
+      "legend_recurring": "متكرر",
+      "add_slot": "إضافة موعد",
+      "set_weekly_pattern": "تعيين نمط أسبوعي"
+    },
+    "add_availability_modal": {
+      "title": "إضافة موعد متاح",
+      "date_label": "التاريخ",
+      "from_time": "من",
+      "to_time": "إلى",
+      "recurring_label": "تكرار هذا الموعد كل أسبوع",
+      "save_btn": "حفظ",
+      "cancel_btn": "إلغاء"
+    },
+    "weekly_pattern": {
+      "title": "نمط المواعيد الأسبوعي",
+      "sunday": "الأحد",
+      "monday": "الاثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت",
+      "add_slot": "إضافة وقت",
+      "save_btn": "حفظ النمط",
+      "cancel_btn": "إلغاء"
+    },
+    "booking_details": {
+      "title": "تفاصيل الحجز",
+      "status_available": "متاح",
+      "status_booked": "محجوز",
+      "date_time": "التاريخ والوقت",
+      "student": "الطالب",
+      "no_student": "لم يتم الحجز بعد",
+      "lesson": "الدرس",
+      "duration": "المدة",
+      "minutes": "دقيقة",
+      "price": "السعر",
+      "notes": "ملاحظات",
+      "no_notes": "لا توجد ملاحظات",
+      "join_session": "الانضمام للجلسة",
+      "delete_slot": "حذف الموعد"
+    }
+  },
+
+  "languages": {
+    "ar": {
+      "name": "العربية",
+      "code": "AR"
+    },
+    "en": {
+      "name": "الإنجليزية",
+      "code": "EN"
+    },
+    "de": {
+      "name": "الألمانية",
+      "code": "DE"
+    },
+    "arabic": "العربية",
+    "english": "الإنجليزية",
+    "native": "اللغة الأم",
+    "fluent": "بطلاقة"
+  },
+  "common": {
+    "loading": "جاري التحميل...",
+    "success": "تمت العملية بنجاح",
+    "error": "حدث خطأ",
+    "try_again": "حاول مرة أخرى",
+    "submit": "إرسال",
+    "cancel": "إلغاء",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "save": "حفظ",
+    "saving": "جاري الحفظ",
+    "deleting": "جاري الحذف",
+    "close": "إغلاق",
+    "ok": "حسناً",
+    "app_name": "حلقة",
+    "courses": "الدورات",
+    "blog": "المدونة",
+    "copyright": "جميع الحقوق محفوظة ©",
+    "features": "المميزات",
+    "contact": "اتصل بنا",
+    "privacy": "سياسة الخصوصية",
+    "terms": "الشروط والأحكام",
+    "help": "المساعدة",
+    "support": "الدعم الفني",
+    "days": {
+      "sunday": "الأحد",
+      "monday": "الإثنين",
+      "tuesday": "الثلاثاء",
+      "wednesday": "الأربعاء",
+      "thursday": "الخميس",
+      "friday": "الجمعة",
+      "saturday": "السبت"
+    }
+  },
+  "all_teachers": {
+    "title": "جميع المعلمين",
+    "search_placeholder": "ابحث في معلميك...",
+    "all_courses": "جميع الدورات",
+    "all_teachers": "جميع المعلمين",
+    "students": "طلاب",
+    "specialization": "التخصصات",
+    "about": "النبذة",
+    "languages": "اللغات",
+    "per_hour": "ساعة",
+    "book": "احجز",
+    "view": "عرض",
+    "loading": "جاري التحميل...",
+    "of": "من",
+    "page_size_label": "العناصر في الصفحة",
+    "certifications": "الشهادات",
+    "book_with": "احجز مع",
+    "no_availability": "لا توجد مواعيد متاحة",
+    "available": "متاح",
+    "unavailable": "غير متاح",
+    "pay_now": "ادفع الآن",
+    "booking_footer": "دفع آمن عبر حلقة"
+  },
+  "days": {
+    "sunday": "أحد",
+    "monday": "اثنين",
+    "tuesday": "ثلاثاء",
+    "wednesday": "أربعاء",
+    "thursday": "خميس",
+    "friday": "جمعة",
+    "saturday": "سبت"
+  },
+  "courses": {
+    "math": "الرياضيات",
+    "physics": "الفيزياء",
+    "chemistry": "الكيمياء"
+  },
+  "teachers": {
+    "ahmed": "الأستاذ أحمد",
+    "sara": "الأستاذة سارة"
+  },
+  "calendar": {
+    "loading": "جاري تحميل الجدول...",
+    "legend_title": "دليل الألوان:",
+    "status": {
+      "available": "متاح للحجز",
+      "booked": "محجوز",
+      "group": "درس جماعي",
+      "completed": "مكتمل"
+    },
+    "empty": {
+      "teacher_title": "لا توجد دروس مجدولة",
+      "student_title": "لا توجد دروس متاحة حالياً",
+      "teacher_hint": "اضغط على أي تاريخ لإضافة درس جديد",
+      "student_hint": "يرجى المحاولة لاحقاً أو تصفح المعلمين المتاحين"
+    },
+    "buttons": {
+      "today": "اليوم",
+      "month": "شهر",
+      "week": "أسبوع",
+      "day": "يوم"
+    }
+  },
+  "lesson": {
+    "duration": {
+      "30min": "30 دقيقة",
+      "1hour": "ساعة واحدة",
+      "90min": "ساعة ونصف",
+      "2hours": "ساعتان"
+    },
+    "type": {
+      "individual": "فردي",
+      "group": "جماعي"
+    }
+  },
+  "dates": {
+    "today": "اليوم",
+    "tomorrow": "غداً",
+    "yesterday": "أمس"
+  }
+}

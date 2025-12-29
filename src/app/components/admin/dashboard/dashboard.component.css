@@ -1,0 +1,32 @@
+.admin-dashboard {
+  margin-top: 85px;
+}
+
+:host {
+  display: block;
+  background-color: #fafafb;
+  min-height: 100vh; /* ensure background covers full page */
+}
+
+.charts-row {
+  display: flex;
+  gap: 18px;
+}
+
+.chart-col {
+  background: transparent;
+}
+
+.chart-col--wide {
+  flex: 2 1 0%;
+}
+
+.chart-col--narrow {
+  flex: 1 1 0%;
+}
+
+@media (max-width: 900px) {
+  .charts-row {
+    flex-direction: column;
+  }
+}/*# sourceMappingURL=dashboard.component.css.map */

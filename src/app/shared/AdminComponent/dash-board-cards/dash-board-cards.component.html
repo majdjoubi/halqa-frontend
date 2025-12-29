@@ -1,0 +1,25 @@
+<div class="dbc-row">
+  <ng-container *ngFor="let c of cardsToShow">
+    <div class="dbc-card">
+      <div class="dbc-card__header">
+        <div class="dbc-title">{{ c.title }}</div>
+        <div class="dbc-badge" [ngClass]="c.percentBg">
+          <span
+            class="dbc-badge__icon"
+            [class.up]="c.isUp"
+            [class.down]="c.isUp === false"
+            >{{ c.isUp ? "↗" : "↘" }}</span
+          >
+          <span class="dbc-badge__percent">{{ c.percent }}</span>
+        </div>
+      </div>
+
+      <div class="dbc-value">{{ formatValue(c.value) }}</div>
+
+      <div class="dbc-extra">
+        <span class="dbc-extra__text">{{ c.extraText }}</span>
+        <span class="dbc-extra__value">{{ formatValue(c.extraValue) }}</span>
+      </div>
+    </div>
+  </ng-container>
+</div>

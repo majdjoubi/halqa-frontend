@@ -1,0 +1,191 @@
+<section class="withdrawal-requests">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 col-md-12 mb-4">
+        <h5>Withdrawal Requests</h5>
+
+        <!-- Statistics Cards -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Requests</div>
+            <div class="stat-value">{{ stats.total }}</div>
+          </div>
+          <div class="stat-card pending">
+            <div class="stat-label">Pending</div>
+            <div class="stat-value">{{ stats.pendingCount }}</div>
+          </div>
+          <div class="stat-card approved">
+            <div class="stat-label">Approved</div>
+            <div class="stat-value">{{ stats.approvedCount }}</div>
+          </div>
+          <div class="stat-card rejected">
+            <div class="stat-label">Rejected</div>
+            <div class="stat-value">{{ stats.rejectedCount }}</div>
+          </div>
+          <div class="stat-card amount">
+            <div class="stat-label">Pending Amount</div>
+            <div class="stat-value">
+              ${{ formatAmount(stats.totalPendingAmount) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs-container">
+          <button
+            class="tab-button"
+            [class.active]="activeTab === 'all'"
+            (click)="setActiveTab('all')"
+          >
+            All Requests ({{ stats.total }})
+          </button>
+          <button
+            class="tab-button"
+            [class.active]="activeTab === 'pending'"
+            (click)="setActiveTab('pending')"
+          >
+            Pending ({{ stats.pendingCount }})
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-filter mt-4">
+          <div class="search-input">
+            <input
+              id="requestSearch"
+              type="text"
+              placeholder="Search by teacher name, email or payment method"
+              [(ngModel)]="searchText"
+              (ngModelChange)="onSearchChange()"
+            />
+            <button type="button" class="search-icon" aria-label="Search">
+              <img src="/assets/icons/search-icon.svg" alt="search" />
+            </button>
+          </div>
+        </div>
+
+        <!-- Requests Cards -->
+        <div class="requests-cards mt-4">
+          <div class="requests-cards-grid">
+            <ng-container
+              *ngIf="
+                filteredRequests && filteredRequests.length;
+                else emptyBlock
+              "
+            >
+              <div
+                class="request-card"
+                [ngClass]="getStatusClass(request.status)"
+                *ngFor="let request of filteredRequests"
+              >
+                <div class="request-header">
+                  <div class="teacher-info">
+                    <h5 class="teacher-name">{{ request.teacherName }}</h5>
+                    <div class="teacher-email">{{ request.teacherEmail }}</div>
+                  </div>
+                  <div class="status-wrap">
+                    <span class="status-badge">{{ request.status }}</span>
+                  </div>
+                </div>
+
+                <div class="request-body">
+                  <div class="info-row">
+                    <div class="info-item">
+                      <span class="info-label">Amount:</span>
+                      <span class="info-value amount-value"
+                        >${{ formatAmount(request.amount) }}</span
+                      >
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Payment Method:</span>
+                      <span class="info-value">{{
+                        request.paymentMethod
+                      }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-row">
+                    <div class="info-item">
+                      <span class="info-label">Payment Account:</span>
+                      <span class="info-value">{{
+                        request.paymentAccount
+                      }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Created At:</span>
+                      <span class="info-value">{{
+                        formatDate(request.createdAt)
+                      }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-row" *ngIf="request.notes">
+                    <div class="info-item full-width">
+                      <span class="info-label">Notes:</span>
+                      <span class="info-value">{{ request.notes }}</span>
+                    </div>
+                  </div>
+
+                  <div
+                    class="info-row"
+                    *ngIf="
+                      request.status.toLowerCase() === 'approved' &&
+                      request.approvedByAdminName
+                    "
+                  >
+                    <div class="info-item">
+                      <span class="info-label">Approved By:</span>
+                      <span class="info-value">{{
+                        request.approvedByAdminName
+                      }}</span>
+                    </div>
+                    <div class="info-item">
+                      <span class="info-label">Approved At:</span>
+                      <span class="info-value">{{
+                        formatDate(request.approvedAt)
+                      }}</span>
+                    </div>
+                  </div>
+
+                  <div class="info-row" *ngIf="request.adminNotes">
+                    <div class="info-item full-width">
+                      <span class="info-label">Admin Notes:</span>
+                      <span class="info-value">{{ request.adminNotes }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div
+                  class="request-footer"
+                  *ngIf="request.status.toLowerCase() === 'pending'"
+                >
+                  <button
+                    class="btn btn-approve"
+                    (click)="approveRequest(request)"
+                    type="button"
+                  >
+                    Approve
+                  </button>
+                  <button
+                    class="btn btn-reject"
+                    (click)="rejectRequest(request)"
+                    type="button"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+            </ng-container>
+
+            <ng-template #emptyBlock>
+              <div class="empty-state">
+                <img src="/assets/icons/empty-state.svg" alt="No requests" />
+                <p>No withdrawal requests found</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

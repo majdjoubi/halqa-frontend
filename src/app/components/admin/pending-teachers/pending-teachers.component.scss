@@ -1,0 +1,351 @@
+@import "../../../shared/styles/color-variable";
+
+.pending-teachers-page {
+  display: flex;
+  /* align to top so the search/filter remains near the page top even when empty */
+  align-items: flex-start;
+  justify-content: center; /* keep horizontal center */
+  min-height: calc(100vh - 160px); /* adjust if header/footer heights differ */
+  padding: 48px 24px 24px; /* extra top padding to position content lower from header */
+}
+
+.empty-state {
+  max-width: 560px;
+  width: 100%;
+  background: transparent; /* keep same look as page */
+}
+
+/* Side menu teacher profile styles */
+.teacher-profile {
+  .profile-row {
+    display: flex;
+    /* reduced gap to tighten vertical spacing between avatar and meta */
+    gap: 0.4rem;
+    align-items: center;
+
+    .profile-avatar {
+      width: 8rem;
+      height: 8rem;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      border: 4px solid rgba(11, 128, 67, 0.06);
+      background: linear-gradient(180deg, #fff, #f8fafc);
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-direction: column;
+      /* smaller vertical gap between stacked meta items */
+      gap: 2px;
+
+      .profile-name {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .role {
+        margin: 0;
+        color: #0b8043; /* green as in design */
+        font-weight: 600;
+        font-size: 13px;
+      }
+
+      .rating-row {
+        display: flex;
+        align-items: center;
+        /* tighten spacing between rating elements */
+        gap: 6px;
+        margin-top: 4px;
+
+        .rating-star {
+          width: 18px;
+          height: 18px;
+        }
+
+        .rating-value {
+          font-weight: 700;
+          color: #111827;
+        }
+
+        .review-count {
+          color: #6b7280;
+          font-size: 13px;
+        }
+      }
+
+      .rate-row {
+        color: $primary-color;
+
+        .rate-unit {
+          color: $primary-color;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+
+  .profile-bio {
+    /* slightly reduced top margin so bio sits closer to the profile row */
+    margin-top: 8px;
+  }
+
+  /* Profile sub-sections like specializations */
+  .profile-section {
+    margin-top: 12px;
+
+    .section-title {
+      margin: 0 0 12px 0;
+      font-size: 1.05rem;
+      color: $primary-color; /* use project primary color for title */
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding-left: 6px; /* small breathing room when stacked */
+
+      /* left vertical bar like the reference image */
+      &::before {
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 22px;
+        background: $primary-color;
+        border-radius: 2px;
+        margin-right: 6px;
+      }
+    }
+
+    .specializations {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    /* Smaller, darker chips that fit the side menu's subtle look */
+    .spec-chip {
+      display: inline-block;
+      padding: 4px 8px;
+      background: $primary-color; /* dark chip background */
+      color: #fff; /* white text for contrast */
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid rgba(15, 23, 42, 0.08);
+      opacity: 0.95;
+    }
+  }
+
+  /* Certificates / certifications block in side menu */
+  .certificate {
+    margin-top: 12px;
+
+    .section-title {
+      margin: 0 0 12px 0;
+      font-size: 1rem;
+      color: $primary-color;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cert-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr; /* two small cards side-by-side */
+      gap: 12px;
+    }
+
+    .cert-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-radius: 8px;
+      padding: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      box-shadow: 0 4px 10px rgba(31, 45, 61, 0.03);
+    }
+
+    .cert-icon {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(11, 128, 67, 0.06);
+      border: 1px solid rgba(11, 128, 67, 0.08);
+
+      img {
+        width: 20px;
+        height: 20px;
+        display: block;
+      }
+    }
+
+    .cert-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .cert-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+
+      .cert-sub {
+        font-size: 12px;
+        color: #9ca3af;
+      }
+
+      .cert-years {
+        font-size: 11px;
+        color: #c7c7c7;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .cert-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  }
+
+  /* Languages section styling to match Bio / section-title */
+  .language-section {
+    .language-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* two cards per row */
+      gap: 10px;
+      margin-top: 6px;
+      align-items: start;
+    }
+
+    .lang-chip {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f8fafc;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(15, 23, 42, 0.04);
+      width: 100%;
+    }
+
+    .language-icon {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(1, 104, 54, 0.06);
+      flex: 0 0 36px;
+
+      img {
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        object-fit: cover;
+        display: block;
+      }
+    }
+
+    .language-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      .language-name {
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 14px;
+      }
+
+      .language-level {
+        font-size: 12px;
+        color: #6b7280;
+        font-weight: 600;
+      }
+    }
+  }
+
+  /* Bio paragraph tweaks: slightly smaller, tighter lines to match design */
+  .profile-bio {
+    p {
+      margin: 0;
+      font-size: 13px; /* slightly smaller */
+      line-height: 1.45; /* tighter reading line-height */
+      color: #111827;
+      max-height: 8.6rem; /* limit to ~6 lines */
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .profile-actions {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+
+    .btn {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 700;
+      text-align: center;
+      border: none;
+      cursor: pointer;
+      height: 44px;
+      line-height: 20px;
+
+      &.btn-book {
+        background: #065a33; /* slightly darker green for better contrast */
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(6, 90, 51, 0.12);
+
+        &:hover {
+          filter: brightness(0.98);
+        }
+
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+
+      &.btn-reject {
+        background: #dc3545;
+        color: #fff;
+
+        &:hover {
+          filter: brightness(0.98);
+        }
+
+        &:active {
+          transform: translateY(1px);
+        }
+      }
+    }
+  }
+}
+
+.side-loading {
+  text-align: center;
+  padding: 40px 20px;
+
+  p {
+    color: #6b7280;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 768px) {
+  .pending-teachers-page {
+    min-height: calc(100vh - 120px);
+  }
+}

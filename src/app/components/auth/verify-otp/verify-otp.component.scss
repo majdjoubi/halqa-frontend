@@ -1,0 +1,172 @@
+.verify-otp {
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .otp-container {
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+
+    .otp-title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+
+    .otp-subtitle {
+      color: #666;
+      margin-bottom: 0.5rem;
+      line-height: 1.5;
+    }
+
+    .otp-instruction {
+      color: #666;
+      margin-bottom: 2rem;
+      line-height: 1.5;
+    }
+
+    .otp-form {
+      .otp-inputs {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+
+        .otp-input {
+          width: 50px;
+          height: 50px;
+          border: 2px solid #ddd;
+          border-radius: 8px;
+          text-align: center;
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: #333;
+          transition: border-color 0.3s ease;
+
+          &:focus {
+            outline: none;
+            border-color: #0f9d58;
+          }
+
+          &:hover {
+            border-color: #bbb;
+          }
+
+          // Prevent spinner buttons on number input
+          &::-webkit-outer-spin-button,
+          &::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+          }
+
+          &[type="number"] {
+            appearance: textfield;
+            -moz-appearance: textfield;
+          }
+        }
+      }
+
+      .timer-container {
+        .timer {
+          font-size: 1rem;
+          color: #666;
+          font-weight: 500;
+        }
+      }
+
+      .confirm-btn {
+        width: 100%;
+        padding: 0.75rem 2rem;
+        background-color: #0f9d58;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 1.5rem;
+
+        &:enabled:hover {
+          background-color: #0d8a4f;
+        }
+
+        &:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .resend-container {
+        .resend-link {
+          color: #0f9d58;
+          text-decoration: underline #0f9d58;
+          font-weight: 500;
+          cursor: pointer;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+
+        .resend-disabled {
+          color: #999;
+          font-weight: 500;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .verify-otp {
+    padding: 1rem;
+
+    .otp-container {
+      .otp-title {
+        font-size: 1.5rem;
+      }
+
+      .otp-form {
+        .otp-inputs {
+          gap: 0.5rem;
+
+          .otp-input {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .verify-otp {
+    .otp-container {
+      .otp-form {
+        .otp-inputs {
+          gap: 0.3rem;
+
+          .otp-input {
+            width: 35px;
+            height: 35px;
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
