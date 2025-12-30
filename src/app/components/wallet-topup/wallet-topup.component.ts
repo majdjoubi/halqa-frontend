@@ -4,10 +4,11 @@ import { PaypalService } from '../../services/paypal.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 @Component({
   selector: 'app-wallet-topup',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslateModule],
   templateUrl: './wallet-topup.component.html',
   styleUrls: ['./wallet-topup.component.scss'],
 })
@@ -27,7 +28,8 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
   constructor(
     private stripeService: StripeService,
     private paypalService: PaypalService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -44,7 +46,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
       this.loadPayPal();
     } catch (error) {
       console.error('Error initializing payment:', error);
-      this.errorMessage = 'فشل تحميل نظام الدفع. يرجى المحاولة مرة أخرى.';
+      this.errorMessage = this.translate.instant('wallet_topup.error_loading');
     }
   }
 
@@ -92,14 +94,16 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
       this.amount,
       (details) => {
         // Success
-        this.successMessage = `تم شحن المحفظة بنجاح بمبلغ ${this.amount} USD عبر PayPal`;
+        this.successMessage = this.translate.instant('wallet_topup.success_paypal', {
+          amount: this.amount
+        });
         setTimeout(() => {
-          this.router.navigate(['/student-profile']);
+          this.router.navigate(['/wallet']);
         }, 2000);
       },
       (error) => {
         // Error
-        this.errorMessage = error.message || 'فشل الدفع عبر PayPal. يرجى المحاولة مرة أخرى.';
+        this.errorMessage = error.message || this.translate.instant('wallet_topup.error_paypal');
       }
     );
   }
@@ -119,7 +123,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
 
   async onSubmit(): Promise<void> {
     if (!this.amount || this.amount <= 0) {
-      this.errorMessage = 'يرجى إدخال مبلغ صحيح';
+      this.errorMessage = this.translate.instant('wallet_topup.error_invalid_amount');
       return;
     }
     
@@ -133,24 +137,24 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
     this.successMessage = '';
 
     try {
-      // الخطوة 1: إنشاء Payment Intent
+      // Step 1: Create Payment Intent
       const paymentIntentResponse: any = await this.stripeService
-        .createWalletPaymentIntent(this.amount, this.currency, 'شحن المحفظة')
+        .createWalletPaymentIntent(this.amount, this.currency, 'Wallet top-up')
         .toPromise();
 
       if (!paymentIntentResponse || !paymentIntentResponse.clientSecret) {
-        throw new Error('فشل في إنشاء عملية الدفع');
+        throw new Error(this.translate.instant('wallet_topup.error_payment_intent'));
       }
 
-      // الخطوة 2: تأكيد الدفع باستخدام Stripe
+      // Step 2: Confirm payment using Stripe
       const confirmResult = await this.stripeService.confirmPayment(
         paymentIntentResponse.clientSecret
       );
 
       if (confirmResult.error) {
-        // فشل الدفع
+        // Payment failed
         this.errorMessage =
-          confirmResult.error.message || 'فشل الدفع. يرجى المحاولة مرة أخرى.';
+          confirmResult.error.message || this.translate.instant('wallet_topup.error_payment_failed');
         this.isProcessing = false;
         return;
       }
@@ -159,19 +163,20 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
         confirmResult.paymentIntent &&
         confirmResult.paymentIntent.status === 'succeeded'
       ) {
-        // نجح الدفع
-        this.successMessage = `تم شحن المحفظة بنجاح بمبلغ ${
-          this.amount
-        } ${this.currency.toUpperCase()}`;
+        // Payment succeeded
+        this.successMessage = this.translate.instant('wallet_topup.success_message', {
+          amount: this.amount,
+          currency: this.currency.toUpperCase()
+        });
 
-        // انتظر 2 ثانية ثم انتقل للصفحة الرئيسية أو المحفظة
+        // Wait 2 seconds then navigate
         setTimeout(() => {
-          this.router.navigate(['/wallet']); // أو الصفحة اللي تحب توصل لها
+          this.router.navigate(['/wallet']);
         }, 2000);
       }
     } catch (error: any) {
       console.error('Payment error:', error);
-      this.errorMessage = error.message || 'حدث خطأ أثناء عملية الدفع';
+      this.errorMessage = error.message || this.translate.instant('wallet_topup.error_generic');
     } finally {
       this.isProcessing = false;
     }

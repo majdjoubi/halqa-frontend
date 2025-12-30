@@ -1,0 +1,690 @@
+// ============================================
+// HALQA SCHEDULING - STUDENT BOOKING STYLES
+// Using Green Color Theme: #0d6b1f → #15a037
+// ============================================
+
+$primary-green: #0d6b1f;
+$primary-green-light: #15a037;
+$success-green: #11998e;
+$success-green-light: #38ef7d;
+$text-dark: #0b2b12;
+$text-secondary: #6b6b6b;
+$warning-orange: #f7971e;
+$warning-yellow: #ffd200;
+$danger-red: #dc3545;
+$border-color: #e8eef0;
+$bg-light: #f5f6f7;
+$card-bg: #ffffff;
+
+.booking-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: $bg-light;
+  min-height: 100vh;
+}
+
+// Header
+.booking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h2 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: $text-dark;
+    margin: 0;
+  }
+}
+
+// Loading Spinner
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid $border-color;
+    border-top-color: $primary-green;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    margin-top: 1rem;
+    color: $text-secondary;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Teacher Card
+.teacher-card {
+  background: $card-bg;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1.5rem;
+  box-shadow: 0 2px 8px rgba(13, 107, 31, 0.08);
+  flex-wrap: wrap;
+
+  .teacher-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid $primary-green;
+    flex-shrink: 0;
+  }
+
+  .teacher-info {
+    flex: 1;
+
+    h3 {
+      font-size: 1.5rem;
+      color: $text-dark;
+      margin: 0 0 0.5rem;
+    }
+
+    .specializations {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+
+      .spec-tag {
+        background: rgba(13, 107, 31, 0.1);
+        color: $primary-green;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+    }
+
+    .rating {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #ffc107;
+
+      span {
+        color: $text-secondary;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .teacher-pricing {
+    text-align: center;
+    padding: 1rem;
+    background: $bg-light;
+    border-radius: 12px;
+    min-width: 140px;
+
+    .price {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: $primary-green;
+
+      small {
+        font-size: 0.875rem;
+        color: $text-secondary;
+        font-weight: 400;
+      }
+    }
+
+    .lesson-type {
+      font-size: 0.875rem;
+      color: $text-secondary;
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+// Booking Section
+.booking-section {
+  background: $card-bg;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(13, 107, 31, 0.08);
+
+  .section-title {
+    font-size: 1.25rem;
+    color: $text-dark;
+    margin: 0 0 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid $border-color;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+
+    i {
+      color: $primary-green;
+    }
+  }
+}
+
+// Date Selection
+.date-picker-wrapper {
+  .date-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+
+    .day-cell {
+      padding: 0.75rem 0.5rem;
+      text-align: center;
+      border: 2px solid $border-color;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: $card-bg;
+
+      &:hover:not(.disabled) {
+        border-color: $primary-green-light;
+        background: rgba(13, 107, 31, 0.05);
+      }
+
+      &.selected {
+        background: linear-gradient(135deg, $primary-green, $primary-green-light);
+        color: white;
+        border-color: transparent;
+
+        .day-name, .day-number {
+          color: white;
+        }
+      }
+
+      &.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background: $bg-light;
+      }
+
+      .day-name {
+        font-size: 0.75rem;
+        color: $text-secondary;
+        margin-bottom: 0.25rem;
+      }
+
+      .day-number {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $text-dark;
+      }
+    }
+  }
+
+  .week-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .current-week {
+      font-weight: 500;
+      color: $text-dark;
+    }
+  }
+}
+
+// Time Slots
+.time-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.75rem;
+
+  .time-slot {
+    padding: 0.75rem;
+    text-align: center;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: $card-bg;
+
+    &:hover:not(.booked) {
+      border-color: $primary-green-light;
+      background: rgba(13, 107, 31, 0.05);
+    }
+
+    &.selected {
+      background: linear-gradient(135deg, $primary-green, $primary-green-light);
+      color: white;
+      border-color: transparent;
+    }
+
+    &.booked {
+      background: $bg-light;
+      color: $text-secondary;
+      cursor: not-allowed;
+      text-decoration: line-through;
+      opacity: 0.6;
+    }
+  }
+
+  .no-slots {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 2rem;
+    color: $text-secondary;
+
+    i {
+      font-size: 3rem;
+      color: $border-color;
+      margin-bottom: 1rem;
+      display: block;
+    }
+  }
+}
+
+// Form Elements
+.form-group {
+  margin-bottom: 1.5rem;
+
+  label {
+    display: block;
+    font-size: 0.9rem;
+    color: $text-secondary;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+  }
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.875rem;
+  border: 2px solid $border-color;
+  border-radius: 10px;
+  font-size: 1rem;
+  background: $card-bg;
+  color: $text-dark;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    outline: none;
+    border-color: $primary-green;
+  }
+
+  &::placeholder {
+    color: lighten($text-secondary, 20%);
+  }
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+// Lesson Type Selection
+.lesson-types {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+
+  .lesson-type-card {
+    padding: 1.25rem;
+    border: 2px solid $border-color;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: $card-bg;
+
+    &:hover {
+      border-color: $primary-green-light;
+      background: rgba(13, 107, 31, 0.02);
+    }
+
+    &.selected {
+      border-color: $primary-green;
+      background: rgba(13, 107, 31, 0.05);
+
+      .lesson-type-icon {
+        background: linear-gradient(135deg, $primary-green, $primary-green-light);
+        color: white;
+      }
+    }
+
+    .lesson-type-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: $bg-light;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 0.75rem;
+      font-size: 1.25rem;
+      color: $primary-green;
+      transition: all 0.2s ease;
+    }
+
+    .lesson-type-title {
+      font-weight: 600;
+      color: $text-dark;
+      margin-bottom: 0.25rem;
+    }
+
+    .lesson-type-desc {
+      font-size: 0.85rem;
+      color: $text-secondary;
+    }
+
+    .lesson-price {
+      margin-top: 0.75rem;
+      font-weight: 600;
+      color: $primary-green;
+      font-size: 1.1rem;
+    }
+  }
+}
+
+// Summary Card
+.booking-summary {
+  background: linear-gradient(135deg, $primary-green, $primary-green-light);
+  color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+
+  h3 {
+    font-size: 1.25rem;
+    margin: 0 0 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+
+    &:last-child {
+      border-bottom: none;
+      padding-top: 1rem;
+      margin-top: 0.5rem;
+      border-top: 2px solid rgba(255, 255, 255, 0.3);
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+
+    .label {
+      opacity: 0.9;
+    }
+  }
+}
+
+// Buttons
+.btn {
+  padding: 0.875rem 1.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  font-weight: 600;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  &.btn-primary {
+    background: linear-gradient(90deg, $primary-green, $primary-green-light);
+    color: white;
+    width: 100%;
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(13, 107, 31, 0.4);
+    }
+  }
+
+  &.btn-secondary {
+    background: $bg-light;
+    color: $text-dark;
+    border: 2px solid $border-color;
+
+    &:hover:not(:disabled) {
+      background: $border-color;
+    }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border: 2px solid $primary-green;
+    color: $primary-green;
+
+    &:hover:not(:disabled) {
+      background: $primary-green;
+      color: white;
+    }
+  }
+
+  &.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  &.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+  }
+}
+
+// Alerts
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+
+  i {
+    font-size: 1.25rem;
+    margin-top: 0.1rem;
+  }
+
+  &.alert-info {
+    background: rgba(13, 107, 31, 0.1);
+    color: $primary-green;
+    border: 1px solid rgba(13, 107, 31, 0.2);
+  }
+
+  &.alert-warning {
+    background: rgba(247, 151, 30, 0.1);
+    color: darken($warning-orange, 10%);
+    border: 1px solid rgba(247, 151, 30, 0.2);
+  }
+
+  &.alert-success {
+    background: rgba(17, 153, 142, 0.1);
+    color: $success-green;
+    border: 1px solid rgba(17, 153, 142, 0.2);
+  }
+
+  &.alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: $danger-red;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+  }
+}
+
+// Success View
+.booking-success {
+  text-align: center;
+  padding: 3rem;
+
+  .success-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, $success-green, $success-green-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+
+    i {
+      font-size: 3rem;
+      color: white;
+    }
+  }
+
+  h2 {
+    color: $text-dark;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: $text-secondary;
+    margin-bottom: 2rem;
+  }
+
+  .booking-details {
+    background: $bg-light;
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: left;
+    margin-bottom: 2rem;
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid $border-color;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .label {
+        color: $text-secondary;
+      }
+
+      .value {
+        font-weight: 600;
+        color: $text-dark;
+      }
+    }
+  }
+
+  .success-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .booking-container {
+    padding: 1rem;
+  }
+
+  .teacher-card {
+    flex-direction: column;
+    text-align: center;
+
+    .teacher-avatar {
+      margin: 0 auto;
+    }
+
+    .teacher-info {
+      .specializations {
+        justify-content: center;
+      }
+
+      .rating {
+        justify-content: center;
+      }
+    }
+
+    .teacher-pricing {
+      width: 100%;
+    }
+  }
+
+  .date-picker-wrapper {
+    .date-grid {
+      grid-template-columns: repeat(7, 1fr);
+
+      .day-cell {
+        padding: 0.5rem 0.25rem;
+
+        .day-name {
+          font-size: 0.65rem;
+        }
+
+        .day-number {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+
+  .time-slots {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .lesson-types {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .time-slots {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// RTL Support
+[dir="rtl"] {
+  .teacher-card {
+    .teacher-info {
+      text-align: right;
+    }
+  }
+
+  .booking-summary {
+    .summary-row {
+      flex-direction: row-reverse;
+    }
+  }
+
+  .alert {
+    flex-direction: row-reverse;
+    text-align: right;
+  }
+
+  .booking-success {
+    .booking-details {
+      .detail-row {
+        flex-direction: row-reverse;
+      }
+    }
+  }
+}

@@ -193,6 +193,24 @@ export const routes: Routes = [
         (m) => m.WalletTopupComponent
       ),
   },
+  // Teacher Scheduling Routes
+  {
+    path: 'teacher/scheduling',
+    canActivate: [TeacherGuard],
+    loadComponent: () =>
+      import('./components/scheduling/teacher-scheduling/teacher-scheduling.component').then(
+        (m) => m.TeacherSchedulingComponent
+      ),
+  },
+  // Student Booking Routes
+  {
+    path: 'student/booking',
+    canActivate: [StudentGuard],
+    loadComponent: () =>
+      import('./components/scheduling/student-booking/student-booking.component').then(
+        (m) => m.StudentBookingComponent
+      ),
+  },
   {
     path: 'not-found',
     loadComponent: () =>

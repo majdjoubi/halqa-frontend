@@ -13,6 +13,9 @@ import { SideImageComponent } from '../../../../shared/shared-component/side-ima
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
 import { FacadeAuthService } from '../../../../services/auth/facade-auth.service';
 import { UploadFilesService } from '../../../../services/common/upload-files.service';
+import { compressProfileImage } from '../../../../services/common/image-compression';
+import { from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-teacher-register',
@@ -45,7 +48,7 @@ export class TeacherRegisterComponent {
 
   // Default avatar to use when user doesn't provide one
   defaultAvatar: string =
-    'https://halqa-api.onrender.com/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
+    '/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
 
   ageOptions: number[] = [];
   yearOptions: number[] = [];
@@ -251,20 +254,22 @@ export class TeacherRegisterComponent {
         this.uploadingFile = true;
         this.uploadError = null;
         // Use category 'images' for profile pictures
-        this.uploadService.uploadFile(this.selectedFile, 'images').subscribe({
-          next: (res) => {
-            const imageUrl = res?.url || res?.path || this.previewUrl || null;
-            this.uploadingFile = false;
-            callRegister(imageUrl);
-          },
-          error: (err) => {
-            this.uploadingFile = false;
-            this.isSubmitting = false;
-            this.uploadError =
-              'Failed to upload profile picture. Please try again.';
-            this.errorMessage = this.uploadError;
-          },
-        });
+        from(compressProfileImage(this.selectedFile))
+          .pipe(switchMap((file) => this.uploadService.uploadFile(file, 'images')))
+          .subscribe({
+            next: (res) => {
+              const imageUrl = res?.url || res?.path || this.previewUrl || null;
+              this.uploadingFile = false;
+              callRegister(imageUrl);
+            },
+            error: (err) => {
+              this.uploadingFile = false;
+              this.isSubmitting = false;
+              this.uploadError =
+                'Failed to upload profile picture. Please try again.';
+              this.errorMessage = this.uploadError;
+            },
+          });
       } else {
         callRegister(null);
       }

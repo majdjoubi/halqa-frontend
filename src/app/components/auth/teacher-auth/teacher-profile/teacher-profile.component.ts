@@ -16,6 +16,9 @@ import { FormValidationComponent } from '../../../../shared/shared-component/for
 import { LessonCalendarComponent, LessonEvent } from '../../../../shared/shared-component/lesson-calendar/lesson-calendar.component';
 import { FacadeProfilesService } from '../../../../services/profiles/facade-profiles.service';
 import { UploadFilesService } from '../../../../services/common/upload-files.service';
+import { compressProfileImage } from '../../../../services/common/image-compression';
+import { from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { FacadeAuthService } from '../../../../services/auth/facade-auth.service';
 import { DateLocaleService } from '../../../../services/common/date-locale.service';
 import {
@@ -451,19 +454,21 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     if (this.selectedFile) {
       this.uploadingFile = true;
       this.uploadError = null;
-      this._uploadService.uploadFile(this.selectedFile, 'images').subscribe({
-        next: (res) => {
-          this.uploadingFile = false;
-          const imageUrl = res?.url || res?.path || this.previewUrl || '';
-          doProfileUpdate(imageUrl);
-        },
-        error: (err) => {
-          this.uploadingFile = false;
-          this.uploadError =
-            'Failed to upload profile picture. Please try again.';
-          this.handleUpdateError(err);
-        },
-      });
+      from(compressProfileImage(this.selectedFile))
+        .pipe(switchMap((file) => this._uploadService.uploadFile(file, 'images')))
+        .subscribe({
+          next: (res) => {
+            this.uploadingFile = false;
+            const imageUrl = res?.url || res?.path || this.previewUrl || '';
+            doProfileUpdate(imageUrl);
+          },
+          error: (err) => {
+            this.uploadingFile = false;
+            this.uploadError =
+              'Failed to upload profile picture. Please try again.';
+            this.handleUpdateError(err);
+          },
+        });
     } else {
       // No file selected: use existing preview or existing value from UserData
       const existingUrl =

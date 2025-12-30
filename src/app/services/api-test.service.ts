@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ApiTestService {
-  private base_url = 'https://halqa-api.onrender.com';
+  private base_url = (environment.apiUrl || '').replace(/\/$/, '');
 
   constructor(private http: HttpClient) {}
 

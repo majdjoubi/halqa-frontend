@@ -8,12 +8,13 @@ import {
 } from '@stripe/stripe-js';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
+import { environment } from '../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class StripeService {
-  private baseUrl = 'https://halqa-api.onrender.com/api';
+  private baseUrl = `${(environment.apiUrl || '').replace(/\/$/, '')}/api`;
   private stripePromise: Promise<Stripe | null> | null = null;
   private stripe: Stripe | null = null;
   private elements: StripeElements | null = null;

@@ -21,7 +21,7 @@ export interface PayPalCaptureResponse {
   providedIn: 'root',
 })
 export class PaypalService {
-  private baseUrl = environment.apiUrl || 'https://halqa-api.onrender.com';
+  private baseUrl = (environment.apiUrl || '').replace(/\/$/, '');
   private paypalScriptLoaded = false;
 
   constructor(private http: HttpClient) {}

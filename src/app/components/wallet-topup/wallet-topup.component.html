@@ -1,8 +1,8 @@
 <div class="wallet-topup-container mt-5">
   <div class="payment-card">
-    <h2>شحن المحفظة</h2>
+    <h2>{{ 'wallet_topup.title' | translate }}</h2>
 
-    <!-- رسائل النجاح والخطأ -->
+    <!-- Success/Error Messages -->
     <div *ngIf="successMessage" class="alert alert-success">
       {{ successMessage }}
     </div>
@@ -11,11 +11,11 @@
       {{ errorMessage }}
     </div>
 
-    <!-- نموذج الدفع -->
+    <!-- Payment Form -->
     <form (ngSubmit)="onSubmit()" *ngIf="!successMessage">
-      <!-- إدخال المبلغ -->
+      <!-- Amount Input -->
       <div class="form-group">
-        <label for="amount">المبلغ (USD)</label>
+        <label for="amount">{{ 'wallet_topup.amount_label' | translate }}</label>
         <input
           type="number"
           id="amount"
@@ -23,16 +23,16 @@
           name="amount"
           min="1"
           step="0.01"
-          placeholder="أدخل المبلغ"
+          [placeholder]="'wallet_topup.amount_placeholder' | translate"
           [disabled]="isProcessing"
           (ngModelChange)="onAmountChange()"
           required
         />
       </div>
 
-      <!-- اختيار طريقة الدفع -->
+      <!-- Payment Method Selection -->
       <div class="form-group payment-method-selector">
-        <label>طريقة الدفع</label>
+        <label>{{ 'wallet_topup.payment_method' | translate }}</label>
         <div class="payment-methods">
           <button
             type="button"
@@ -42,7 +42,7 @@
             [disabled]="isProcessing"
           >
             <i class="fab fa-cc-stripe"></i>
-            <span>بطاقة ائتمان</span>
+            <span>{{ 'wallet_topup.credit_card' | translate }}</span>
           </button>
           <button
             type="button"
@@ -59,11 +59,11 @@
         </div>
       </div>
 
-      <!-- بيانات البطاقة (Stripe Card Element) -->
+      <!-- Card Details (Stripe Card Element) -->
       <div class="form-group" *ngIf="paymentMethod === 'stripe'">
-        <label>بيانات البطاقة</label>
+        <label>{{ 'wallet_topup.card_details' | translate }}</label>
         <div id="card-element" class="card-element">
-          <!-- Stripe Card Element سيظهر هنا -->
+          <!-- Stripe Card Element will appear here -->
         </div>
         <div *ngIf="cardErrors" class="card-errors">
           {{ cardErrors }}
@@ -76,27 +76,27 @@
           <!-- PayPal buttons will be rendered here -->
         </div>
         <p *ngIf="!amount || amount <= 0" class="paypal-hint">
-          أدخل المبلغ أولاً لإظهار زر الدفع
+          {{ 'wallet_topup.enter_amount_first' | translate }}
         </p>
       </div>
 
-      <!-- زر الدفع (Stripe فقط) -->
+      <!-- Submit Button (Stripe only) -->
       <button
         *ngIf="paymentMethod === 'stripe'"
         type="submit"
         class="submit-btn"
         [disabled]="isProcessing || !amount || amount <= 0"
       >
-        <span *ngIf="!isProcessing">شحن المحفظة</span>
-        <span *ngIf="isProcessing">جاري المعالجة...</span>
+        <span *ngIf="!isProcessing">{{ 'wallet_topup.submit_button' | translate }}</span>
+        <span *ngIf="isProcessing">{{ 'wallet_topup.processing' | translate }}</span>
       </button>
     </form>
 
-    <!-- معلومات الأمان -->
+    <!-- Security Info -->
     <div class="security-info">
-      <p>🔒 جميع المعاملات محمية بتشفير SSL</p>
-      <p *ngIf="paymentMethod === 'stripe'">💳 نستخدم Stripe لمعالجة الدفع بشكل آمن</p>
-      <p *ngIf="paymentMethod === 'paypal'">💳 نستخدم PayPal لمعالجة الدفع بشكل آمن</p>
+      <p>🔒 {{ 'wallet_topup.security_ssl' | translate }}</p>
+      <p *ngIf="paymentMethod === 'stripe'">💳 {{ 'wallet_topup.security_stripe' | translate }}</p>
+      <p *ngIf="paymentMethod === 'paypal'">💳 {{ 'wallet_topup.security_paypal' | translate }}</p>
     </div>
   </div>
 </div>

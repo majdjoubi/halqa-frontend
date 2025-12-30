@@ -779,7 +779,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   goToWalletTopUp() {
     this.closeModal();
-    this.router.navigate(['/wallet-topup']);
+    this.router.navigate(['/wallet/topup']);
   }
 
   // Compute the next Date instance for a slot object that contains

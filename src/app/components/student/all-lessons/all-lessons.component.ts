@@ -82,12 +82,12 @@ export class AllLessonsComponent implements AfterViewInit, OnDestroy {
 
   // sample images to pick randomly from (put your asset paths here)
   sampleImages: string[] = [
-    'https://halqa-api.onrender.com/uploads/documents/20251003142411165-9792b39aa83c4df380f4a73e73b3c4cc-lesson02.webp',
-    'https://halqa-api.onrender.com/uploads/documents/20251003142534831-6eb8b0e19d6c4656af19990141c6e3b9-lesson03.webp',
-    'https://halqa-api.onrender.com/uploads/documents/20251003142645389-f83d82510c454a66a9319e103380f7a5-lesson04.webp',
-    'https://halqa-api.onrender.com/uploads/documents/20251003142746171-2bf82b30980d40d4962879a11b277eb2-lesson01.webp',
-    'https://halqa-api.onrender.com/uploads/documents/20251003142914872-f17e471eae4d422a8c91079a5c71eb51-lesson05.webp',
-    'https://halqa-api.onrender.com/uploads/documents/20251003143038287-992a36b5d8c3460fbde371f868ebbef7-lesson06.webp',
+    '/uploads/documents/20251003142411165-9792b39aa83c4df380f4a73e73b3c4cc-lesson02.webp',
+    '/uploads/documents/20251003142534831-6eb8b0e19d6c4656af19990141c6e3b9-lesson03.webp',
+    '/uploads/documents/20251003142645389-f83d82510c454a66a9319e103380f7a5-lesson04.webp',
+    '/uploads/documents/20251003142746171-2bf82b30980d40d4962879a11b277eb2-lesson01.webp',
+    '/uploads/documents/20251003142914872-f17e471eae4d422a8c91079a5c71eb51-lesson05.webp',
+    '/uploads/documents/20251003143038287-992a36b5d8c3460fbde371f868ebbef7-lesson06.webp',
   ];
 
   private getRandomImage(): string {

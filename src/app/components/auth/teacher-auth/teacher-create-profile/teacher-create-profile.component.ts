@@ -16,6 +16,9 @@ import { FacadeProfilesService } from '../../../../services/profiles/facade-prof
 import { UploadFilesService } from '../../../../services/common/upload-files.service';
 import { RepoService } from '../../../../Repositories/repo.service';
 import { CreateTeacherProfile } from '../../../../shared/modals/auth-modals';
+import { compressProfileImage } from '../../../../services/common/image-compression';
+import { from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 interface Language {
   value: string;
@@ -64,7 +67,7 @@ export class TeacherCreateProfileComponent implements OnInit {
   selectedSpecializations: string[] = [];
   // Default avatar shown when user has no profile picture
   defaultAvatar: string =
-    'https://halqa-api.onrender.com/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
+    '/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
 
   // Available Languages
   availableLanguages: Language[] = [
@@ -529,25 +532,27 @@ export class TeacherCreateProfileComponent implements OnInit {
       // If user selected a new image, upload it first
       if (this.selectedFile) {
         console.log('Uploading image first...');
-        this._uploadService.uploadFile(this.selectedFile, 'images').subscribe({
-          next: (uploadResponse) => {
-            console.log('Image upload response:', uploadResponse);
-            // Get the uploaded image URL
-            const uploadedImageUrl =
-              uploadResponse.data?.url || uploadResponse.url;
+        from(compressProfileImage(this.selectedFile))
+          .pipe(switchMap((file) => this._uploadService.uploadFile(file, 'images')))
+          .subscribe({
+            next: (uploadResponse) => {
+              console.log('Image upload response:', uploadResponse);
+              // Get the uploaded image URL
+              const uploadedImageUrl =
+                uploadResponse.data?.url || uploadResponse.url;
 
-            // Prepare form data with the uploaded image URL
-            const formData = this.prepareFormData(uploadedImageUrl);
+              // Prepare form data with the uploaded image URL
+              const formData = this.prepareFormData(uploadedImageUrl);
 
-            // Submit profile data
-            this.submitProfile(formData);
-          },
-          error: (error) => {
-            console.error('Error uploading image:', error);
-            this.isSubmitting = false;
-            // You can add error handling here (show toast message, etc.)
-          },
-        });
+              // Submit profile data
+              this.submitProfile(formData);
+            },
+            error: (error) => {
+              console.error('Error uploading image:', error);
+              this.isSubmitting = false;
+              // You can add error handling here (show toast message, etc.)
+            },
+          });
       } else {
         console.log('No image to upload, submitting form data directly...');
         // No new image selected, submit without profile picture update

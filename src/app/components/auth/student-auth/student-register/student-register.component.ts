@@ -13,6 +13,9 @@ import { SideImageComponent } from '../../../../shared/shared-component/side-ima
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
 import { FacadeAuthService } from '../../../../services/auth/facade-auth.service';
 import { UploadFilesService } from '../../../../services/common/upload-files.service';
+import { compressProfileImage } from '../../../../services/common/image-compression';
+import { from } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-student-register',
@@ -217,20 +220,22 @@ export class StudentRegisterComponent implements OnInit {
         this.uploadingFile = true;
         this.uploadError = null;
         // Use category 'images' for profile pictures
-        this._uploadService.uploadFile(this.selectedFile, 'images').subscribe({
-          next: (res) => {
-            const imageUrl = res?.url || res?.path || this.previewUrl || null;
-            this.uploadingFile = false;
-            callRegister(imageUrl);
-          },
-          error: (err) => {
-            this.uploadingFile = false;
-            this.isSubmitting = false;
-            this.uploadError =
-              'Failed to upload profile picture. Please try again.';
-            this.errorMessage = this.uploadError;
-          },
-        });
+        from(compressProfileImage(this.selectedFile))
+          .pipe(switchMap((file) => this._uploadService.uploadFile(file, 'images')))
+          .subscribe({
+            next: (res) => {
+              const imageUrl = res?.url || res?.path || this.previewUrl || null;
+              this.uploadingFile = false;
+              callRegister(imageUrl);
+            },
+            error: (err) => {
+              this.uploadingFile = false;
+              this.isSubmitting = false;
+              this.uploadError =
+                'Failed to upload profile picture. Please try again.';
+              this.errorMessage = this.uploadError;
+            },
+          });
       } else {
         // No file selected, proceed with registration using null image
         callRegister(null);

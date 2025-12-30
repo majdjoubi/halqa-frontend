@@ -13,12 +13,13 @@ import {
   UserProfileResponse,
 } from '../shared/modals/auth-modals';
 import { Observable } from 'rxjs';
+import { environment } from '../environment/environment';
 
 @Injectable({
   providedIn: 'root',
 })
 export class RepoService {
-  private base_url = 'https://halqa-api.onrender.com';
+  private base_url = (environment.apiUrl || '').replace(/\/$/, '');
 
   constructor(private http: HttpClient) {}
 
