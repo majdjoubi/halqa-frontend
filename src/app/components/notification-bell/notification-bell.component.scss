@@ -1,0 +1,94 @@
+:host {
+  display: block;
+}
+
+/* Dropdown animation */
+.absolute[class*="mt-2"] {
+  animation: dropdownFadeIn 0.2s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar for notifications list */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+    
+    &:hover {
+      background-color: #94a3b8;
+    }
+  }
+}
+
+/* Line clamp for notification messages */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* RTL support */
+[dir="rtl"] {
+  .absolute.end-0 {
+    right: auto;
+    left: 0;
+  }
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .absolute[class*="w-80"] {
+    width: calc(100vw - 2rem);
+    max-width: 360px;
+  }
+}
+
+/* Notification item hover effect */
+.cursor-pointer {
+  &:hover {
+    .fa-times {
+      opacity: 1;
+    }
+  }
+  
+  .fa-times {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+}
+
+/* Badge pulse animation */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}

@@ -983,5 +983,31 @@
     "error_payment_intent": "فشل في إنشاء عملية الدفع",
     "error_payment_failed": "فشل الدفع. يرجى المحاولة مرة أخرى.",
     "error_generic": "حدث خطأ أثناء عملية الدفع"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "markAllRead": "تعليم الكل كمقروء",
+    "empty": "لا توجد إشعارات بعد",
+    "viewAll": "عرض جميع الإشعارات",
+    "delete": "حذف",
+    "justNow": "الآن",
+    "minutesAgo": "منذ {{count}} دقيقة",
+    "hoursAgo": "منذ {{count}} ساعة",
+    "daysAgo": "منذ {{count}} يوم",
+    "types": {
+      "BookingConfirmed": "تم تأكيد الحجز",
+      "BookingCancelled": "تم إلغاء الحجز",
+      "BookingReminder1Hour": "درسك بعد ساعة",
+      "BookingReminder24Hours": "درسك غداً",
+      "NewBookingRequest": "طلب حجز جديد",
+      "MeetingStarted": "بدأ الاجتماع",
+      "MeetingEnded": "انتهى الاجتماع",
+      "WalletTopUp": "شحن المحفظة",
+      "PaymentReceived": "تم استلام الدفع",
+      "TeacherApproved": "تمت الموافقة على الحساب",
+      "TeacherRejected": "تحديث حالة الحساب",
+      "SystemMessage": "رسالة النظام",
+      "Welcome": "مرحباً"
+    }
   }
 }

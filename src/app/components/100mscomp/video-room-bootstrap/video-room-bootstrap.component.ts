@@ -1,6 +1,7 @@
 import {
   Component,
   ElementRef,
+  HostListener,
   OnDestroy,
   OnInit,
   QueryList,
@@ -33,15 +34,74 @@ export class VideoRoomBootstrapComponent implements OnInit, OnDestroy {
   isVideoEnabled = true;
   joined = false;
 
+  // Mobile detection
+  isMobile = false;
+  isPortrait = true;
+
   @ViewChild('localVideo') localVideo!: ElementRef<HTMLVideoElement>;
   @ViewChildren('remoteVideo') remoteVideoElements!: QueryList<
     ElementRef<HTMLVideoElement>
   >;
 
-  constructor(private videoService: VideoService) {}
+  // Visibility change handler reference
+  private visibilityChangeHandler: (() => void) | null = null;
+
+  constructor(private videoService: VideoService) {
+    // Detect mobile device
+    this.isMobile = this.detectMobile();
+    this.isPortrait = window.innerHeight > window.innerWidth;
+  }
 
   ngOnInit(): void {
-    // ما ننضمش تلقائياً — ننتظر المستخدم يضغط Join (عشان نجرب التوكن اليدوي)
+    // Setup visibility change handler for mobile (pause video when app is in background)
+    this.setupVisibilityHandler();
+  }
+
+  /**
+   * Detect if user is on mobile device
+   */
+  private detectMobile(): boolean {
+    return /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
+      navigator.userAgent
+    );
+  }
+
+  /**
+   * Handle visibility change (when user switches apps on mobile)
+   */
+  private setupVisibilityHandler(): void {
+    this.visibilityChangeHandler = () => {
+      if (this.joined) {
+        if (document.hidden) {
+          // App went to background - disable video to save battery/data
+          console.log('📱 App in background - pausing video');
+          if (this.isVideoEnabled) {
+            this.videoService.setLocalVideoEnabled(false);
+          }
+        } else {
+          // App returned to foreground - re-enable video if it was on
+          console.log('📱 App in foreground - resuming video');
+          if (this.isVideoEnabled) {
+            this.videoService.setLocalVideoEnabled(true);
+            // Re-attach videos after returning from background
+            setTimeout(() => this.attachAllVideos(this.peers), 500);
+          }
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', this.visibilityChangeHandler);
+  }
+
+  /**
+   * Handle orientation change
+   */
+  @HostListener('window:resize')
+  onResize(): void {
+    this.isPortrait = window.innerHeight > window.innerWidth;
+    // Re-layout videos if needed
+    if (this.joined) {
+      setTimeout(() => this.attachAllVideos(this.peers), 300);
+    }
   }
 
   async join() {
@@ -53,6 +113,11 @@ export class VideoRoomBootstrapComponent implements OnInit, OnDestroy {
     try {
       await this.videoService.joinMeeting(this.token, this.userName, this.role);
       this.joined = true;
+
+      // Log mobile info
+      if (this.isMobile) {
+        console.log('📱 Mobile device detected. Orientation:', this.isPortrait ? 'Portrait' : 'Landscape');
+      }
 
       // اشترك في الـ peers - هيتنادى كل ما في تحديث
       this.videoService.subscribeToPeers((peers: HMSPeer[]) => {
@@ -270,6 +335,10 @@ export class VideoRoomBootstrapComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    // Remove visibility handler
+    if (this.visibilityChangeHandler) {
+      document.removeEventListener('visibilitychange', this.visibilityChangeHandler);
+    }
     // لو لسه داخل نخرج
     if (this.joined) {
       this.leave();

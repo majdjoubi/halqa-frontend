@@ -984,5 +984,31 @@
     "error_payment_intent": "Failed to create payment process",
     "error_payment_failed": "Payment failed. Please try again.",
     "error_generic": "An error occurred during payment"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "viewAll": "View all notifications",
+    "delete": "Delete",
+    "justNow": "Just now",
+    "minutesAgo": "{{count}} minutes ago",
+    "hoursAgo": "{{count}} hours ago",
+    "daysAgo": "{{count}} days ago",
+    "types": {
+      "BookingConfirmed": "Booking Confirmed",
+      "BookingCancelled": "Booking Cancelled",
+      "BookingReminder1Hour": "Lesson in 1 hour",
+      "BookingReminder24Hours": "Lesson Tomorrow",
+      "NewBookingRequest": "New Booking Request",
+      "MeetingStarted": "Meeting Started",
+      "MeetingEnded": "Meeting Ended",
+      "WalletTopUp": "Wallet Top Up",
+      "PaymentReceived": "Payment Received",
+      "TeacherApproved": "Account Approved",
+      "TeacherRejected": "Account Status Update",
+      "SystemMessage": "System Message",
+      "Welcome": "Welcome"
+    }
   }
 }

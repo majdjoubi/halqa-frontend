@@ -561,3 +561,140 @@
     }
   }
 }
+
+/* ===== Touch Device Optimizations ===== */
+@media (hover: none) and (pointer: coarse) {
+  // Larger touch targets for touch devices
+  .control-btn {
+    min-width: 56px;
+    min-height: 56px;
+    padding: 14px 20px;
+    
+    .btn-icon {
+      font-size: 26px;
+    }
+    
+    .btn-label {
+      font-size: 12px;
+    }
+  }
+  
+  // Prevent text selection on touch
+  .control-bar,
+  .video-grid {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  // Smooth scrolling on iOS
+  .video-room-container {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  // Remove hover effects on touch devices
+  .control-btn:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .btn-join:hover {
+    transform: none;
+  }
+}
+
+/* ===== Portrait Mode on Mobile ===== */
+@media (max-width: 768px) and (orientation: portrait) {
+  .room-active {
+    gap: 10px;
+  }
+  
+  .local-video-container {
+    width: 100px;
+    height: 75px;
+    bottom: 90px;
+    right: 8px;
+  }
+  
+  .control-buttons {
+    gap: 8px;
+  }
+  
+  .control-btn {
+    min-width: 60px;
+    padding: 10px 12px;
+  }
+}
+
+/* ===== Landscape Mode on Mobile ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .video-room-container {
+    padding: 10px;
+  }
+  
+  .room-active {
+    gap: 8px;
+  }
+  
+  .local-video-container {
+    width: 140px;
+    height: 105px;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .control-bar {
+    padding: 8px 15px;
+  }
+  
+  .control-btn {
+    padding: 8px 14px;
+    min-width: 70px;
+    
+    .btn-icon {
+      font-size: 18px;
+    }
+    
+    .btn-label {
+      font-size: 10px;
+    }
+  }
+  
+  .waiting-message {
+    .waiting-icon {
+      font-size: 50px;
+    }
+    
+    h3 {
+      font-size: 18px;
+    }
+  }
+}
+
+/* ===== Safe Area for Notched Phones ===== */
+@supports (padding: max(0px)) {
+  .control-bar {
+    padding-bottom: max(15px, env(safe-area-inset-bottom));
+  }
+  
+  .video-room-container {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+}
+
+/* ===== Very Small Screens (320px) ===== */
+@media (max-width: 320px) {
+  .control-btn {
+    min-width: 50px;
+    padding: 8px 10px;
+    
+    .btn-label {
+      display: none;
+    }
+  }
+  
+  .local-video-container {
+    width: 80px;
+    height: 60px;
+  }
+}

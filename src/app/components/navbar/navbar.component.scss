@@ -381,11 +381,18 @@
     // User Menu for authenticated users
     .user-menu {
       display: flex;
-      gap: 0.5rem;
+      align-items: center;
+      gap: 0.75rem;
       position: relative;
 
       @media (max-width: 768px) {
         display: flex; // Show user menu on mobile so dropdown can be toggled by mobile avatar
+      }
+      
+      // Notification bell styling
+      app-notification-bell {
+        display: flex;
+        align-items: center;
       }
 
       .profile-dropdown {

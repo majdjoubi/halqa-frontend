@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { FacadeAuthService } from '../../services/auth/facade-auth.service';
 import { FacadeProfilesService } from '../../services/profiles/facade-profiles.service';
 import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-navbar',
@@ -24,6 +25,7 @@ import { NgxSkeletonLoaderModule } from 'ngx-skeleton-loader';
     RouterModule,
     TranslateModule,
     NgxSkeletonLoaderModule,
+    NotificationBellComponent,
   ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
