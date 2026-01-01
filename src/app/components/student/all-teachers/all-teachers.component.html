@@ -517,24 +517,6 @@
           </div>
         </div>
       </div>
-
-      <div class="booking-actions mt-3" *ngIf="groupedAvailability.length > 0">
-        <button
-          class="btn btn-primary"
-          type="button"
-          [disabled]="selectedSlotIndex === null || payProcessing"
-          (click)="payNow()"
-        >
-          <span *ngIf="!payProcessing">{{
-            "all_teachers.pay_now" | translate
-          }}</span>
-          <span
-            *ngIf="payProcessing"
-            class="btn-spinner"
-            aria-hidden="true"
-          ></span>
-        </button>
-      </div>
     </div>
   </div>
 
@@ -544,7 +526,24 @@
     </div>
   </ng-template>
 
-  <div slot="footer">
-    <small class="muted">{{ "all_teachers.booking_footer" | translate }}</small>
+  <div slot="footer" class="booking-footer">
+    <div class="booking-actions" *ngIf="groupedAvailability.length > 0">
+      <button
+        class="btn btn-primary btn-book-now"
+        type="button"
+        [disabled]="selectedSlotIndex === null || payProcessing"
+        (click)="payNow()"
+      >
+        <span *ngIf="!payProcessing">{{
+          "all_teachers.pay_now" | translate
+        }}</span>
+        <span
+          *ngIf="payProcessing"
+          class="btn-spinner"
+          aria-hidden="true"
+        ></span>
+      </button>
+    </div>
+    <small class="muted" *ngIf="groupedAvailability.length === 0">{{ "all_teachers.booking_footer" | translate }}</small>
   </div>
 </app-side-menu>

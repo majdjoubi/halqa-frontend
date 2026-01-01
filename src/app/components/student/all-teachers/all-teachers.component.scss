@@ -926,6 +926,39 @@
   }
 }
 
+/* Sticky footer for booking button */
+.booking-footer {
+  padding: 16px 20px;
+  background: linear-gradient(to top, #fff 90%, rgba(255,255,255,0.95));
+  border-top: 1px solid #e5e7eb;
+  
+  .booking-actions {
+    display: flex;
+    justify-content: center;
+    padding-top: 0;
+    
+    .btn-book-now {
+      width: 100%;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-weight: 700;
+      min-height: 52px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+      transition: all 0.2s ease;
+      
+      &:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba($primary-color, 0.4);
+      }
+      
+      &:active:not(:disabled) {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
 /* Simple popup/modal used for errors in AllTeachers component */
 .popup-overlay {
   position: fixed;
