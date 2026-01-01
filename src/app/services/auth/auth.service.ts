@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environment/environment';
 import { StorageService } from '../storage.service';
 
@@ -22,6 +23,7 @@ export interface SetPasswordRequest {
   password: string;
   confirmPassword: string;
   token: string | null;
+  email: string;
 }
 
 export interface ApiResponse {
@@ -30,11 +32,52 @@ export interface ApiResponse {
   data?: any;
 }
 
+// Password Reset DTOs
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+  resetToken?: string;
+  otpExpiryMinutes?: number;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otpCode: string;
+}
+
+export interface VerifyOtpResponse {
+  success: boolean;
+  message: string;
+  resetToken?: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  resetToken: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ValidateResetTokenResponse {
+  valid: boolean;
+  email?: string;
+  message?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = environment.apiUrl || 'http://localhost:3000/api';
+  private apiUrl = environment.apiUrl;
 
   constructor(
     private http: HttpClient,
@@ -45,46 +88,30 @@ export class AuthService {
    * تسجيل الدخول
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    // TODO: استبدال هذا بـ HTTP request حقيقي
-    // return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, credentials);
-
-    // محاكاة API response للاختبار
-    return new Observable((observer) => {
-      setTimeout(() => {
-        if (credentials.email && credentials.password) {
-          const mockResponse: LoginResponse = {
-            success: true,
-            message: 'Login successful',
-            data: {
-              token: 'mock-jwt-token-12345',
-              user: {
-                id: 1,
-                email: credentials.email,
-                name: 'Test User',
-              },
-            },
-          };
-
-          // حفظ التوكن في local storage
-          if (mockResponse.data?.token) {
-            this.storageService.setItem('authToken', mockResponse.data.token);
-            this.storageService.setItem(
-              'userData',
-              JSON.stringify(mockResponse.data.user)
-            );
-          }
-
-          observer.next(mockResponse);
-        } else {
-          observer.error({
-            success: false,
-            message: 'Invalid email or password',
-            error: 'INVALID_CREDENTIALS',
-          });
+    return this.http.post<any>(`${this.apiUrl}/auth/login`, credentials).pipe(
+      map((response) => {
+        // حفظ التوكن في local storage
+        if (response?.token) {
+          this.storageService.setItem('authToken', response.token);
+          this.storageService.setItem('userData', JSON.stringify(response.user));
         }
-        observer.complete();
-      }, 1500);
-    });
+        return {
+          success: true,
+          message: 'Login successful',
+          data: {
+            token: response.token,
+            user: response.user,
+          },
+        };
+      }),
+      catchError((error) => {
+        return throwError(() => ({
+          success: false,
+          message: error.error?.message || 'Invalid email or password',
+          error: 'INVALID_CREDENTIALS',
+        }));
+      })
+    );
   }
 
   /**
@@ -119,78 +146,83 @@ export class AuthService {
   }
 
   /**
-   * إعادة تعيين كلمة المرور باستخدام token
+   * طلب استعادة كلمة المرور - يرسل OTP للإيميل
    */
-  setNewPassword(data: SetPasswordRequest): Observable<ApiResponse> {
-    // TODO: استبدال هذا بـ HTTP request حقيقي
-    // return this.http.post<ApiResponse>(`${this.apiUrl}/auth/set-password`, data);
-
-    // محاكاة API response للاختبار
-    return new Observable((observer) => {
-      setTimeout(() => {
-        if (data.token && data.password === data.confirmPassword) {
-          observer.next({
-            success: true,
-            message: 'Password has been reset successfully',
-            data: { message: 'Password updated' },
-          });
-        } else {
-          observer.error({
+  requestPasswordReset(email: string): Observable<ForgotPasswordResponse> {
+    return this.http
+      .post<ForgotPasswordResponse>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .pipe(
+        catchError((error) => {
+          return throwError(() => ({
             success: false,
-            message: 'Invalid token or password mismatch',
-            error: 'INVALID_TOKEN_OR_PASSWORD',
-          });
-        }
-        observer.complete();
-      }, 1500);
-    });
+            message: error.error?.message || 'Failed to send reset code. Please try again.',
+          }));
+        })
+      );
   }
 
   /**
-   * طلب إعادة تعيين كلمة المرور
+   * التحقق من رمز OTP
    */
-  requestPasswordReset(email: string): Observable<ApiResponse> {
-    // TODO: استبدال هذا بـ HTTP request حقيقي
-    // return this.http.post<ApiResponse>(`${this.apiUrl}/auth/forget-password`, { email });
+  verifyOtp(request: VerifyOtpRequest): Observable<VerifyOtpResponse> {
+    return this.http.post<VerifyOtpResponse>(`${this.apiUrl}/auth/verify-otp`, request).pipe(
+      catchError((error) => {
+        return throwError(() => ({
+          success: false,
+          message: error.error?.message || 'Invalid verification code.',
+        }));
+      })
+    );
+  }
 
-    // محاكاة API response للاختبار
-    return new Observable((observer) => {
-      setTimeout(() => {
-        observer.next({
-          success: true,
-          message: 'Password reset email has been sent',
-          data: { email },
-        });
-        observer.complete();
-      }, 1000);
-    });
+  /**
+   * إعادة تعيين كلمة المرور بعد التحقق من OTP
+   */
+  resetPassword(request: ResetPasswordRequest): Observable<ResetPasswordResponse> {
+    return this.http.post<ResetPasswordResponse>(`${this.apiUrl}/auth/reset-password`, request).pipe(
+      catchError((error) => {
+        return throwError(() => ({
+          success: false,
+          message: error.error?.message || 'Failed to reset password. Please try again.',
+        }));
+      })
+    );
+  }
+
+  /**
+   * إعادة تعيين كلمة المرور باستخدام token (للتوافق مع الكود القديم)
+   */
+  setNewPassword(data: SetPasswordRequest): Observable<ApiResponse> {
+    const request: ResetPasswordRequest = {
+      email: data.email,
+      resetToken: data.token || '',
+      newPassword: data.password,
+      confirmPassword: data.confirmPassword,
+    };
+    return this.resetPassword(request).pipe(
+      map((response) => ({
+        success: response.success,
+        message: response.message,
+        data: response,
+      }))
+    );
   }
 
   /**
    * التحقق من صحة token إعادة تعيين كلمة المرور
    */
-  validateResetToken(token: string): Observable<ApiResponse> {
-    // TODO: استبدال هذا بـ HTTP request حقيقي
-    // return this.http.get<ApiResponse>(`${this.apiUrl}/auth/validate-reset-token/${token}`);
-
-    // محاكاة API response للاختبار
-    return new Observable((observer) => {
-      setTimeout(() => {
-        if (token && token.length > 10) {
-          observer.next({
-            success: true,
-            message: 'Token is valid',
-            data: { valid: true },
-          });
-        } else {
-          observer.error({
-            success: false,
-            message: 'Invalid or expired token',
-            error: 'INVALID_TOKEN',
-          });
-        }
-        observer.complete();
-      }, 500);
-    });
+  validateResetToken(token: string): Observable<ValidateResetTokenResponse> {
+    return this.http
+      .get<ValidateResetTokenResponse>(`${this.apiUrl}/auth/validate-reset-token`, {
+        params: { token },
+      })
+      .pipe(
+        catchError((error) => {
+          return throwError(() => ({
+            valid: false,
+            message: error.error?.message || 'Invalid or expired token',
+          }));
+        })
+      );
   }
 }

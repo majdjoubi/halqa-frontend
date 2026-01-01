@@ -34,9 +34,12 @@ export class SetPasswordComponent implements OnInit {
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
   isLoading: boolean = false;
+  errorMessage: string = '';
+  successMessage: string = '';
 
-  // Token من URL parameters
+  // Token and email from URL parameters
   resetToken: string | null = null;
+  email: string | null = null;
   tokenValidated: boolean = false;
 
   constructor(
@@ -75,13 +78,13 @@ export class SetPasswordComponent implements OnInit {
   }
 
   getResetToken(): void {
-    // الحصول على token من URL parameters
+    // الحصول على token و email من URL parameters
     this.resetToken = this.route.snapshot.queryParamMap.get('token');
+    this.email = this.route.snapshot.queryParamMap.get('email');
 
-    if (!this.resetToken) {
-      console.warn('No reset token found in URL');
-      // للاختبار، سنسمح بالوصول للصفحة بدون token
-      this.tokenValidated = true;
+    if (!this.resetToken || !this.email) {
+      console.warn('Missing reset token or email in URL');
+      this.errorMessage = 'رابط غير صالح. يرجى طلب إعادة تعيين كلمة المرور مرة أخرى.';
       return;
     }
 
@@ -91,23 +94,22 @@ export class SetPasswordComponent implements OnInit {
 
   validateToken(): void {
     if (!this.resetToken) {
-      // للاختبار، سنسمح بالوصول للصفحة بدون token
-      this.tokenValidated = true;
+      this.errorMessage = 'رابط غير صالح.';
       return;
     }
 
     this.authService.validateResetToken(this.resetToken).subscribe({
       next: (response) => {
-        this.tokenValidated = true;
-        console.log('Token is valid');
+        if (response.valid) {
+          this.tokenValidated = true;
+          console.log('Token is valid');
+        } else {
+          this.errorMessage = response.message || 'رابط منتهي الصلاحية أو غير صالح.';
+        }
       },
       error: (error) => {
         console.error('Invalid token:', error);
-        // للاختبار، سنسمح بالوصول للصفحة حتى لو كان token غير صحيح
-        this.tokenValidated = true;
-        console.warn(
-          'Token validation failed, but allowing access for testing'
-        );
+        this.errorMessage = error.message || 'رابط منتهي الصلاحية أو غير صالح.';
       },
     });
   }
@@ -187,13 +189,15 @@ export class SetPasswordComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.forgetPasswordForm.valid && this.tokenValidated) {
+    if (this.forgetPasswordForm.valid && this.tokenValidated && this.email && this.resetToken) {
       this.isLoading = true;
+      this.errorMessage = '';
 
       const setPasswordData: SetPasswordRequest = {
         password: this.forgetPasswordForm.get('password')?.value,
         confirmPassword: this.forgetPasswordForm.get('confirmPassword')?.value,
         token: this.resetToken,
+        email: this.email,
       };
 
       console.log('Setting new password...');
@@ -202,25 +206,27 @@ export class SetPasswordComponent implements OnInit {
         next: (response) => {
           this.isLoading = false;
           console.log('Password updated successfully:', response);
+          this.successMessage = 'تم تغيير كلمة المرور بنجاح!';
 
-          // إعادة توجيه لصفحة تسجيل الدخول مع رسالة نجاح
-          this.router.navigate(['/auth/login'], {
-            queryParams: {
-              message: 'password_reset_success',
-            },
-          });
+          // إعادة توجيه لصفحة تسجيل الدخول بعد 2 ثانية
+          setTimeout(() => {
+            this.router.navigate(['/login'], {
+              queryParams: {
+                message: 'password_reset_success',
+              },
+            });
+          }, 2000);
         },
         error: (error) => {
           this.isLoading = false;
           console.error('Error updating password:', error);
-
-          // عرض رسالة خطأ للمستخدم
-          // يمكنك إضافة toast notification أو alert هنا
-          alert('حدث خطأ أثناء تحديث كلمة المرور. حاول مرة أخرى.');
+          this.errorMessage = error.message || 'حدث خطأ أثناء تحديث كلمة المرور. حاول مرة أخرى.';
         },
       });
     } else if (!this.tokenValidated) {
-      alert('Token غير صحيح. حاول مرة أخرى.');
+      this.errorMessage = 'رابط غير صالح أو منتهي الصلاحية.';
+    } else if (!this.email) {
+      this.errorMessage = 'البريد الإلكتروني مفقود.';
     } else {
       this.markFormGroupTouched(this.forgetPasswordForm);
       this.focusFirstInvalidField(this.forgetPasswordForm);

@@ -200,6 +200,11 @@ export class RepoService {
     return this.http.get<any[]>(`${this.base_url}/api/admin/users`);
   }
 
+  // delete user completely (student or teacher) by admin
+  deleteUser(userId: string): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/api/admin/users/${userId}`);
+  }
+
   // get all analytics data for admin dashboard
   getAdminAnalytics(): Observable<any> {
     return this.http.get<any>(
@@ -506,11 +511,6 @@ export class RepoService {
   // review teacher by student
   reviewTeacher(data: any): Observable<any> {
     return this.http.post<any>(`${this.base_url}/api/review/student`, data);
-  }
-
-  // Admin - delete user
-  deleteUser(userId: string): Observable<any> {
-    return this.http.delete<any>(`${this.base_url}/api/admin/users/${userId}`);
   }
 
   // ============ REFUND APIs ============

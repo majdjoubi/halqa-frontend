@@ -4,11 +4,16 @@ import {
   ViewChildren,
   QueryList,
   ElementRef,
+  OnInit,
+  OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ForgetImgComponent } from '../../../shared/shared-component/forget-img/forget-img.component';
 import { TranslateModule } from '@ngx-translate/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { AuthService } from '../../../services/auth/auth.service';
+
 @Component({
   selector: 'app-verify-otp',
   standalone: true,
@@ -16,15 +21,42 @@ import { TranslateModule } from '@ngx-translate/core';
   templateUrl: './verify-otp.component.html',
   styleUrl: './verify-otp.component.scss',
 })
-export class VerifyOtpComponent implements AfterViewInit {
+export class VerifyOtpComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('otpInput') otpInputs!: QueryList<ElementRef>;
 
   otpValues: string[] = ['', '', '', '', '', ''];
+  email: string = '';
+  isLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
   // Timer properties
   countdown: number = 50;
   canResend: boolean = false;
   private timeoutId?: number;
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private authService: AuthService
+  ) {}
+
+  ngOnInit() {
+    // Get email from query params
+    this.route.queryParams.subscribe(params => {
+      this.email = params['email'] || '';
+      if (!this.email) {
+        // Redirect to forgot password if no email
+        this.router.navigate(['/forgot-password']);
+      }
+    });
+  }
+
+  ngOnDestroy() {
+    if (this.timeoutId) {
+      clearTimeout(this.timeoutId);
+    }
+  }
 
   ngAfterViewInit() {
     // Auto focus on first input when component loads
@@ -62,25 +94,37 @@ export class VerifyOtpComponent implements AfterViewInit {
   }
 
   onResendCode() {
-    if (this.canResend) {
+    if (this.canResend && this.email) {
       // Clear any existing timeout
       if (this.timeoutId) {
         clearTimeout(this.timeoutId);
       }
 
-      // Add your resend logic here
-      console.log('Resending OTP code...');
+      this.isLoading = true;
+      this.errorMessage = '';
 
-      // Restart the countdown
-      this.startCountdown();
-
-      // Clear current OTP inputs
-      this.clearOtpInputs();
-
-      // Focus on first input again
-      if (this.otpInputs && this.otpInputs.first) {
-        this.otpInputs.first.nativeElement.focus();
-      }
+      this.authService.requestPasswordReset(this.email).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          if (response.success) {
+            this.successMessage = 'تم إرسال رمز جديد إلى بريدك الإلكتروني';
+            // Restart the countdown
+            this.startCountdown();
+            // Clear current OTP inputs
+            this.clearOtpInputs();
+            // Focus on first input again
+            if (this.otpInputs && this.otpInputs.first) {
+              this.otpInputs.first.nativeElement.focus();
+            }
+          } else {
+            this.errorMessage = response.message;
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.errorMessage = error.message || 'فشل إرسال الرمز. حاول مرة أخرى.';
+        }
+      });
     }
   }
 
@@ -88,6 +132,38 @@ export class VerifyOtpComponent implements AfterViewInit {
     this.otpValues = ['', '', '', '', '', ''];
     this.otpInputs.forEach((input) => {
       input.nativeElement.value = '';
+    });
+  }
+
+  verifyOtp() {
+    const otpCode = this.getOtpValue();
+    if (otpCode.length !== 6) {
+      this.errorMessage = 'الرجاء إدخال رمز التحقق كاملاً';
+      return;
+    }
+
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    this.authService.verifyOtp({ email: this.email, otpCode }).subscribe({
+      next: (response) => {
+        this.isLoading = false;
+        if (response.success) {
+          // Navigate to set password page with reset token
+          this.router.navigate(['/set-password'], {
+            queryParams: { 
+              token: response.resetToken,
+              email: this.email 
+            }
+          });
+        } else {
+          this.errorMessage = response.message;
+        }
+      },
+      error: (error) => {
+        this.isLoading = false;
+        this.errorMessage = error.message || 'رمز التحقق غير صحيح';
+      }
     });
   }
 
@@ -108,6 +184,11 @@ export class VerifyOtpComponent implements AfterViewInit {
       if (nextInput) {
         nextInput.nativeElement.focus();
       }
+    }
+
+    // Auto-submit when all 6 digits are entered
+    if (this.getOtpValue().length === 6) {
+      this.verifyOtp();
     }
   }
 
@@ -145,6 +226,11 @@ export class VerifyOtpComponent implements AfterViewInit {
         nextInput.nativeElement.focus();
       }
     }
+
+    // Handle Enter key
+    if (event.key === 'Enter') {
+      this.verifyOtp();
+    }
   }
 
   onOtpPaste(event: ClipboardEvent) {
@@ -169,6 +255,11 @@ export class VerifyOtpComponent implements AfterViewInit {
     const targetInput = this.otpInputs.toArray()[focusIndex];
     if (targetInput) {
       targetInput.nativeElement.focus();
+    }
+
+    // Auto-submit if complete
+    if (this.getOtpValue().length === 6) {
+      this.verifyOtp();
     }
   }
 

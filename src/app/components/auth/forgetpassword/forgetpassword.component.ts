@@ -8,6 +8,8 @@ import {
   Validators,
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { AuthService } from '../../../services/auth/auth.service';
 
 @Component({
   selector: 'app-forgetpassword',
@@ -23,8 +25,15 @@ import { CommonModule } from '@angular/common';
 })
 export class ForgetpasswordComponent {
   forgetPasswordForm: FormGroup;
+  isLoading = false;
+  errorMessage = '';
+  successMessage = '';
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
     this.forgetPasswordForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
     });
@@ -33,8 +42,28 @@ export class ForgetpasswordComponent {
   onSubmit() {
     if (this.forgetPasswordForm.valid) {
       const email = this.forgetPasswordForm.value.email;
-      console.log('Password reset requested for email:', email);
-      // Here you would typically call a service to handle the password reset
+      this.isLoading = true;
+      this.errorMessage = '';
+      this.successMessage = '';
+
+      this.authService.requestPasswordReset(email).subscribe({
+        next: (response) => {
+          this.isLoading = false;
+          if (response.success) {
+            this.successMessage = response.message;
+            // Navigate to OTP verification page with email
+            this.router.navigate(['/verify-otp'], {
+              queryParams: { email: email }
+            });
+          } else {
+            this.errorMessage = response.message;
+          }
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.errorMessage = error.message || 'Failed to send reset code. Please try again.';
+        }
+      });
     } else {
       // Mark all fields as touched to show validation errors
       this.forgetPasswordForm.markAllAsTouched();

@@ -38,12 +38,17 @@ export class AllUserComponent implements OnInit {
   // keep a readonly reference so the imported standalone component is treated as used
   readonly _showUsersComp = ShowUsersComponent;
 
-  // configure action buttons: Deactivate only (since delete endpoint not available in backend)
+  // configure action buttons: Deactivate and Delete
   switchButtons = [
     {
       label: 'Deactivate',
       bg: '#dc3545',
       action: 'deactivate',
+    },
+    {
+      label: 'Delete',
+      bg: '#6c757d',
+      action: 'delete',
     },
   ];
 
@@ -195,6 +200,27 @@ export class AllUserComponent implements OnInit {
           error: (err) => {
             console.error('Failed to deactivate user', err);
             alert('فشل في إلغاء تفعيل المستخدم\nFailed to deactivate user. Please try again.');
+          },
+        });
+      }
+    } else if (evt.action === 'delete') {
+      // Handle delete action - remove user completely from database
+      const id = evt.user?.id || evt.user?._id || evt.user?.userId;
+      if (!id) return;
+      
+      if (confirm('⚠️ تحذير: هل أنت متأكد من حذف هذا المستخدم نهائياً؟ سيتم حذف جميع بياناته بما في ذلك الحجوزات والدروس والتقييمات.\n\n⚠️ Warning: Are you sure you want to permanently delete this user? All their data including bookings, lessons, and reviews will be deleted.')) {
+        this.repoService.deleteUser(id).subscribe({
+          next: () => {
+            // Remove user from list
+            this.AllUsers = (this.AllUsers || []).filter((u) => {
+              const uid = u.id || u._id || u.userId;
+              return String(uid) !== String(id);
+            });
+            alert('تم حذف المستخدم بنجاح\nUser deleted successfully');
+          },
+          error: (err) => {
+            console.error('Failed to delete user', err);
+            alert('فشل في حذف المستخدم\nFailed to delete user. Please try again.');
           },
         });
       }
