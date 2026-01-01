@@ -36,6 +36,8 @@
       "booked_someone": "هناك من قام بالحجز",
       "booking_label": "الحجز",
       "btn_join": "انضم الآن",
+      "btn_approve": "قبول",
+      "btn_reject": "رفض",
       "status": "الحالة",
       "students": "طلاب"
     },
@@ -156,6 +158,29 @@
       "message": "سيتكرر هذا الوقت كل أسبوع تلقائياً. سيتمكن الطلاب من حجز هذا الوقت في هذا اليوم من كل أسبوع.",
       "every_week": "يتكرر كل أسبوع",
       "confirm": "تأكيد"
+    },
+    "pending_alert": {
+      "message": "لديك {{count}} طلب حجز جديد بانتظار الموافقة",
+      "view_button": "عرض الطلبات"
+    },
+    "approve_modal": {
+      "title": "قبول أو رفض الحجز",
+      "student": "الطالب",
+      "lesson": "الدرس",
+      "datetime": "التاريخ والوقت",
+      "amount": "المبلغ",
+      "reject_reason": "سبب الرفض (اختياري)",
+      "reject_reason_placeholder": "اكتب سبب الرفض هنا إذا أردت..."
+    },
+    "approve": {
+      "success_title": "تم القبول",
+      "success_message": "تم قبول الحجز بنجاح. سيتم إشعار الطالب وخصم المبلغ من محفظته.",
+      "error_message": "فشل قبول الحجز. حاول مرة أخرى."
+    },
+    "reject": {
+      "success_title": "تم الرفض",
+      "success_message": "تم رفض الحجز. سيتم إشعار الطالب.",
+      "error_message": "فشل رفض الحجز. حاول مرة أخرى."
     }
   },
   "my_booked_teachers_page": {

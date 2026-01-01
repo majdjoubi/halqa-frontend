@@ -36,6 +36,8 @@
       "booked_someone": "Someone has booked",
       "booking_label": "Booking",
       "btn_join": "Join Now",
+      "btn_approve": "Approve",
+      "btn_reject": "Reject",
       "status": "Status",
       "students": "students"
     },
@@ -156,6 +158,29 @@
       "message": "This time slot will repeat every week automatically. Students will be able to book this slot on this day of the week.",
       "every_week": "Repeats every week",
       "confirm": "Confirm"
+    },
+    "pending_alert": {
+      "message": "You have {{count}} pending booking request(s) awaiting approval",
+      "view_button": "View Requests"
+    },
+    "approve_modal": {
+      "title": "Approve or Reject Booking",
+      "student": "Student",
+      "lesson": "Lesson",
+      "datetime": "Date & Time",
+      "amount": "Amount",
+      "reject_reason": "Rejection Reason (optional)",
+      "reject_reason_placeholder": "Enter rejection reason if needed..."
+    },
+    "approve": {
+      "success_title": "Approved",
+      "success_message": "Booking approved successfully. The student will be notified and charged.",
+      "error_message": "Failed to approve booking. Please try again."
+    },
+    "reject": {
+      "success_title": "Rejected",
+      "success_message": "Booking rejected. The student will be notified.",
+      "error_message": "Failed to reject booking. Please try again."
     }
   },
   "my_booked_teachers_page": {

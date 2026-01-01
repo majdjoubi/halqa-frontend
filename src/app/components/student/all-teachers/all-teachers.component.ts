@@ -696,6 +696,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       payload.availabilityId = availabilityId;
     }
 
+    // Debug logging for booking payload
+    console.log('🔍 [DEBUG] Booking payload:', JSON.stringify(payload, null, 2));
+    console.log('🔍 [DEBUG] Selected slot:', JSON.stringify(slot, null, 2));
+    console.log('🔍 [DEBUG] slot.startIsoUtc:', slot.startIsoUtc);
+    console.log('🔍 [DEBUG] scheduledDateIso being sent:', scheduledDateIso);
+
     // Use the Booking function (which now returns an observable) so we can
     // subscribe and update UI based on success/failure.
     this.Booking(payload).subscribe({

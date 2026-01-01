@@ -88,7 +88,7 @@ export class AuthService {
    * تسجيل الدخول
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<any>(`${this.apiUrl}/auth/login`, credentials).pipe(
+    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, credentials).pipe(
       map((response) => {
         // حفظ التوكن في local storage
         if (response?.token) {
@@ -150,7 +150,7 @@ export class AuthService {
    */
   requestPasswordReset(email: string): Observable<ForgotPasswordResponse> {
     return this.http
-      .post<ForgotPasswordResponse>(`${this.apiUrl}/auth/forgot-password`, { email })
+      .post<ForgotPasswordResponse>(`${this.apiUrl}/api/auth/forgot-password`, { email })
       .pipe(
         catchError((error) => {
           return throwError(() => ({
@@ -165,7 +165,7 @@ export class AuthService {
    * التحقق من رمز OTP
    */
   verifyOtp(request: VerifyOtpRequest): Observable<VerifyOtpResponse> {
-    return this.http.post<VerifyOtpResponse>(`${this.apiUrl}/auth/verify-otp`, request).pipe(
+    return this.http.post<VerifyOtpResponse>(`${this.apiUrl}/api/auth/verify-otp`, request).pipe(
       catchError((error) => {
         return throwError(() => ({
           success: false,
@@ -179,7 +179,7 @@ export class AuthService {
    * إعادة تعيين كلمة المرور بعد التحقق من OTP
    */
   resetPassword(request: ResetPasswordRequest): Observable<ResetPasswordResponse> {
-    return this.http.post<ResetPasswordResponse>(`${this.apiUrl}/auth/reset-password`, request).pipe(
+    return this.http.post<ResetPasswordResponse>(`${this.apiUrl}/api/auth/reset-password`, request).pipe(
       catchError((error) => {
         return throwError(() => ({
           success: false,
@@ -213,7 +213,7 @@ export class AuthService {
    */
   validateResetToken(token: string): Observable<ValidateResetTokenResponse> {
     return this.http
-      .get<ValidateResetTokenResponse>(`${this.apiUrl}/auth/validate-reset-token`, {
+      .get<ValidateResetTokenResponse>(`${this.apiUrl}/api/auth/validate-reset-token`, {
         params: { token },
       })
       .pipe(

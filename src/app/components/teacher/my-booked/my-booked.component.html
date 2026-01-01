@@ -284,7 +284,19 @@
             <span class="status" [ngClass]="b.status">{{
               b.status | titlecase
             }}</span>
-            <button class="btn-join" (click)="joinLesson(b)">
+            <!-- Approve/Reject buttons for pending bookings -->
+            <ng-container *ngIf="b.status === 'pending'">
+              <button class="btn-approve" (click)="openApproveModal(b)">
+                <i class="fas fa-check"></i>
+                {{ "my_booked_page.card.btn_approve" | translate }}
+              </button>
+              <button class="btn-reject" (click)="selectedBookingForAction = b; showApproveRejectModal = true">
+                <i class="fas fa-times"></i>
+                {{ "my_booked_page.card.btn_reject" | translate }}
+              </button>
+            </ng-container>
+            <!-- Join button for confirmed bookings -->
+            <button class="btn-join" *ngIf="b.status === 'confirmed'" (click)="joinLesson(b)">
               {{ "my_booked_page.card.btn_join" | translate }}
             </button>
           </div>
@@ -293,6 +305,60 @@
     </div>
   </div>
 </section>
+
+<!-- Pending Bookings Alert -->
+<div class="pending-alert" *ngIf="pendingBookingsCount > 0">
+  <div class="pending-alert-content">
+    <i class="fas fa-bell"></i>
+    <span>{{ "my_booked_page.pending_alert.message" | translate:{ count: pendingBookingsCount } }}</span>
+    <button class="btn-view-pending" (click)="view = 'individual'">
+      {{ "my_booked_page.pending_alert.view_button" | translate }}
+    </button>
+  </div>
+</div>
+
+<!-- Approve/Reject Modal -->
+<div class="modal-overlay" *ngIf="showApproveRejectModal" (click)="closeApproveRejectModal()">
+  <div class="modal-container approve-reject-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.approve_modal.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeApproveRejectModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedBookingForAction">
+      <div class="booking-details">
+        <p><strong>{{ "my_booked_page.approve_modal.student" | translate }}:</strong> {{ selectedBookingForAction.name }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.lesson" | translate }}:</strong> {{ selectedBookingForAction.title }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.datetime" | translate }}:</strong> {{ selectedBookingForAction.datetime }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.amount" | translate }}:</strong> {{ selectedBookingForAction.amount }}</p>
+      </div>
+      
+      <div class="reject-reason-group">
+        <label>{{ "my_booked_page.approve_modal.reject_reason" | translate }}</label>
+        <textarea 
+          class="form-control" 
+          [(ngModel)]="rejectReason" 
+          rows="3"
+          [placeholder]="'my_booked_page.approve_modal.reject_reason_placeholder' | translate"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeApproveRejectModal()" [disabled]="isProcessingAction">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button class="btn btn-danger" (click)="rejectBooking()" [disabled]="isProcessingAction">
+        <span *ngIf="!isProcessingAction">{{ "my_booked_page.card.btn_reject" | translate }}</span>
+        <span *ngIf="isProcessingAction" class="spinner-small"></span>
+      </button>
+      <button class="btn btn-success" (click)="approveBooking()" [disabled]="isProcessingAction">
+        <span *ngIf="!isProcessingAction">{{ "my_booked_page.card.btn_approve" | translate }}</span>
+        <span *ngIf="isProcessingAction" class="spinner-small"></span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Add Availability Modal -->
 <div class="modal-overlay" *ngIf="showAddAvailabilityModal" (click)="closeAddAvailabilityModal()">

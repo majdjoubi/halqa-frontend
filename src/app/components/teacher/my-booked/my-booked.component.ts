@@ -158,6 +158,12 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   responseModalData: { type: 'success' | 'error'; title: string; message: string } | null = null;
   private modalAutoCloseTimer: any = null;
 
+  // Approve/Reject Modal
+  showApproveRejectModal = false;
+  selectedBookingForAction: Booking | null = null;
+  rejectReason = '';
+  isProcessingAction = false;
+
   // Filter state
   availabilityFilter: 'all' | 'available' | 'booked' = 'all';
   dateRangeFilter: 'week' | 'month' | 'all' = 'week';
@@ -1709,6 +1715,114 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         this.isDeletingSlot = false;
         console.error('Error deleting slot:', err);
         this.showErrorModal(this.translate.instant('common.error'), this.translate.instant('my_booked_page.messages.delete_error'));
+      },
+    });
+  }
+
+  // ========== Approve/Reject Booking Methods ==========
+
+  // Get pending bookings count
+  get pendingBookingsCount(): number {
+    return this.bookings.filter(b => b.status === 'pending').length;
+  }
+
+  // Get pending individual bookings
+  get pendingIndividualBookings(): Booking[] {
+    return this.bookings.filter(
+      (b) => (b.type || 'individual') === 'individual' && b.status === 'pending'
+    );
+  }
+
+  // Open approve confirmation
+  openApproveModal(booking: Booking): void {
+    this.selectedBookingForAction = booking;
+    this.rejectReason = '';
+    this.showApproveRejectModal = true;
+  }
+
+  // Close approve/reject modal
+  closeApproveRejectModal(): void {
+    this.showApproveRejectModal = false;
+    this.selectedBookingForAction = null;
+    this.rejectReason = '';
+  }
+
+  // Approve a pending booking
+  approveBooking(): void {
+    if (!this.selectedBookingForAction || this.isProcessingAction) return;
+
+    this.isProcessingAction = true;
+    const bookingId = this.selectedBookingForAction.id;
+
+    this.repo.approveBooking(bookingId).subscribe({
+      next: (resp: any) => {
+        this.isProcessingAction = false;
+        this.closeApproveRejectModal();
+
+        // Update the booking in the local list
+        const index = this.bookings.findIndex(b => b.id === bookingId);
+        if (index !== -1 && resp.booking) {
+          this.bookings[index] = this.mapApiToBooking(resp.booking);
+        } else if (index !== -1) {
+          // Just update status locally if API doesn't return full booking
+          this.bookings[index].status = 'confirmed';
+        }
+
+        this.updateCounts();
+        this.updateCalendarLessons();
+
+        this.showSuccessModal(
+          this.translate.instant('my_booked_page.approve.success_title'),
+          this.translate.instant('my_booked_page.approve.success_message')
+        );
+      },
+      error: (err) => {
+        this.isProcessingAction = false;
+        console.error('Error approving booking:', err);
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          err.error?.message || this.translate.instant('my_booked_page.approve.error_message')
+        );
+      },
+    });
+  }
+
+  // Reject a pending booking
+  rejectBooking(): void {
+    if (!this.selectedBookingForAction || this.isProcessingAction) return;
+
+    this.isProcessingAction = true;
+    const bookingId = this.selectedBookingForAction.id;
+
+    this.repo.rejectBooking(bookingId, this.rejectReason).subscribe({
+      next: (resp: any) => {
+        this.isProcessingAction = false;
+        this.closeApproveRejectModal();
+
+        // Update the booking in the local list
+        const index = this.bookings.findIndex(b => b.id === bookingId);
+        if (index !== -1 && resp.booking) {
+          this.bookings[index] = this.mapApiToBooking(resp.booking);
+        } else if (index !== -1) {
+          // Just update status locally if API doesn't return full booking
+          this.bookings[index].status = 'cancelled';
+        }
+
+        this.updateCounts();
+        this.updateCalendarLessons();
+
+        this.showSuccessModal(
+          this.translate.instant('my_booked_page.reject.success_title'),
+          this.translate.instant('my_booked_page.reject.success_message')
+        );
+      },
+      error: (err) => {
+        this.isProcessingAction = false;
+        console.error('Error rejecting booking:', err);
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          err.error?.message || this.translate.instant('my_booked_page.reject.error_message')
+        );
       },
     });
   }

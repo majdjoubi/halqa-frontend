@@ -338,6 +338,16 @@ export class RepoService {
     return this.http.get<any[]>(`${this.base_url}/api/booking/teacher`);
   }
 
+  // Approve a pending booking (teacher)
+  approveBooking(bookingId: number | string): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/booking/teacher/${bookingId}/approve`, {});
+  }
+
+  // Reject a pending booking (teacher)
+  rejectBooking(bookingId: number | string, reason?: string): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/booking/teacher/${bookingId}/reject`, { reason });
+  }
+
   // Booking APIs for student MY-Bookings component
   CreateIndividualBooking(data: any): Observable<any> {
     return this.http.post<any>(`${this.base_url}/api/booking/individual`, data);
