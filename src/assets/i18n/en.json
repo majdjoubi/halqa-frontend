@@ -14,8 +14,8 @@
       "insufficient_balance": "Insufficient wallet balance. Please top up your wallet to continue."
     },
     "top_up_wallet": "Top Up Wallet",
-    "request_sent_title": "Booking Request Sent!",
-    "request_sent_message": "Your booking request has been sent to the teacher. You will be notified once the teacher approves or rejects your request."
+    "request_sent_title": "Booking Confirmed!",
+    "request_sent_message": "Your booking has been confirmed successfully. We wish you an enjoyable learning experience!"
   },
   "my_booked_page": {
     "header": {
@@ -194,6 +194,12 @@
       "subtitle": "Manage your booked lessons and teachers here. View upcoming sessions and track your bookings.",
       "image_alt": "Lessons"
     },
+    "session_types": {
+      "individual": "Individual Session",
+      "group": "Group Session",
+      "lesson": "Lesson",
+      "teacher": "Teacher"
+    },
     "countdown": {
       "next_lesson": "Next Lesson",
       "days": "Days",
@@ -210,7 +216,13 @@
       "amount_paid": "Amount Paid:",
       "booked_someone": "Someone has booked",
       "booking_label": "Booking",
-      "btn_join": "Join Now"
+      "btn_join": "Join Now",
+      "of": "of"
+    },
+    "errors": {
+      "lesson_not_started": "Lesson has not started yet",
+      "lesson_not_started_message": "The meeting room will be ready 15 minutes before the lesson starts. Please try again later.",
+      "join_failed": "Failed to join lesson"
     },
     "empty": {
       "individual_title": "No individual lessons booked yet",
@@ -1047,6 +1059,50 @@
       "TeacherRejected": "Account Status Update",
       "SystemMessage": "System Message",
       "Welcome": "Welcome"
+    }
+  },
+  "admin_dashboard": {
+    "title": "Dashboard",
+    "loading": "Loading data...",
+    "error_loading": "Failed to load data. Please try again.",
+    "retry": "Retry",
+    "financial": {
+      "title": "Financial Statistics",
+      "platform_revenue": "Platform Revenue",
+      "today": "Today",
+      "this_week": "This Week",
+      "this_month": "This Month",
+      "this_year": "This Year",
+      "total": "Total",
+      "teacher_earnings": "Teacher Earnings",
+      "wallet_balance": "Wallet Balance",
+      "pending_earnings": "Pending Earnings",
+      "withdrawn": "Withdrawn",
+      "pending_withdrawals": "Pending Withdrawals",
+      "student_wallets": "Student Wallets",
+      "total_balance": "Total Balance",
+      "average_balance": "Average Balance",
+      "students_with_balance": "Students with Balance",
+      "bookings_donations": "Bookings & Donations",
+      "total_booking_amount": "Total Booking Amount",
+      "avg_booking": "Average Booking",
+      "completed_bookings": "Completed Bookings",
+      "donations": "Donations",
+      "donors": "donors"
+    },
+    "upcoming_lessons": {
+      "title": "Upcoming Lessons",
+      "date_time": "Date & Time",
+      "teacher": "Teacher",
+      "student": "Student",
+      "lesson": "Lesson",
+      "type": "Type",
+      "duration": "Duration",
+      "amount": "Amount",
+      "min": "min"
+    },
+    "charts": {
+      "platform_growth": "Platform Growth"
     }
   }
 }

@@ -292,15 +292,6 @@
           <i class="fas fa-user-times"></i>
           {{ 'SCHEDULING.MARK_NO_SHOW' | translate }}
         </button>
-
-        <!-- Cancel -->
-        <button 
-          *ngIf="canStartSession()"
-          class="btn btn-danger"
-          (click)="cancelBooking(selectedBooking.id)">
-          <i class="fas fa-times"></i>
-          {{ 'SCHEDULING.CANCEL_BOOKING' | translate }}
-        </button>
       </div>
     </div>
   </div>

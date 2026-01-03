@@ -144,15 +144,6 @@ export class SchedulingService {
   }
 
   /**
-   * Cancel an individual booking (refunds student)
-   */
-  cancelBooking(bookingId: number): Observable<SuccessResponse> {
-    return this.http.delete<SuccessResponse>(
-      `${this.baseUrl}/api/scheduling/booking/${bookingId}`
-    );
-  }
-
-  /**
    * Get teacher's calendar view
    */
   getTeacherCalendar(fromDate: Date, toDate: Date): Observable<TeacherCalendarResponse> {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DashBoardCardsComponent,
   DashCard,
@@ -8,23 +9,63 @@ import { SplineChartComponent } from '../../../shared/AdminComponent/spline-char
 import { BarChartComponent } from '../../../shared/AdminComponent/bar-chart/bar-chart.component';
 import { RepoService } from '../../../Repositories/repo.service';
 
+// Financial statistics interface
+interface FinancialStats {
+  revenueToday: number;
+  revenueThisWeek: number;
+  revenueThisMonth: number;
+  revenueThisYear: number;
+  totalRevenue: number;
+  totalTeacherEarnings: number;
+  totalTeacherPendingEarnings: number;
+  totalTeacherWalletBalance: number;
+  totalWithdrawnAmount: number;
+  pendingWithdrawalRequests: number;
+  pendingWithdrawalAmount: number;
+  totalStudentWalletBalance: number;
+  averageStudentBalance: number;
+  studentsWithBalance: number;
+  totalBookingAmount: number;
+  averageBookingAmount: number;
+  totalPaidBookings: number;
+  totalDonations: number;
+  totalDonorsCount: number;
+  upcomingLessons: UpcomingLesson[];
+}
+
+interface UpcomingLesson {
+  bookingId: number;
+  studentName: string;
+  teacherName: string;
+  lessonTitle: string;
+  lessonType: string;
+  scheduledDateTime: string;
+  durationMinutes: number;
+  amount: number;
+  status: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, DashBoardCardsComponent, SplineChartComponent, BarChartComponent],
+  imports: [CommonModule, TranslateModule, DashBoardCardsComponent, SplineChartComponent, BarChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent implements OnInit {
   dashboardData: any = {};
   quickStatusCounts: any = {};
+  financialStats: FinancialStats | null = null;
   
   // Loading and error states
   isLoading = true;
   hasError = false;
   errorMessage = '';
 
-  constructor(private repoService: RepoService) {}
+  constructor(
+    private repoService: RepoService,
+    private translate: TranslateService
+  ) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -34,6 +75,7 @@ export class DashboardComponent implements OnInit {
     this.isLoading = true;
     this.hasError = false;
 
+    // Load main analytics
     this.repoService.getAdminAnalytics().subscribe({
       next: (res) => {
         this.dashboardData = res;
@@ -45,11 +87,12 @@ export class DashboardComponent implements OnInit {
       error: (err) => {
         console.error('Failed to load analytics:', err);
         this.hasError = true;
-        this.errorMessage = 'فشل في تحميل البيانات. يرجى المحاولة مرة أخرى.';
+        this.errorMessage = this.translate.instant('admin_dashboard.error_loading');
         this.isLoading = false;
       }
     });
 
+    // Load quick status counts
     this.repoService.getAdminStatusCounts().subscribe({
       next: (res) => {
         this.quickStatusCounts = res;
@@ -57,6 +100,16 @@ export class DashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load status counts:', err);
+      }
+    });
+
+    // Load financial statistics
+    this.repoService.getAdminFinancialStats().subscribe({
+      next: (res) => {
+        this.financialStats = res;
+      },
+      error: (err) => {
+        console.error('Failed to load financial stats:', err);
       }
     });
   }

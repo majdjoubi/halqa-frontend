@@ -216,6 +216,11 @@ export class RepoService {
     return this.http.get<any>(`${this.base_url}/api/admin/statistics/quick`);
   }
 
+  // get financial statistics for admin dashboard
+  getAdminFinancialStats(): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/api/admin/statistics/financial`);
+  }
+
   // teacher create profile
   createTeacherProfile(data: any): Observable<any> {
     return this.http.put<any>(`${this.base_url}/api/teacher/profile`, data);

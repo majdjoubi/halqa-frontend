@@ -1,12 +1,12 @@
 <div class="admin-dashboard container">
-  <h5 class="admin-dashboard__title pt-4">Dashboard</h5>
+  <h5 class="admin-dashboard__title pt-4">{{ 'admin_dashboard.title' | translate }}</h5>
 
   <!-- Loading State -->
   <div *ngIf="isLoading" class="loading-container">
     <div class="spinner-border text-primary" role="status">
       <span class="visually-hidden">Loading...</span>
     </div>
-    <p class="loading-text">جاري تحميل البيانات...</p>
+    <p class="loading-text">{{ 'admin_dashboard.loading' | translate }}</p>
   </div>
 
   <!-- Error State -->
@@ -14,7 +14,7 @@
     <i class="fas fa-exclamation-triangle error-icon"></i>
     <p class="error-text">{{ errorMessage }}</p>
     <button class="btn btn-primary retry-btn" (click)="retryLoad()">
-      <i class="fas fa-redo me-2"></i>إعادة المحاولة
+      <i class="fas fa-redo me-2"></i>{{ 'admin_dashboard.retry' | translate }}
     </button>
   </div>
 
@@ -22,12 +22,162 @@
   <ng-container *ngIf="!isLoading && !hasError">
     <app-dash-board-cards [cards]="cards"></app-dash-board-cards>
 
+    <!-- Financial Statistics Section -->
+    <section class="financial-stats mt-4" *ngIf="financialStats">
+      <h6 class="section-title">
+        <i class="fas fa-chart-line me-2"></i>{{ 'admin_dashboard.financial.title' | translate }}
+      </h6>
+      
+      <div class="financial-cards-grid">
+        <!-- Platform Revenue Card -->
+        <div class="financial-card revenue-card">
+          <div class="financial-card__header">
+            <i class="fas fa-dollar-sign"></i>
+            <span>{{ 'admin_dashboard.financial.platform_revenue' | translate }}</span>
+          </div>
+          <div class="financial-card__body">
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.today' | translate }}</span>
+              <span class="stat-value">${{ financialStats.revenueToday | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.this_week' | translate }}</span>
+              <span class="stat-value">${{ financialStats.revenueThisWeek | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.this_month' | translate }}</span>
+              <span class="stat-value highlight">${{ financialStats.revenueThisMonth | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.this_year' | translate }}</span>
+              <span class="stat-value">${{ financialStats.revenueThisYear | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row total">
+              <span class="stat-label">{{ 'admin_dashboard.financial.total' | translate }}</span>
+              <span class="stat-value">${{ financialStats.totalRevenue | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Teacher Earnings Card -->
+        <div class="financial-card teacher-card">
+          <div class="financial-card__header">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <span>{{ 'admin_dashboard.financial.teacher_earnings' | translate }}</span>
+          </div>
+          <div class="financial-card__body">
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.wallet_balance' | translate }}</span>
+              <span class="stat-value">${{ financialStats.totalTeacherWalletBalance | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.pending_earnings' | translate }}</span>
+              <span class="stat-value warning">${{ financialStats.totalTeacherPendingEarnings | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.withdrawn' | translate }}</span>
+              <span class="stat-value">${{ financialStats.totalWithdrawnAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row" *ngIf="financialStats.pendingWithdrawalRequests > 0">
+              <span class="stat-label">{{ 'admin_dashboard.financial.pending_withdrawals' | translate }}</span>
+              <span class="stat-value danger">{{ financialStats.pendingWithdrawalRequests }} (${{ financialStats.pendingWithdrawalAmount | number:'1.2-2' }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Wallets Card -->
+        <div class="financial-card student-card">
+          <div class="financial-card__header">
+            <i class="fas fa-user-graduate"></i>
+            <span>{{ 'admin_dashboard.financial.student_wallets' | translate }}</span>
+          </div>
+          <div class="financial-card__body">
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.total_balance' | translate }}</span>
+              <span class="stat-value">${{ financialStats.totalStudentWalletBalance | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.average_balance' | translate }}</span>
+              <span class="stat-value">${{ financialStats.averageStudentBalance | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.students_with_balance' | translate }}</span>
+              <span class="stat-value">{{ financialStats.studentsWithBalance }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bookings & Donations Card -->
+        <div class="financial-card bookings-card">
+          <div class="financial-card__header">
+            <i class="fas fa-book"></i>
+            <span>{{ 'admin_dashboard.financial.bookings_donations' | translate }}</span>
+          </div>
+          <div class="financial-card__body">
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.total_booking_amount' | translate }}</span>
+              <span class="stat-value">${{ financialStats.totalBookingAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.avg_booking' | translate }}</span>
+              <span class="stat-value">${{ financialStats.averageBookingAmount | number:'1.2-2' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.completed_bookings' | translate }}</span>
+              <span class="stat-value">{{ financialStats.totalPaidBookings }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">{{ 'admin_dashboard.financial.donations' | translate }}</span>
+              <span class="stat-value success">${{ financialStats.totalDonations | number:'1.2-2' }} ({{ financialStats.totalDonorsCount }} {{ 'admin_dashboard.financial.donors' | translate }})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Upcoming Lessons Section -->
+    <section class="upcoming-lessons mt-4" *ngIf="financialStats && financialStats.upcomingLessons && financialStats.upcomingLessons.length > 0">
+      <h6 class="section-title">
+        <i class="fas fa-calendar-alt me-2"></i>{{ 'admin_dashboard.upcoming_lessons.title' | translate }}
+      </h6>
+      <div class="table-responsive">
+        <table class="table lessons-table">
+          <thead>
+            <tr>
+              <th>{{ 'admin_dashboard.upcoming_lessons.date_time' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.teacher' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.student' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.lesson' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.type' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.duration' | translate }}</th>
+              <th>{{ 'admin_dashboard.upcoming_lessons.amount' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let lesson of financialStats!.upcomingLessons">
+              <td>{{ lesson.scheduledDateTime | date:'short' }}</td>
+              <td>{{ lesson.teacherName }}</td>
+              <td>{{ lesson.studentName }}</td>
+              <td>{{ lesson.lessonTitle }}</td>
+              <td>
+                <span class="badge" [class.bg-primary]="lesson.lessonType === 'Individual'" [class.bg-success]="lesson.lessonType === 'Group'">
+                  {{ lesson.lessonType }}
+                </span>
+              </td>
+              <td>{{ lesson.durationMinutes }} {{ 'admin_dashboard.upcoming_lessons.min' | translate }}</td>
+              <td>${{ lesson.amount | number:'1.2-2' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="dashboard-charts mt-4">
       <div class="charts-row">
         <div class="chart-col chart-col--wide">
           <div class="chart-card">
             <h6 class="chart-title">
-              <i class="fas fa-chart-area me-2"></i>Platform Growth
+              <i class="fas fa-chart-area me-2"></i>{{ 'admin_dashboard.charts.platform_growth' | translate }}
             </h6>
             <app-spline-chart
               [series]="chartSeries"

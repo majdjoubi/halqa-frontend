@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
 import { RepoService } from '../../../Repositories/repo.service';
 import { DateLocaleService } from '../../../services/common/date-locale.service';
@@ -201,7 +201,8 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
   constructor(
     private repo: RepoService,
     private dateLocale: DateLocaleService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private translate: TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -380,11 +381,13 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
 
   private mapApiToBooking(a: any): StudentBooking {
     const rawDt = a.scheduledDateTime || a.scheduled_date_time || a.scheduledAt;
+    const defaultTitle = this.translate.instant('my_booked_teachers_page.session_types.individual');
+    const defaultTeacher = this.translate.instant('my_booked_teachers_page.session_types.teacher');
     return {
       id: a.id,
-      teacherName: a.teacherName || a.teacher_name || a.teacher || 'Teacher',
+      teacherName: a.teacherName || a.teacher_name || a.teacher || defaultTeacher,
       teacherEmail: a.teacherEmail || a.teacher_email || '',
-      lessonTitle: a.lessonTitle || a.lesson_title || a.lessonTitle || 'Lesson',
+      lessonTitle: this.translateLessonTitle(a.lessonTitle || a.lesson_title || a.lessonTitle || 'Individual Session'),
       datetime: this.formatDate(rawDt),
       rawDateTime: rawDt || null,
       amount: `$${Number(a.amountPaid ?? a.amount ?? 0).toFixed(2)}`,
@@ -400,6 +403,17 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
       meetingUrl: a.meetingRoomUrl ?? a.meeting_url ?? null,
       notes: a.notes ?? null,
     };
+  }
+
+  // Translate common lesson titles to current language
+  private translateLessonTitle(title: string): string {
+    const translations: { [key: string]: string } = {
+      'Individual Session': this.translate.instant('my_booked_teachers_page.session_types.individual'),
+      'Group Session': this.translate.instant('my_booked_teachers_page.session_types.group'),
+      'Lesson': this.translate.instant('my_booked_teachers_page.session_types.lesson'),
+      'Teacher': this.translate.instant('my_booked_teachers_page.session_types.teacher')
+    };
+    return translations[title] || title;
   }
 
   // returns bookings filtered by current view
@@ -447,13 +461,14 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
 
   private mapGroupSessionToBooking(s: any): StudentBooking {
     const rawDt = s.scheduledDateTime || s.scheduled_date_time || s.sessionDateTime;
+    const defaultGroupSession = this.translate.instant('my_booked_teachers_page.session_types.group');
     return {
       id: s.id,
       teacherName:
-        s.teacherName || s.teacher?.name || s.teacher_name || 'Group Session',
+        s.teacherName || s.teacher?.name || s.teacher_name || defaultGroupSession,
       teacherEmail: s.teacher?.email || s.teacherEmail || '',
       lessonTitle:
-        s.title || s.lessonTitle || s.sessionTitle || 'Group Session',
+        this.translateLessonTitle(s.title || s.lessonTitle || s.sessionTitle || 'Group Session'),
       datetime: this.formatDate(rawDt),
       rawDateTime: rawDt || null,
       amount: `$${Number(s.price ?? s.amount ?? s.sessionPrice ?? 0).toFixed(
@@ -512,12 +527,12 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
             // Don't show modal immediately - only show for completed bookings
           } else {
             console.error('Invalid session URL response', response);
-            alert('Failed to get session URL');
+            alert(this.translate.instant('my_booked_teachers_page.errors.join_failed'));
           }
         },
         error: (err) => {
           console.error('Error getting session URL', err);
-          alert('Error joining lesson');
+          this.handleJoinError(err);
         },
       });
     } else {
@@ -529,14 +544,27 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
             // Don't show modal immediately - only show for completed bookings
           } else {
             console.error('Invalid group session URL response', response);
-            alert('Failed to get group session URL');
+            alert(this.translate.instant('my_booked_teachers_page.errors.join_failed'));
           }
         },
         error: (err) => {
           console.error('Error getting group session URL', err);
-          alert('Error joining lesson');
+          this.handleJoinError(err);
         },
       });
+    }
+  }
+
+  private handleJoinError(err: any): void {
+    const errorMessage = err?.error?.message || '';
+    
+    // Check if it's a "room not created" error
+    if (errorMessage.toLowerCase().includes('not yet created') || 
+        errorMessage.toLowerCase().includes('meeting room')) {
+      alert(this.translate.instant('my_booked_teachers_page.errors.lesson_not_started') + '\n\n' +
+            this.translate.instant('my_booked_teachers_page.errors.lesson_not_started_message'));
+    } else {
+      alert(this.translate.instant('my_booked_teachers_page.errors.join_failed'));
     }
   }
 

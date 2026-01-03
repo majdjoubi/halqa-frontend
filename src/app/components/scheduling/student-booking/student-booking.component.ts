@@ -267,23 +267,6 @@ export class StudentBookingComponent implements OnInit {
     }
   }
 
-  // Cancel Booking
-  async cancelBooking(bookingId: number): Promise<void> {
-    if (!confirm(this.translate.instant('SCHEDULING.CONFIRM_CANCEL'))) return;
-
-    this.isLoading = true;
-    try {
-      await this.schedulingService.cancelBooking(bookingId).toPromise();
-      this.showBookingDetailsModal = false;
-      this.loadMyBookings();
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-      alert(this.translate.instant('SCHEDULING.CANCEL_FAILED'));
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
   // Apply Filters
   applyFilters(): void {
     this.loadTeachers();
@@ -362,11 +345,6 @@ export class StudentBookingComponent implements OnInit {
     if (!booking.meetingRoomUrl) return false;
     const status = booking.status.toString();
     return status === 'Confirmed' || status === 'InProgress' || status === '2' || status === '5';
-  }
-
-  canCancel(booking: BookingResponse): boolean {
-    const status = booking.status.toString();
-    return status === 'Pending' || status === 'Confirmed' || status === '1' || status === '2';
   }
 
   // Star Rating Helper

@@ -263,21 +263,6 @@ export class TeacherSchedulingComponent implements OnInit, OnDestroy {
     }
   }
 
-  cancelBooking(bookingId: number): void {
-    if (confirm(this.translate.instant('SCHEDULING.CONFIRM_CANCEL'))) {
-      this.schedulingService.cancelBooking(bookingId).subscribe({
-        next: () => {
-          alert(this.translate.instant('SCHEDULING.BOOKING_CANCELLED'));
-          this.loadCalendar();
-          this.closeBookingModal();
-        },
-        error: (err) => {
-          alert(err.error?.message || this.translate.instant('SCHEDULING.ERROR_CANCEL'));
-        }
-      });
-    }
-  }
-
   joinMeeting(): void {
     if (this.selectedBooking?.meetingRoomUrl) {
       window.open(this.selectedBooking.meetingRoomUrl, '_blank');

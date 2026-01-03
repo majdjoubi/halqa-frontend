@@ -14,8 +14,8 @@
       "insufficient_balance": "رصيد المحفظة غير كافٍ. يرجى شحن محفظتك للمتابعة."
     },
     "top_up_wallet": "شحن المحفظة",
-    "request_sent_title": "تم إرسال طلب الحجز!",
-    "request_sent_message": "تم إرسال طلب الحجز إلى المعلم. سيتم إشعارك عندما يقبل المعلم طلبك أو يرفضه."
+    "request_sent_title": "تم الحجز بنجاح!",
+    "request_sent_message": "تم تأكيد حجزك بنجاح. نتمنى لك تعلماً ممتعاً!"
   },
   "my_booked_page": {
     "header": {
@@ -190,9 +190,15 @@
   },
   "my_booked_teachers_page": {
     "header": {
-      "title": "معلمي المحجوزين",
+      "title": "الدروس المحجوزة",
       "subtitle": "إدارة حجوزاتك ومعلميك هنا. عرض الجلسات القادمة وتتبع حجوزاتك.",
       "image_alt": "الدروس"
+    },
+    "session_types": {
+      "individual": "جلسة فردية",
+      "group": "جلسة جماعية",
+      "lesson": "درس",
+      "teacher": "المعلم"
     },
     "countdown": {
       "next_lesson": "الدرس القادم",
@@ -210,7 +216,13 @@
       "amount_paid": "المبلغ المدفوع:",
       "booked_someone": "هناك من قام بالحجز",
       "booking_label": "الحجز",
-      "btn_join": "انضم الآن"
+      "btn_join": "انضم الآن",
+      "of": "من"
+    },
+    "errors": {
+      "lesson_not_started": "الدرس لم يبدأ بعد",
+      "lesson_not_started_message": "غرفة الاجتماع ستكون جاهزة قبل 15 دقيقة من موعد الدرس. يرجى المحاولة لاحقاً.",
+      "join_failed": "فشل الانضمام للدرس"
     },
     "empty": {
       "individual_title": "لا توجد دروس فردية محجوزة بعد",
@@ -1046,6 +1058,50 @@
       "TeacherRejected": "تحديث حالة الحساب",
       "SystemMessage": "رسالة النظام",
       "Welcome": "مرحباً"
+    }
+  },
+  "admin_dashboard": {
+    "title": "لوحة التحكم",
+    "loading": "جاري تحميل البيانات...",
+    "error_loading": "فشل في تحميل البيانات. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "financial": {
+      "title": "الإحصائيات المالية",
+      "platform_revenue": "إيرادات المنصة",
+      "today": "اليوم",
+      "this_week": "هذا الأسبوع",
+      "this_month": "هذا الشهر",
+      "this_year": "هذه السنة",
+      "total": "الإجمالي",
+      "teacher_earnings": "أرباح المعلمين",
+      "wallet_balance": "رصيد المحفظة",
+      "pending_earnings": "الأرباح المعلقة",
+      "withdrawn": "المسحوب",
+      "pending_withdrawals": "طلبات السحب المعلقة",
+      "student_wallets": "محافظ الطلاب",
+      "total_balance": "إجمالي الرصيد",
+      "average_balance": "متوسط الرصيد",
+      "students_with_balance": "طلاب لديهم رصيد",
+      "bookings_donations": "الحجوزات والتبرعات",
+      "total_booking_amount": "إجمالي مبالغ الحجوزات",
+      "avg_booking": "متوسط الحجز",
+      "completed_bookings": "الحجوزات المكتملة",
+      "donations": "التبرعات",
+      "donors": "متبرع"
+    },
+    "upcoming_lessons": {
+      "title": "الدروس القادمة",
+      "date_time": "التاريخ والوقت",
+      "teacher": "المعلم",
+      "student": "الطالب",
+      "lesson": "الدرس",
+      "type": "النوع",
+      "duration": "المدة",
+      "amount": "المبلغ",
+      "min": "دقيقة"
+    },
+    "charts": {
+      "platform_growth": "نمو المنصة"
     }
   }
 }
