@@ -928,9 +928,16 @@
 
 /* Sticky footer for booking button */
 .booking-footer {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: 16px 20px;
-  background: linear-gradient(to top, #fff 90%, rgba(255,255,255,0.95));
+  background: #fff;
   border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  margin-top: auto;
   
   .booking-actions {
     display: flex;
@@ -944,18 +951,34 @@
       font-weight: 700;
       min-height: 52px;
       border-radius: 12px;
-      box-shadow: 0 4px 12px rgba($primary-color, 0.3);
+      background: $primary-color !important;
+      color: #fff !important;
+      border: none !important;
+      box-shadow: 0 4px 12px rgba(1, 104, 54, 0.3);
       transition: all 0.2s ease;
       
       &:hover:not(:disabled) {
+        background: darken($primary-color, 8%) !important;
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba($primary-color, 0.4);
+        box-shadow: 0 6px 16px rgba(1, 104, 54, 0.4);
       }
       
       &:active:not(:disabled) {
         transform: translateY(0);
       }
+      
+      &:disabled {
+        background: #ccc !important;
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
     }
+  }
+  
+  .muted {
+    display: block;
+    text-align: center;
+    color: #6b7280;
   }
 }
 

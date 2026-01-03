@@ -46,7 +46,7 @@
             type="number" 
             class="rate-input" 
             [(ngModel)]="defaultHourlyRate" 
-            min="1" 
+            min="0" 
             step="0.5"
             [disabled]="isSavingDefaultRate"
           />
@@ -284,13 +284,14 @@
             <span class="status" [ngClass]="b.status">{{
               b.status | titlecase
             }}</span>
-            <!-- Approve/Reject buttons for pending bookings -->
-            <ng-container *ngIf="b.status === 'pending'">
-              <button class="btn-approve" (click)="openApproveModal(b)">
+            <!-- Note: Approve/Reject buttons hidden - bookings are now auto-confirmed -->
+            <!-- Legacy code kept for backwards compatibility with any existing pending bookings -->
+            <ng-container *ngIf="b.status === 'pending' && false">
+              <button class="btn-approve" (click)="approveBookingDirectly(b)" [disabled]="isProcessingAction">
                 <i class="fas fa-check"></i>
                 {{ "my_booked_page.card.btn_approve" | translate }}
               </button>
-              <button class="btn-reject" (click)="selectedBookingForAction = b; showApproveRejectModal = true">
+              <button class="btn-reject" (click)="openRejectModal(b)" [disabled]="isProcessingAction">
                 <i class="fas fa-times"></i>
                 {{ "my_booked_page.card.btn_reject" | translate }}
               </button>
@@ -306,8 +307,8 @@
   </div>
 </section>
 
-<!-- Pending Bookings Alert -->
-<div class="pending-alert" *ngIf="pendingBookingsCount > 0">
+<!-- Pending Bookings Alert - Hidden since bookings are auto-confirmed -->
+<div class="pending-alert" *ngIf="pendingBookingsCount > 0 && false">
   <div class="pending-alert-content">
     <i class="fas fa-bell"></i>
     <span>{{ "my_booked_page.pending_alert.message" | translate:{ count: pendingBookingsCount } }}</span>
@@ -317,11 +318,11 @@
   </div>
 </div>
 
-<!-- Approve/Reject Modal -->
+<!-- Reject Modal (for entering rejection reason) - Hidden since bookings are auto-confirmed -->
 <div class="modal-overlay" *ngIf="showApproveRejectModal" (click)="closeApproveRejectModal()">
   <div class="modal-container approve-reject-modal" (click)="$event.stopPropagation()">
     <div class="modal-header">
-      <h3>{{ "my_booked_page.approve_modal.title" | translate }}</h3>
+      <h3>{{ "my_booked_page.reject_modal.title" | translate }}</h3>
       <button class="close-btn" (click)="closeApproveRejectModal()">
         <i class="fas fa-times"></i>
       </button>
@@ -350,10 +351,6 @@
       </button>
       <button class="btn btn-danger" (click)="rejectBooking()" [disabled]="isProcessingAction">
         <span *ngIf="!isProcessingAction">{{ "my_booked_page.card.btn_reject" | translate }}</span>
-        <span *ngIf="isProcessingAction" class="spinner-small"></span>
-      </button>
-      <button class="btn btn-success" (click)="approveBooking()" [disabled]="isProcessingAction">
-        <span *ngIf="!isProcessingAction">{{ "my_booked_page.card.btn_approve" | translate }}</span>
         <span *ngIf="isProcessingAction" class="spinner-small"></span>
       </button>
     </div>

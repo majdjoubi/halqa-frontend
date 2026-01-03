@@ -443,4 +443,49 @@
       </div>
     </div>
   </div>
+
+  <!-- Insufficient Balance Modal -->
+  <div *ngIf="showInsufficientBalanceModal" class="modal-overlay" (click)="closeInsufficientBalanceModal()">
+    <div class="modal-content insufficient-balance-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header warning">
+        <h3>{{ 'SCHEDULING.INSUFFICIENT_BALANCE' | translate }}</h3>
+        <button class="close-btn" (click)="closeInsufficientBalanceModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="balance-warning-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        
+        <p class="warning-message">{{ 'SCHEDULING.INSUFFICIENT_BALANCE_MESSAGE' | translate }}</p>
+        
+        <div class="balance-details" *ngIf="requiredAmount > 0 || availableBalance >= 0">
+          <div class="balance-row">
+            <span class="label">{{ 'SCHEDULING.REQUIRED_AMOUNT' | translate }}:</span>
+            <span class="value required">{{ formatCurrency(requiredAmount) }}</span>
+          </div>
+          <div class="balance-row">
+            <span class="label">{{ 'SCHEDULING.AVAILABLE_BALANCE' | translate }}:</span>
+            <span class="value available">{{ formatCurrency(availableBalance) }}</span>
+          </div>
+          <div class="balance-row difference">
+            <span class="label">{{ 'SCHEDULING.AMOUNT_NEEDED' | translate }}:</span>
+            <span class="value needed">{{ formatCurrency(requiredAmount - availableBalance) }}</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-primary btn-topup" (click)="goToTopUp()">
+            <i class="fas fa-plus-circle"></i>
+            {{ 'SCHEDULING.TOP_UP_WALLET' | translate }}
+          </button>
+          <button class="btn btn-secondary" (click)="closeInsufficientBalanceModal()">
+            {{ 'COMMON.CANCEL' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>

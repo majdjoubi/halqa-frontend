@@ -180,7 +180,7 @@
           <label class="form-label">{{
             "student_profile.profile_picture" | translate
           }}</label>
-          <div class="upload-area" (click)="triggerFileInput()">
+          <label for="profilePicture" class="upload-area">
             <div
               *ngIf="previewUrl; else defaultUpload"
               class="preview-container"
@@ -209,7 +209,7 @@
               accept="image/*"
               (change)="onFileSelected($event)"
             />
-          </div>
+          </label>
           <app-form-validation
             [control]="profileForm.get('profilePictureUrl')"
             fieldType="file"

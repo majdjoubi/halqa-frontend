@@ -48,7 +48,10 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
         this.playNotificationSound();
       });
 
-    // Initialize SignalR
+    // Load notifications immediately (don't wait for SignalR)
+    this.loadNotifications();
+
+    // Initialize SignalR for real-time updates
     this.notificationService.initializeSignalR();
     
     // Request browser notification permission

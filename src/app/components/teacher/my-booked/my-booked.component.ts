@@ -184,7 +184,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       date: ['', Validators.required],
       fromTime: ['09:00', Validators.required],
       toTime: ['10:00', Validators.required],
-      price: [this.defaultHourlyRate, [Validators.required, Validators.min(1)]],
+      price: [this.defaultHourlyRate, [Validators.required, Validators.min(0)]],
       isRecurring: [false],
     });
   }
@@ -515,12 +515,23 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           const month = (slotDate.getMonth() + 1).toString().padStart(2, '0');
           const day = slotDate.getDate().toString().padStart(2, '0');
           const dateStr = `${year}-${month}-${day}`;
+          
+          // Handle end time at midnight (00:00) - treat as next day
+          let endDateStr = dateStr;
+          if (slot.endTime === '00:00' || slot.endTime === '00:00:00') {
+            const nextDay = new Date(slotDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            const nextYear = nextDay.getFullYear();
+            const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
+            const nextDayNum = nextDay.getDate().toString().padStart(2, '0');
+            endDateStr = `${nextYear}-${nextMonth}-${nextDayNum}`;
+          }
 
           availabilityEvents.push({
             id: `avail-${slot.id || index}-week${weekOffset}`,
             title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
             start: `${dateStr}T${slot.startTime}`,
-            end: `${dateStr}T${slot.endTime}`,
+            end: `${endDateStr}T${slot.endTime}`,
             type: 'individual' as const,
             status: slot.isBooked ? 'booked' as const : 'available' as const,
             studentName: slot.studentName,
@@ -553,12 +564,23 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         
         // Skip if the date is in the past
         if (slotDate < today) return;
+        
+        // Handle end time at midnight (00:00) - treat as next day
+        let endDateStr = dateStr;
+        if (slot.endTime === '00:00' || slot.endTime === '00:00:00') {
+          const nextDay = new Date(slotDate);
+          nextDay.setDate(nextDay.getDate() + 1);
+          const nextYear = nextDay.getFullYear();
+          const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
+          const nextDayNum = nextDay.getDate().toString().padStart(2, '0');
+          endDateStr = `${nextYear}-${nextMonth}-${nextDayNum}`;
+        }
 
         availabilityEvents.push({
           id: `avail-${slot.id || index}`,
           title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
           start: `${dateStr}T${slot.startTime}`,
-          end: `${dateStr}T${slot.endTime}`,
+          end: `${endDateStr}T${slot.endTime}`,
           type: 'individual' as const,
           status: slot.isBooked ? 'booked' as const : 'available' as const,
           studentName: slot.studentName,
@@ -975,7 +997,17 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       newSlot.date = formValue.date; // YYYY-MM-DD format
       // Create full ISO datetime for the slot
       newSlot.startDateTime = `${formValue.date}T${formValue.fromTime}:00`;
-      newSlot.endDateTime = `${formValue.date}T${formValue.toTime}:00`;
+      
+      // Handle midnight (00:00) end time - it means the next day
+      if (formValue.toTime === '00:00') {
+        // Calculate next day's date for endDateTime
+        const nextDay = new Date(selectedDate);
+        nextDay.setDate(nextDay.getDate() + 1);
+        const nextDayStr = `${nextDay.getFullYear()}-${(nextDay.getMonth() + 1).toString().padStart(2, '0')}-${nextDay.getDate().toString().padStart(2, '0')}`;
+        newSlot.endDateTime = `${nextDayStr}T00:00:00`;
+      } else {
+        newSlot.endDateTime = `${formValue.date}T${formValue.toTime}:00`;
+      }
     }
 
     // If recurring, show confirmation modal first
@@ -1403,7 +1435,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
   // Save default hourly rate to teacher profile
   saveDefaultHourlyRate(): void {
-    if (this.defaultHourlyRate < 1) {
+    if (this.defaultHourlyRate < 0) {
       this.showErrorModal(
         this.translate.instant('common.error'),
         this.translate.instant('my_booked_page.default_rate.min_error')
@@ -1733,11 +1765,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Open approve confirmation
+  // Open approve confirmation (now approves directly)
   openApproveModal(booking: Booking): void {
-    this.selectedBookingForAction = booking;
-    this.rejectReason = '';
-    this.showApproveRejectModal = true;
+    this.approveBookingDirectly(booking);
   }
 
   // Close approve/reject modal
@@ -1747,7 +1777,59 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     this.rejectReason = '';
   }
 
-  // Approve a pending booking
+  // Open reject modal (still needs reason input)
+  openRejectModal(booking: Booking): void {
+    this.selectedBookingForAction = booking;
+    this.rejectReason = '';
+    this.showApproveRejectModal = true;
+  }
+
+  // Approve a pending booking directly without modal
+  approveBookingDirectly(booking: Booking): void {
+    if (this.isProcessingAction) return;
+
+    this.isProcessingAction = true;
+    const bookingId = booking.id;
+
+    this.repo.approveBooking(bookingId).subscribe({
+      next: (resp: any) => {
+        console.log('Approve booking response:', resp);
+        this.isProcessingAction = false;
+
+        // Update the booking in the local list
+        const index = this.bookings.findIndex(b => b.id === bookingId);
+        if (index !== -1 && resp?.booking) {
+          this.bookings[index] = this.mapApiToBooking(resp.booking);
+        } else if (index !== -1) {
+          // Just update status locally if API doesn't return full booking
+          this.bookings[index].status = 'confirmed';
+        }
+
+        this.updateCounts();
+        this.updateCalendarLessons();
+
+        this.showSuccessModal(
+          this.translate.instant('my_booked_page.approve.success_title'),
+          this.translate.instant('my_booked_page.approve.success_message')
+        );
+      },
+      error: (err) => {
+        console.error('Error approving booking:', err);
+        this.isProcessingAction = false;
+        
+        // Check if the booking was actually approved despite the error
+        // This can happen if the response format is unexpected
+        const errorMessage = err?.error?.message || err?.message || '';
+        
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          errorMessage || this.translate.instant('my_booked_page.approve.error_message')
+        );
+      },
+    });
+  }
+
+  // Approve a pending booking (from modal - kept for compatibility)
   approveBooking(): void {
     if (!this.selectedBookingForAction || this.isProcessingAction) return;
 

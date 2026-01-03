@@ -712,10 +712,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         this.bookingSidebarOpen = false;
         // Refresh student bookings after successful booking
         this.loadStudentExistingBookings();
-        // show success modal (fixed message as requested)
+        // show success modal with pending message (booking needs teacher approval)
         this.showModal = true;
         this.modalType = 'success';
-        this.modalMessage = 'Booking is successifuly';
+        this.modalMessage = this.translate.instant('booking.request_sent_message');
       },
       error: (err) => {
         // Show backend error in a modal to the user

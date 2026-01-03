@@ -13,7 +13,9 @@
       "time_conflict": "You already have a lesson booked at this time. Please select a different time slot.",
       "insufficient_balance": "Insufficient wallet balance. Please top up your wallet to continue."
     },
-    "top_up_wallet": "Top Up Wallet"
+    "top_up_wallet": "Top Up Wallet",
+    "request_sent_title": "Booking Request Sent!",
+    "request_sent_message": "Your booking request has been sent to the teacher. You will be notified once the teacher approves or rejects your request."
   },
   "my_booked_page": {
     "header": {
@@ -55,7 +57,7 @@
       "label": "Default Hourly Rate",
       "saved": "Default hourly rate updated successfully",
       "save_error": "Failed to update default hourly rate",
-      "min_error": "Hourly rate must be at least $1"
+      "min_error": "Hourly rate cannot be negative"
     },
     "availability_filters": {
       "title": "Filter:",
@@ -171,6 +173,9 @@
       "amount": "Amount",
       "reject_reason": "Rejection Reason (optional)",
       "reject_reason_placeholder": "Enter rejection reason if needed..."
+    },
+    "reject_modal": {
+      "title": "Reject Booking"
     },
     "approve": {
       "success_title": "Approved",
@@ -791,6 +796,7 @@
     "copyright": "All rights reserved ©",
     "features": "Features",
     "contact": "Contact Us",
+    "contact_us": "For suggestions and complaints",
     "privacy": "Privacy Policy",
     "terms": "Terms & Conditions",
     "help": "Help",
@@ -980,7 +986,14 @@
     "BOOKING_FAILED": "Booking failed. Please try again.",
     "CANCEL_FAILED": "Failed to cancel booking. Please try again.",
     "AVAILABILITY_UPDATED": "Availability updated successfully!",
-    "ERROR_UPDATE_AVAILABILITY": "Failed to update availability. Please try again."
+    "ERROR_UPDATE_AVAILABILITY": "Failed to update availability. Please try again.",
+    "INSUFFICIENT_BALANCE": "Insufficient Balance",
+    "INSUFFICIENT_BALANCE_MESSAGE": "You don't have enough balance in your wallet to complete this booking.",
+    "REQUIRED_AMOUNT": "Required Amount",
+    "AVAILABLE_BALANCE": "Available Balance",
+    "AMOUNT_NEEDED": "Amount Needed",
+    "TOP_UP_WALLET": "Top Up Wallet",
+    "BOOKING_AUTO_CONFIRMED": "Your booking has been confirmed automatically!"
   },
   "COMMON": {
     "LOADING": "Loading...",

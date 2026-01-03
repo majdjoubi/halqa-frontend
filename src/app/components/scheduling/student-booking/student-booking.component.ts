@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { SchedulingService } from '../../../services/scheduling/scheduling.service';
 import {
@@ -47,6 +48,9 @@ export class StudentBookingComponent implements OnInit {
   showConfirmModal = false;
   showGroupDetailsModal = false;
   showBookingDetailsModal = false;
+  showInsufficientBalanceModal = false;
+  requiredAmount = 0;
+  availableBalance = 0;
 
   // Filters
   dateFilter: string = '';
@@ -59,7 +63,8 @@ export class StudentBookingComponent implements OnInit {
   constructor(
     private schedulingService: SchedulingService,
     private fb: FormBuilder,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private router: Router
   ) {
     this.bookingForm = this.fb.group({
       notes: ['']
@@ -177,12 +182,45 @@ export class StudentBookingComponent implements OnInit {
       
       // Reload bookings
       this.loadMyBookings();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking session:', error);
-      alert(this.translate.instant('SCHEDULING.BOOKING_FAILED'));
+      this.handleBookingError(error);
     } finally {
       this.isLoading = false;
     }
+  }
+
+  // Handle booking errors
+  private handleBookingError(error: any): void {
+    const errorMessage = error?.error?.message || error?.message || '';
+    
+    // Check for insufficient balance error
+    if (errorMessage.toLowerCase().includes('insufficient') || 
+        errorMessage.toLowerCase().includes('balance') ||
+        errorMessage.includes('رصيد')) {
+      // Extract amounts if available
+      const requiredMatch = errorMessage.match(/Required:\s*([\d.]+)/);
+      const availableMatch = errorMessage.match(/Available:\s*([\d.]+)/);
+      
+      this.requiredAmount = requiredMatch ? parseFloat(requiredMatch[1]) : 0;
+      this.availableBalance = availableMatch ? parseFloat(availableMatch[1]) : 0;
+      
+      this.showBookingModal = false;
+      this.showGroupDetailsModal = false;
+      this.showInsufficientBalanceModal = true;
+    } else {
+      alert(this.translate.instant('SCHEDULING.BOOKING_FAILED') + ': ' + errorMessage);
+    }
+  }
+
+  // Navigate to wallet top-up page
+  goToTopUp(): void {
+    this.showInsufficientBalanceModal = false;
+    this.router.navigate(['/wallet-topup']);
+  }
+
+  closeInsufficientBalanceModal(): void {
+    this.showInsufficientBalanceModal = false;
   }
 
   // Show Group Session Details
@@ -208,9 +246,9 @@ export class StudentBookingComponent implements OnInit {
       // Reload
       this.loadGroupSessions();
       this.loadMyBookings();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error booking group session:', error);
-      alert(this.translate.instant('SCHEDULING.BOOKING_FAILED'));
+      this.handleBookingError(error);
     } finally {
       this.isLoading = false;
     }

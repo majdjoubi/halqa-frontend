@@ -21,6 +21,25 @@
   }
 
   .footer-logo {
+    .footer-brand-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      transition: opacity 0.2s ease;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    .footer-logo-img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+    }
+
     h2 {
       color: #22c55e;
       font-size: 1.5rem;
@@ -115,6 +134,45 @@
   .footer-bottom {
     border-top: 1px solid #333333;
     background-color: #111111;
+
+    .contact-info {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1rem 2rem 0.5rem;
+      text-align: center;
+
+      @media (max-width: 768px) {
+        padding: 1rem 1rem 0.5rem;
+      }
+
+      p {
+        margin: 0;
+        color: #9ca3af;
+        font-size: 0.875rem;
+        font-weight: 400;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+
+        i {
+          color: #22c55e;
+        }
+
+        a {
+          color: #22c55e;
+          text-decoration: none;
+          font-weight: 500;
+          transition: color 0.2s ease;
+
+          &:hover {
+            color: #16a34a;
+            text-decoration: underline;
+          }
+        }
+      }
+    }
 
     .copyright {
       max-width: 1200px;

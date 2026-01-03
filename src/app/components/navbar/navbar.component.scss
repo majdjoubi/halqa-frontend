@@ -52,6 +52,7 @@
         line-height: 1;
         display: inline-block;
         vertical-align: middle;
+        margin-inline-start: 0.5rem;
       }
       /* Logo image sizing - keep logo responsive and not too large */
       img.brand-logo,
@@ -409,6 +410,8 @@
       app-notification-bell {
         display: flex;
         align-items: center;
+        position: relative;
+        z-index: 10;
       }
 
       .profile-dropdown {
