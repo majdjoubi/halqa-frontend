@@ -108,7 +108,7 @@ export class SchedulingService {
   getTeacherAvailableSlots(teacherId: string, date: string): Observable<AvailableSlot[]> {
     const params = new HttpParams().set('date', date);
     return this.http.get<AvailableSlot[]>(
-      `${this.baseUrl}/api/scheduling/teacher/${teacherId}/slots`,
+      `${this.baseUrl}/api/booking/teacher/${teacherId}/available-slots`,
       { params }
     );
   }
