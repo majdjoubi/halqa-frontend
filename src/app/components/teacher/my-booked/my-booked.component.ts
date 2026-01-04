@@ -488,19 +488,30 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
   // Convert bookings AND availability to calendar events
   private updateCalendarLessons(): void {
-    // First, map bookings
-    const bookingEvents: LessonEvent[] = this.bookings.map((b) => ({
-      id: b.id.toString(),
-      title: b.title,
-      start: b.rawDateTime || b.datetime,
-      type: (b.type as 'individual' | 'group') || 'individual',
-      status: this.mapStatusToCalendar(b.status),
-      studentName: b.name,
-      price: parseFloat(b.amount.replace('$', '')),
-      maxStudents: b.maxParticipants || undefined,
-      currentStudents: b.currentParticipants || undefined,
-      description: b.notes || undefined,
-    }));
+    // First, map bookings - only include those with valid rawDateTime
+    const bookingEvents: LessonEvent[] = this.bookings
+      .filter((b) => {
+        // Only include bookings with valid date for calendar
+        if (!b.rawDateTime) {
+          console.warn('Booking missing rawDateTime, skipping from calendar:', b.id, b.title);
+          return false;
+        }
+        return true;
+      })
+      .map((b) => ({
+        id: b.id.toString(),
+        title: b.title,
+        start: b.rawDateTime!,
+        type: (b.type as 'individual' | 'group') || 'individual',
+        status: this.mapStatusToCalendar(b.status),
+        studentName: b.name,
+        price: parseFloat(b.amount.replace('$', '')),
+        maxStudents: b.maxParticipants || undefined,
+        currentStudents: b.currentParticipants || undefined,
+        description: b.notes || undefined,
+      }));
+    
+    console.log('Calendar - Total bookings:', this.bookings.length, 'Valid for calendar:', bookingEvents.length);
 
     // Then, map availability slots to events
     // For recurring slots, generate events for multiple weeks
@@ -1001,18 +1012,20 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     // Add specific date for non-recurring slots
     if (!formValue.isRecurring) {
       newSlot.date = formValue.date; // YYYY-MM-DD format
-      // Create full ISO datetime for the slot
-      newSlot.startDateTime = `${formValue.date}T${formValue.fromTime}:00`;
+      // Create full ISO datetime for the slot - convert to UTC using toISOString()
+      const startDate = new Date(`${formValue.date}T${formValue.fromTime}:00`);
+      newSlot.startDateTime = startDate.toISOString();
       
       // Handle midnight (00:00) end time - it means the next day
       if (formValue.toTime === '00:00') {
         // Calculate next day's date for endDateTime
         const nextDay = new Date(selectedDate);
         nextDay.setDate(nextDay.getDate() + 1);
-        const nextDayStr = `${nextDay.getFullYear()}-${(nextDay.getMonth() + 1).toString().padStart(2, '0')}-${nextDay.getDate().toString().padStart(2, '0')}`;
-        newSlot.endDateTime = `${nextDayStr}T00:00:00`;
+        const endDate = new Date(`${nextDay.getFullYear()}-${(nextDay.getMonth() + 1).toString().padStart(2, '0')}-${nextDay.getDate().toString().padStart(2, '0')}T00:00:00`);
+        newSlot.endDateTime = endDate.toISOString();
       } else {
-        newSlot.endDateTime = `${formValue.date}T${formValue.toTime}:00`;
+        const endDate = new Date(`${formValue.date}T${formValue.toTime}:00`);
+        newSlot.endDateTime = endDate.toISOString();
       }
     }
 
