@@ -281,11 +281,93 @@
     grid-template-columns: 1fr;
   }
 
-  .lessons-table {
+  .lessons-table,
+  .students-wallet-table {
     font-size: 0.85rem;
 
     th, td {
       padding: 10px 12px !important;
+    }
+  }
+}
+
+// Students by Wallet Balance Section
+.students-wallet {
+  .section-title {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+
+    i {
+      color: #10b981;
+    }
+  }
+
+  .table-responsive {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+  }
+
+  .students-wallet-table {
+    margin-bottom: 0;
+
+    thead {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+      th {
+        color: #fff;
+        font-weight: 600;
+        padding: 14px 16px;
+        border: none;
+        white-space: nowrap;
+      }
+    }
+
+    tbody {
+      tr {
+        transition: background-color 0.15s ease;
+
+        &:hover {
+          background-color: #f0fdf4;
+        }
+
+        td {
+          padding: 14px 16px;
+          border-color: #f3f4f6;
+          vertical-align: middle;
+          color: #4b5563;
+        }
+      }
+    }
+
+    .student-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .student-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #d1fae5;
+      }
+    }
+
+    .wallet-balance {
+      font-weight: 700;
+      color: #059669;
+      font-size: 1.05rem;
+    }
+
+    .badge {
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
     }
   }
 }

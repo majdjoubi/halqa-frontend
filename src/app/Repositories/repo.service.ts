@@ -221,6 +221,16 @@ export class RepoService {
     return this.http.get<any>(`${this.base_url}/api/admin/statistics/financial`);
   }
 
+  // get students ordered by wallet balance (highest first)
+  getStudentsByWalletBalance(limit: number = 50): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base_url}/api/admin/students/by-wallet?limit=${limit}`);
+  }
+
+  // get payment transaction log for admin
+  getPaymentLog(page: number = 1, pageSize: number = 50): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/api/admin/payments/log?page=${page}&pageSize=${pageSize}`);
+  }
+
   // teacher create profile
   createTeacherProfile(data: any): Observable<any> {
     return this.http.put<any>(`${this.base_url}/api/teacher/profile`, data);

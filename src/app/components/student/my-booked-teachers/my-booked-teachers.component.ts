@@ -57,6 +57,9 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
   countdown: { days: number; hours: number; minutes: number; seconds: number } | null = null;
   nextLesson: StudentBooking | null = null;
 
+  // Timezone display
+  userTimezoneDisplay: string = 'GMT+0';
+
   // Cached counts to avoid recalculating on every change detection
   private _individualCount = 0;
   private _groupCount = 0;
@@ -206,6 +209,9 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Initialize timezone display
+    this.userTimezoneDisplay = this.formatTimezoneDisplay();
+
     // Subscribe to language changes to refresh date formatting
     this.langSubscription = this.languageService.currentLanguage$.subscribe(() => {
       this.refreshDateFormatting();
@@ -556,11 +562,20 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
   }
 
   private handleJoinError(err: any): void {
-    const errorMessage = err?.error?.message || '';
+    console.log('Join error details:', err);
+    console.log('Error object:', JSON.stringify(err));
+    
+    // Try to get error message from different possible locations
+    const errorMessage = err?.error?.message || err?.message || err?.error || '';
+    const errorString = typeof errorMessage === 'string' ? errorMessage.toLowerCase() : JSON.stringify(errorMessage).toLowerCase();
+    
+    console.log('Parsed error message:', errorString);
     
     // Check if it's a "room not created" error
-    if (errorMessage.toLowerCase().includes('not yet created') || 
-        errorMessage.toLowerCase().includes('meeting room')) {
+    if (errorString.includes('not yet created') || 
+        errorString.includes('meeting room') ||
+        errorString.includes('room not') ||
+        err?.status === 400) {
       alert(this.translate.instant('my_booked_teachers_page.errors.lesson_not_started') + '\n\n' +
             this.translate.instant('my_booked_teachers_page.errors.lesson_not_started_message'));
     } else {
@@ -644,6 +659,22 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
     this.langSubscription?.unsubscribe();
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
+    }
+  }
+
+  /**
+   * Format timezone display based on user's local timezone offset
+   */
+  private formatTimezoneDisplay(): string {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const minutes = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    
+    if (minutes === 0) {
+      return `GMT${sign}${hours}`;
+    } else {
+      return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
     }
   }
 }

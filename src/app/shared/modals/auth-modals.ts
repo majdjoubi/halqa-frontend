@@ -2,6 +2,7 @@
 export interface LoginRequest {
   email: string;
   password: string;
+  timeZoneOffsetMinutes?: number;
 }
 
 // login response interface
@@ -21,6 +22,8 @@ export interface LoginResponse {
     phoneNumber: string;
     createdAt: string; // ISO date string
     isActive: boolean;
+    timeZoneOffsetMinutes: number;
+    timeZoneDisplay: string;
 
     student: {
       id: string;
@@ -44,6 +47,7 @@ export interface StudentRegisterRequest {
   role: number;
   phoneNumber: string;
   profilePictureUrl: string | null;
+  timeZoneOffsetMinutes?: number;
 }
 // student registration response interface
 export interface StudentRegisterResponse {

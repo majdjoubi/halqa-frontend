@@ -144,6 +144,12 @@
       </div>
     </div>
 
+    <!-- Timezone Notice -->
+    <div class="timezone-notice">
+      <i class="fas fa-globe"></i>
+      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }} ({{ userTimezoneDisplay }})</span>
+    </div>
+
     <div class="slots-grid" *ngIf="availableSlots.length > 0">
       <div class="slot-card" 
            *ngFor="let slot of availableSlots"

@@ -8,6 +8,7 @@ import { StorageService } from '../storage.service';
 export interface LoginRequest {
   email: string;
   password: string;
+  timeZoneOffsetMinutes?: number;
 }
 
 export interface LoginResponse {
@@ -85,10 +86,27 @@ export class AuthService {
   ) {}
 
   /**
+   * Get user's timezone offset in minutes from UTC
+   * Returns negative values for timezones behind UTC (e.g., -300 for UTC-5)
+   * Returns positive values for timezones ahead of UTC (e.g., +180 for UTC+3)
+   */
+  private getTimeZoneOffsetMinutes(): number {
+    // JavaScript's getTimezoneOffset returns the opposite sign
+    // (positive for behind UTC, negative for ahead)
+    // We invert it to match our convention
+    return -new Date().getTimezoneOffset();
+  }
+
+  /**
    * تسجيل الدخول
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, credentials).pipe(
+    // Auto-add timezone offset to login request
+    const requestWithTimezone = {
+      ...credentials,
+      timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes()
+    };
+    return this.http.post<any>(`${this.apiUrl}/api/auth/login`, requestWithTimezone).pipe(
       map((response) => {
         // حفظ التوكن في local storage
         if (response?.token) {

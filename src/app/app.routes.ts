@@ -185,6 +185,15 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'payments-log',
+    canActivate: [AdminGuard],
+
+    loadComponent: () =>
+      import('./components/admin/payments-log/payments-log.component').then(
+        (m) => m.PaymentsLogComponent
+      ),
+  },
+  {
     path: 'wallet/topup',
     canActivate: [StudentGuard],
 

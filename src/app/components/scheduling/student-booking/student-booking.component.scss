@@ -70,6 +70,34 @@ $card-bg: #ffffff;
   }
 }
 
+// Timezone Notice
+.timezone-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, rgba(13, 107, 31, 0.08), rgba(21, 160, 55, 0.08));
+  border: 1px solid rgba(13, 107, 31, 0.2);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: $primary-green;
+
+  i {
+    color: $primary-green;
+    font-size: 1rem;
+  }
+
+  span {
+    color: $text-dark;
+  }
+}
+
+// RTL Support for timezone notice
+[dir="rtl"] .timezone-notice {
+  flex-direction: row-reverse;
+}
+
 // Teacher Card
 .teacher-card {
   background: $card-bg;

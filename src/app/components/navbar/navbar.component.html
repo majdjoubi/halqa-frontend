@@ -103,7 +103,7 @@
             <li class="nav-item">
               <a
                 routerLink="/all-teachers"
-                class="nav-link"
+                class="nav-link book-now-link"
                 (click)="closeMobileMenu()"
               >
                 {{ "ALL_Teachers" | translate }}
@@ -184,6 +184,15 @@
                 (click)="closeMobileMenu()"
               >
                 Withdraw Requests
+              </a>
+            </li>
+            <li class="nav-item">
+              <a
+                routerLink="/payments-log"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "admin_payments.title" | translate }}
               </a>
             </li>
           </ng-container>
@@ -311,8 +320,9 @@
           </div>
         </div>
 
-        <!-- Mobile Menu Toggle -->
+        <!-- Mobile Menu Toggle - Only for authenticated users -->
         <button
+          *ngIf="isAuthenticated"
           class="mobile-toggle"
           (click)="toggleMobileMenu()"
           [class.active]="mobileMenuOpen"

@@ -172,6 +172,48 @@
       </div>
     </section>
 
+    <!-- Students by Wallet Balance Section -->
+    <section class="students-wallet mt-4" *ngIf="studentsByWallet && studentsByWallet.length > 0">
+      <h6 class="section-title">
+        <i class="fas fa-wallet me-2"></i>{{ 'admin_dashboard.students_wallet.title' | translate }}
+      </h6>
+      <div class="table-responsive">
+        <table class="table students-wallet-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ 'admin_dashboard.students_wallet.student' | translate }}</th>
+              <th>{{ 'admin_dashboard.students_wallet.email' | translate }}</th>
+              <th>{{ 'admin_dashboard.students_wallet.balance' | translate }}</th>
+              <th>{{ 'admin_dashboard.students_wallet.status' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let student of studentsByWallet; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="student-info">
+                  <img 
+                    [src]="student.profilePictureUrl || 'assets/images/blank-avatar.webp'" 
+                    [alt]="student.fullName"
+                    class="student-avatar"
+                  />
+                  <span>{{ student.fullName }}</span>
+                </div>
+              </td>
+              <td>{{ student.email }}</td>
+              <td class="wallet-balance">${{ student.walletBalance | number:'1.2-2' }}</td>
+              <td>
+                <span class="badge" [class.bg-success]="student.isActive" [class.bg-secondary]="!student.isActive">
+                  {{ student.isActive ? ('admin_dashboard.students_wallet.active' | translate) : ('admin_dashboard.students_wallet.inactive' | translate) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="dashboard-charts mt-4">
       <div class="charts-row">
         <div class="chart-col chart-col--wide">

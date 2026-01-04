@@ -57,6 +57,9 @@ export class StudentBookingComponent implements OnInit {
   durationFilter: number = 0;
   minRating: number = 0;
 
+  // Timezone display
+  userTimezoneDisplay: string = 'GMT+0';
+
   // Booking Form
   bookingForm: FormGroup;
 
@@ -69,6 +72,25 @@ export class StudentBookingComponent implements OnInit {
     this.bookingForm = this.fb.group({
       notes: ['']
     });
+    // Initialize timezone display
+    this.userTimezoneDisplay = this.formatTimezoneDisplay();
+  }
+
+  /**
+   * Format the user's timezone as GMT offset display
+   */
+  private formatTimezoneDisplay(): string {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    if (offsetMinutes === 0) return 'GMT+0';
+    
+    const sign = offsetMinutes > 0 ? '+' : '-';
+    const absMinutes = Math.abs(offsetMinutes);
+    const hours = Math.floor(absMinutes / 60);
+    const minutes = absMinutes % 60;
+    
+    return minutes === 0 
+      ? `GMT${sign}${hours}` 
+      : `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
   }
 
   ngOnInit(): void {

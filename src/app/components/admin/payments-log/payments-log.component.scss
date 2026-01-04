@@ -1,0 +1,425 @@
+.payments-log-container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 85px auto 0;
+  background: #fafafb;
+  min-height: 100vh;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+
+  i {
+    color: #10b981;
+  }
+}
+
+// Loading State
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+
+  .loading-text {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+// Error State
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+  text-align: center;
+
+  .error-icon {
+    font-size: 3rem;
+    color: #ef4444;
+  }
+
+  .error-text {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+  }
+}
+
+// Summary Cards
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: #fff;
+  }
+
+  .card-content {
+    display: flex;
+    flex-direction: column;
+
+    .card-label {
+      font-size: 0.85rem;
+      color: #6b7280;
+    }
+
+    .card-value {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1f2937;
+    }
+  }
+
+  &.deposits .card-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+
+  &.payments .card-icon {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+  }
+
+  &.teacher-earnings .card-icon {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  }
+
+  &.platform-fees .card-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+  }
+
+  &.refunds .card-icon {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+
+  &.withdrawals .card-icon {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+  }
+}
+
+// Transactions Section
+.transactions-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #f3f4f6;
+
+    h6 {
+      margin: 0;
+      font-weight: 600;
+      color: #1f2937;
+      display: flex;
+      align-items: center;
+
+      i {
+        color: #10b981;
+      }
+    }
+
+    .total-count {
+      font-size: 0.875rem;
+      color: #6b7280;
+    }
+  }
+}
+
+.transactions-table {
+  margin-bottom: 0;
+
+  thead {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+
+    th {
+      color: #fff;
+      font-weight: 600;
+      padding: 14px 12px;
+      border: none;
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+  }
+
+  tbody {
+    tr {
+      transition: background-color 0.15s ease;
+
+      &:hover {
+        background-color: #f0fdf4;
+      }
+
+      td {
+        padding: 12px;
+        border-color: #f3f4f6;
+        vertical-align: middle;
+        color: #4b5563;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e5e7eb;
+  }
+
+  .user-details {
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      font-weight: 500;
+      color: #1f2937;
+    }
+
+    .user-role {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      
+      &.student {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      
+      &.teacher {
+        background: #d1fae5;
+        color: #047857;
+      }
+      
+      &.admin {
+        background: #fce7f3;
+        color: #be185d;
+      }
+    }
+  }
+}
+
+.transaction-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+
+  i {
+    font-size: 0.75rem;
+  }
+
+  &.type-deposit {
+    background: #d1fae5;
+    color: #047857;
+  }
+
+  &.type-payment {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  &.type-refund {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  &.type-earning {
+    background: #ede9fe;
+    color: #7c3aed;
+  }
+
+  &.type-donation {
+    background: #fef3c7;
+    color: #d97706;
+  }
+
+  &.type-withdrawal {
+    background: #e0e7ff;
+    color: #4f46e5;
+  }
+
+  &.type-hold {
+    background: #f3f4f6;
+    color: #6b7280;
+  }
+
+  &.type-hold-release {
+    background: #f0fdf4;
+    color: #10b981;
+  }
+}
+
+.amount-cell {
+  font-weight: 600;
+  
+  &.positive {
+    color: #10b981;
+  }
+
+  &.negative {
+    color: #ef4444;
+  }
+}
+
+.teacher-earning-cell .teacher-amount {
+  color: #7c3aed;
+  font-weight: 600;
+}
+
+.platform-fee-cell .platform-amount {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.balance-cell {
+  color: #6b7280;
+}
+
+.description-cell {
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.na {
+  color: #d1d5db;
+}
+
+.date-cell {
+  white-space: nowrap;
+}
+
+// Empty State
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #9ca3af;
+
+  i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin: 0;
+    font-size: 1rem;
+  }
+}
+
+// Pagination
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-top: 1px solid #f3f4f6;
+
+  .page-info {
+    color: #6b7280;
+    font-size: 0.875rem;
+  }
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+// RTL Support
+:host-context([dir="rtl"]) {
+  .pagination-controls {
+    .btn i {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .payments-log-container {
+    padding: 1rem;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .transactions-table {
+    font-size: 0.75rem;
+
+    th, td {
+      padding: 8px !important;
+    }
+  }
+
+  .user-info {
+    .user-avatar {
+      width: 28px;
+      height: 28px;
+    }
+
+    .user-details .user-name {
+      font-size: 0.8rem;
+    }
+  }
+
+  .description-cell {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-cards {
+    grid-template-columns: 1fr;
+  }
+}

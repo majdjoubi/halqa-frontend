@@ -45,6 +45,19 @@ interface UpcomingLesson {
   status: string;
 }
 
+interface StudentWallet {
+  id: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  fullName: string;
+  email: string;
+  profilePictureUrl: string | null;
+  walletBalance: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -56,6 +69,7 @@ export class DashboardComponent implements OnInit {
   dashboardData: any = {};
   quickStatusCounts: any = {};
   financialStats: FinancialStats | null = null;
+  studentsByWallet: StudentWallet[] = [];
   
   // Loading and error states
   isLoading = true;
@@ -110,6 +124,16 @@ export class DashboardComponent implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load financial stats:', err);
+      }
+    });
+
+    // Load students by wallet balance
+    this.repoService.getStudentsByWalletBalance(20).subscribe({
+      next: (res) => {
+        this.studentsByWallet = res;
+      },
+      error: (err) => {
+        console.error('Failed to load students by wallet:', err);
       }
     });
   }

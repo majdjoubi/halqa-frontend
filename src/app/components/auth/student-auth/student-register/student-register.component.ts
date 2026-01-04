@@ -198,6 +198,7 @@ export class StudentRegisterComponent implements OnInit {
           role: 1, // Role 1 for students
           phoneNumber: this.step1Form.value.phoneNumber,
           profilePictureUrl: imageUrl, // URL returned from upload endpoint or null
+          timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes(), // Auto-detect timezone
         };
 
         this._facadeAuth.sendStudentRegisterRequest(payload).subscribe({
@@ -396,5 +397,17 @@ export class StudentRegisterComponent implements OnInit {
           successMessageKey: 'validation.field_valid',
         };
     }
+  }
+
+  /**
+   * Get user's timezone offset in minutes from UTC
+   * Returns negative values for timezones behind UTC (e.g., -300 for UTC-5)
+   * Returns positive values for timezones ahead of UTC (e.g., +180 for UTC+3)
+   */
+  private getTimeZoneOffsetMinutes(): number {
+    // JavaScript's getTimezoneOffset returns the opposite sign
+    // (positive for behind UTC, negative for ahead)
+    // We invert it to match our convention
+    return -new Date().getTimezoneOffset();
   }
 }

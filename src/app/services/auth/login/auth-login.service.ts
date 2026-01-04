@@ -29,7 +29,12 @@ export class AuthLoginService {
 
   // perform login
   login(data: LoginRequest) {
-    return this._repo.login(data).pipe(
+    // Auto-add timezone offset to login request
+    const requestWithTimezone = {
+      ...data,
+      timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes()
+    };
+    return this._repo.login(requestWithTimezone).pipe(
       map((res) => {
         const token = res.token;
         if (isPlatformBrowser(this.platformId)) {
@@ -40,6 +45,13 @@ export class AuthLoginService {
       }),
       catchError(this.handleError)
     );
+  }
+
+  /**
+   * Get user's timezone offset in minutes from UTC
+   */
+  private getTimeZoneOffsetMinutes(): number {
+    return -new Date().getTimezoneOffset();
   }
 
   // perform student  registration

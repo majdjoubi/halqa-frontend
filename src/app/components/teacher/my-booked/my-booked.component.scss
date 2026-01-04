@@ -3,6 +3,32 @@
   margin-top: 5rem;
 }
 
+/* Timezone Notice */
+.timezone-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f4 100%);
+  border: 1px solid #c8e6c9;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+
+  i {
+    color: #2e7d32;
+    font-size: 16px;
+  }
+
+  span {
+    color: #1b5e20;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
 .my-booked {
   padding: 24px;
   /* make the page background a single solid color that fills the viewport */
@@ -539,19 +565,27 @@
     border-radius: 3px;
 
     &.available {
-      background: #3b82f6;
+      background: #27ae60; // Green - matches calendar
     }
 
     &.booked {
-      background: #10b981;
+      background: #3498db; // Blue - matches calendar
     }
 
     &.completed {
-      background: #6b7280;
+      background: #95a5a6; // Gray - matches calendar
     }
 
     &.past {
-      background: #95a5a6;
+      background: #95a5a6; // Gray - matches calendar
+    }
+
+    &.group {
+      background: #9b59b6; // Purple - group sessions
+    }
+
+    &.cancelled {
+      background: #e74c3c; // Red - cancelled
     }
   }
 

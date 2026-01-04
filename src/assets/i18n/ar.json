@@ -5,7 +5,7 @@
   "ABOUT_US": "من نحن",
   "BENEFITS": "الفوائد",
   "OUR_MISSION": "مهمتنا",
-  "ALL_Teachers": "جميع المعلمين",
+  "ALL_Teachers": "احجز درسك الآن",
   "my_Booked": "حُجُوزاتي",
   "my_booked": "تقويمي",
   "booking": {
@@ -68,7 +68,9 @@
     "legend": {
       "available": "متاح",
       "booked": "محجوز",
+      "group": "جماعي",
       "completed": "مكتمل",
+      "cancelled": "ملغي",
       "past": "فائت"
     },
     "status": {
@@ -975,6 +977,7 @@
     "NO_TEACHERS_FOUND": "لم يتم العثور على معلمين",
     "TRY_DIFFERENT_FILTERS": "حاول تعديل الفلاتر للعثور على المزيد",
     "SELECT_TIME_SLOT": "اختر وقتاً للحجز",
+    "TIMES_IN_YOUR_TIMEZONE": "جميع الأوقات معروضة بتوقيتك المحلي",
     "NO_SLOTS_AVAILABLE": "لا توجد أوقات متاحة",
     "TRY_ANOTHER_DATE": "حاول اختيار تاريخ آخر",
     "NO_GROUP_SESSIONS": "لا توجد جلسات جماعية متاحة",
@@ -1100,8 +1103,47 @@
       "amount": "المبلغ",
       "min": "دقيقة"
     },
+    "students_wallet": {
+      "title": "الطلاب حسب رصيد المحفظة",
+      "student": "الطالب",
+      "email": "البريد الإلكتروني",
+      "balance": "الرصيد",
+      "status": "الحالة",
+      "active": "نشط",
+      "inactive": "غير نشط"
+    },
     "charts": {
       "platform_growth": "نمو المنصة"
     }
+  },
+  "admin_payments": {
+    "title": "سجل المدفوعات",
+    "loading": "جاري تحميل السجلات...",
+    "error_loading": "فشل في تحميل سجل المدفوعات",
+    "retry": "إعادة المحاولة",
+    "total_deposits": "إجمالي الشحن",
+    "total_payments": "إجمالي المدفوعات",
+    "teacher_earnings": "أرباح المعلمين",
+    "platform_fees": "عمولة المنصة",
+    "total_refunds": "إجمالي الاستردادات",
+    "total_withdrawals": "إجمالي السحوبات",
+    "transaction_log": "سجل العمليات",
+    "transactions": "عملية",
+    "date": "التاريخ",
+    "user": "المستخدم",
+    "type": "النوع",
+    "amount": "المبلغ",
+    "teacher_share": "حصة المعلم",
+    "platform_share": "حصة المنصة",
+    "balance_before": "الرصيد قبل",
+    "balance_after": "الرصيد بعد",
+    "description": "الوصف",
+    "no_transactions": "لا توجد عمليات",
+    "previous": "السابق",
+    "next": "التالي",
+    "page": "صفحة",
+    "student": "طالب",
+    "teacher": "معلم",
+    "admin": "مدير"
   }
 }

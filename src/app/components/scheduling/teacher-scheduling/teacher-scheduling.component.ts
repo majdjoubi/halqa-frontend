@@ -69,6 +69,9 @@ export class TeacherSchedulingComponent implements OnInit, OnDestroy {
   availabilitySlots: AvailabilitySlot[] = [];
   dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+  // Timezone display
+  userTimezoneDisplay: string = 'GMT+0';
+
   private langSubscription?: Subscription;
 
   constructor(
@@ -112,6 +115,9 @@ export class TeacherSchedulingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Initialize timezone display
+    this.userTimezoneDisplay = this.formatTimezoneDisplay();
+
     this.loadCalendar();
     this.loadEarnings();
 
@@ -491,5 +497,21 @@ export class TeacherSchedulingComponent implements OnInit, OnDestroy {
     if (!this.selectedBooking) return false;
     const status = this.selectedBooking.status.toLowerCase();
     return status === 'inprogress';
+  }
+
+  /**
+   * Format timezone display based on user's local timezone offset
+   */
+  private formatTimezoneDisplay(): string {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const minutes = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    
+    if (minutes === 0) {
+      return `GMT${sign}${hours}`;
+    } else {
+      return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+    }
   }
 }

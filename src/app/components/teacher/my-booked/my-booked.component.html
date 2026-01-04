@@ -128,13 +128,27 @@
         <span>{{ "my_booked_page.legend.booked" | translate }}</span>
       </div>
       <div class="legend-item">
+        <span class="legend-color group"></span>
+        <span>{{ "my_booked_page.legend.group" | translate }}</span>
+      </div>
+      <div class="legend-item">
         <span class="legend-color completed"></span>
         <span>{{ "my_booked_page.legend.completed" | translate }}</span>
+      </div>
+      <div class="legend-item">
+        <span class="legend-color cancelled"></span>
+        <span>{{ "my_booked_page.legend.cancelled" | translate }}</span>
       </div>
       <div class="legend-item">
         <span class="legend-color past"></span>
         <span>{{ "my_booked_page.legend.past" | translate }}</span>
       </div>
+    </div>
+
+    <!-- Timezone Notice -->
+    <div class="timezone-notice">
+      <i class="fas fa-globe"></i>
+      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }} ({{ userTimezoneDisplay }})</span>
     </div>
 
     <!-- Calendar View -->

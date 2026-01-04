@@ -90,6 +90,12 @@
       </div>
     </div>
 
+    <!-- Timezone Notice -->
+    <div class="timezone-notice">
+      <i class="fas fa-globe"></i>
+      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }} ({{ userTimezoneDisplay }})</span>
+    </div>
+
     <!-- Schedule View (Simple grouped by day) -->
     <div *ngIf="view === 'schedule'" class="schedule-view">
       <div *ngIf="groupedSchedule.length === 0" class="empty-state">

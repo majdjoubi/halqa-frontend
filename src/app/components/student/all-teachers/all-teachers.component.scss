@@ -1136,6 +1136,7 @@
   .select-wrapper .arrow {
     position: absolute;
     right: 10px;
+    left: auto;
     top: 50%;
     transform: translateY(-50%);
     display: inline-flex;
@@ -1143,9 +1144,24 @@
     pointer-events: none;
   }
 
+  /* RTL support: move arrow to left side for Arabic */
+  :host-context([dir="rtl"]) .select-wrapper .arrow,
+  :host-context(:lang(ar)) .select-wrapper .arrow {
+    right: auto;
+    left: 10px;
+  }
+
   /* rotate arrow when select is focused or wrapper has open class */
   .select-wrapper:focus-within .arrow,
   .select-wrapper.open .arrow {
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  /* RTL support: rotate arrow in RTL mode */
+  :host-context([dir="rtl"]) .select-wrapper:focus-within .arrow,
+  :host-context([dir="rtl"]) .select-wrapper.open .arrow,
+  :host-context(:lang(ar)) .select-wrapper:focus-within .arrow,
+  :host-context(:lang(ar)) .select-wrapper.open .arrow {
     transform: translateY(-50%) rotate(180deg);
   }
 

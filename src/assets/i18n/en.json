@@ -5,7 +5,7 @@
   "ABOUT_US": "About us",
   "BENEFITS": "Benefits",
   "OUR_MISSION": "our mission",
-  "ALL_Teachers": "All Teachers",
+  "ALL_Teachers": "Book Your Lesson",
   "my_Booked": "My Booked",
   "my_booked": "My Calendar",
   "booking": {
@@ -68,7 +68,9 @@
     "legend": {
       "available": "Available",
       "booked": "Booked",
+      "group": "Group",
       "completed": "Completed",
+      "cancelled": "Cancelled",
       "past": "Past"
     },
     "status": {
@@ -976,6 +978,7 @@
     "NO_TEACHERS_FOUND": "No Teachers Found",
     "TRY_DIFFERENT_FILTERS": "Try adjusting your filters to find more teachers",
     "SELECT_TIME_SLOT": "Select a time slot to book",
+    "TIMES_IN_YOUR_TIMEZONE": "All times shown in your local timezone",
     "NO_SLOTS_AVAILABLE": "No Slots Available",
     "TRY_ANOTHER_DATE": "Try selecting another date",
     "NO_GROUP_SESSIONS": "No Group Sessions Available",
@@ -1101,8 +1104,47 @@
       "amount": "Amount",
       "min": "min"
     },
+    "students_wallet": {
+      "title": "Students by Wallet Balance",
+      "student": "Student",
+      "email": "Email",
+      "balance": "Balance",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive"
+    },
     "charts": {
       "platform_growth": "Platform Growth"
     }
+  },
+  "admin_payments": {
+    "title": "Payment Log",
+    "loading": "Loading transactions...",
+    "error_loading": "Failed to load payment log",
+    "retry": "Retry",
+    "total_deposits": "Total Deposits",
+    "total_payments": "Total Payments",
+    "teacher_earnings": "Teacher Earnings",
+    "platform_fees": "Platform Fees",
+    "total_refunds": "Total Refunds",
+    "total_withdrawals": "Total Withdrawals",
+    "transaction_log": "Transaction Log",
+    "transactions": "transactions",
+    "date": "Date",
+    "user": "User",
+    "type": "Type",
+    "amount": "Amount",
+    "teacher_share": "Teacher Share",
+    "platform_share": "Platform Share",
+    "balance_before": "Balance Before",
+    "balance_after": "Balance After",
+    "description": "Description",
+    "no_transactions": "No transactions found",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "student": "Student",
+    "teacher": "Teacher",
+    "admin": "Admin"
   }
 }

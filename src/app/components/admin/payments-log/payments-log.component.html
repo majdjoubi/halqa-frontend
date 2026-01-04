@@ -1,0 +1,187 @@
+<div class="payments-log-container">
+  <h5 class="page-title">
+    <i class="fas fa-receipt me-2"></i>{{ 'admin_payments.title' | translate }}
+  </h5>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="loading-text">{{ 'admin_payments.loading' | translate }}</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="hasError && !isLoading" class="error-container">
+    <i class="fas fa-exclamation-triangle error-icon"></i>
+    <p class="error-text">{{ errorMessage }}</p>
+    <button class="btn btn-primary retry-btn" (click)="loadPaymentLog()">
+      <i class="fas fa-redo me-2"></i>{{ 'admin_payments.retry' | translate }}
+    </button>
+  </div>
+
+  <!-- Content -->
+  <ng-container *ngIf="!isLoading && !hasError && paymentData">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card deposits">
+        <div class="card-icon">
+          <i class="fas fa-arrow-down"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.total_deposits' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalDeposits | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card payments">
+        <div class="card-icon">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.total_payments' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalPayments | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card teacher-earnings">
+        <div class="card-icon">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.teacher_earnings' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalTeacherEarnings | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card platform-fees">
+        <div class="card-icon">
+          <i class="fas fa-building"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.platform_fees' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalPlatformFees | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card refunds">
+        <div class="card-icon">
+          <i class="fas fa-undo"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.total_refunds' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalRefunds | number:'1.2-2' }}</span>
+        </div>
+      </div>
+
+      <div class="summary-card withdrawals">
+        <div class="card-icon">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div class="card-content">
+          <span class="card-label">{{ 'admin_payments.total_withdrawals' | translate }}</span>
+          <span class="card-value">${{ paymentData.totalWithdrawals | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions Table -->
+    <div class="transactions-section">
+      <div class="section-header">
+        <h6>
+          <i class="fas fa-list me-2"></i>{{ 'admin_payments.transaction_log' | translate }}
+        </h6>
+        <span class="total-count">{{ paymentData.totalCount }} {{ 'admin_payments.transactions' | translate }}</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table transactions-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>{{ 'admin_payments.date' | translate }}</th>
+              <th>{{ 'admin_payments.user' | translate }}</th>
+              <th>{{ 'admin_payments.type' | translate }}</th>
+              <th>{{ 'admin_payments.amount' | translate }}</th>
+              <th>{{ 'admin_payments.teacher_share' | translate }}</th>
+              <th>{{ 'admin_payments.platform_share' | translate }}</th>
+              <th>{{ 'admin_payments.balance_before' | translate }}</th>
+              <th>{{ 'admin_payments.balance_after' | translate }}</th>
+              <th>{{ 'admin_payments.description' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of paymentData.transactions; let i = index">
+              <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+              <td class="date-cell">{{ tx.createdAt | date:'short' }}</td>
+              <td>
+                <div class="user-info">
+                  <img 
+                    [src]="tx.profilePictureUrl || 'assets/images/blank-avatar.webp'" 
+                    [alt]="tx.userName"
+                    class="user-avatar"
+                  />
+                  <div class="user-details">
+                    <span class="user-name">{{ tx.userName }}</span>
+                    <span class="user-role" [class]="tx.userRole.toLowerCase()">{{ getRoleDisplay(tx.userRole) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="transaction-type" [class]="getTransactionTypeClass(tx.type)">
+                  <i class="fas" [class]="getTransactionIcon(tx.type)"></i>
+                  {{ tx.typeDisplay }}
+                </span>
+              </td>
+              <td class="amount-cell" [class.positive]="tx.type === 1 || tx.type === 4 || tx.type === 5" [class.negative]="tx.type === 2 || tx.type === 6">
+                {{ tx.type === 2 || tx.type === 6 ? '-' : '+' }}${{ tx.amount | number:'1.2-2' }}
+              </td>
+              <td class="teacher-earning-cell">
+                <span *ngIf="tx.teacherEarning !== null" class="teacher-amount">
+                  ${{ tx.teacherEarning | number:'1.2-2' }}
+                </span>
+                <span *ngIf="tx.teacherEarning === null" class="na">-</span>
+              </td>
+              <td class="platform-fee-cell">
+                <span *ngIf="tx.platformFee !== null" class="platform-amount">
+                  ${{ tx.platformFee | number:'1.2-2' }}
+                </span>
+                <span *ngIf="tx.platformFee === null" class="na">-</span>
+              </td>
+              <td class="balance-cell">${{ tx.balanceBefore | number:'1.2-2' }}</td>
+              <td class="balance-cell">${{ tx.balanceAfter | number:'1.2-2' }}</td>
+              <td class="description-cell">{{ tx.description }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="paymentData.transactions.length === 0" class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>{{ 'admin_payments.no_transactions' | translate }}</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-controls" *ngIf="paymentData.transactions.length > 0">
+        <button 
+          class="btn btn-outline-primary" 
+          [disabled]="currentPage === 1"
+          (click)="prevPage()">
+          <i class="fas fa-chevron-right"></i>
+          {{ 'admin_payments.previous' | translate }}
+        </button>
+        <span class="page-info">
+          {{ 'admin_payments.page' | translate }} {{ currentPage }} / {{ totalPages }}
+        </span>
+        <button 
+          class="btn btn-outline-primary" 
+          [disabled]="currentPage >= totalPages"
+          (click)="nextPage()">
+          {{ 'admin_payments.next' | translate }}
+          <i class="fas fa-chevron-left"></i>
+        </button>
+      </div>
+    </div>
+  </ng-container>
+</div>

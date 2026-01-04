@@ -42,6 +42,12 @@
     <p>{{ 'COMMON.LOADING' | translate }}</p>
   </div>
 
+  <!-- Timezone Notice -->
+  <div *ngIf="!isLoading && (view === 'calendar' || view === 'availability')" class="timezone-notice">
+    <i class="fas fa-globe"></i>
+    <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }} ({{ userTimezoneDisplay }})</span>
+  </div>
+
   <!-- Calendar View -->
   <div *ngIf="view === 'calendar' && !isLoading" class="calendar-view">
     <div class="calendar-actions">

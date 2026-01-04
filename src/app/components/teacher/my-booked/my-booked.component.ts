@@ -168,6 +168,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   availabilityFilter: 'all' | 'available' | 'booked' = 'all';
   dateRangeFilter: 'week' | 'month' | 'all' = 'week';
 
+  // Timezone display
+  userTimezoneDisplay: string = 'GMT+0';
+
   constructor(
     private repo: RepoService,
     private dateLocale: DateLocaleService,
@@ -190,6 +193,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Initialize timezone display
+    this.userTimezoneDisplay = this.formatTimezoneDisplay();
+
     // Subscribe to language changes to refresh date formatting
     this.langSubscription = this.languageService.currentLanguage$.subscribe(() => {
       this.refreshDateFormatting();
@@ -1907,5 +1913,21 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         );
       },
     });
+  }
+
+  /**
+   * Format timezone display based on user's local timezone offset
+   */
+  private formatTimezoneDisplay(): string {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const minutes = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    
+    if (minutes === 0) {
+      return `GMT${sign}${hours}`;
+    } else {
+      return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+    }
   }
 }
