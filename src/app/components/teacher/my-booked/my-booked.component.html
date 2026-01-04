@@ -145,10 +145,22 @@
       </div>
     </div>
 
-    <!-- Timezone Notice -->
+    <!-- Timezone Notice with GMT Selector -->
     <div class="timezone-notice">
       <i class="fas fa-globe"></i>
-      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }} ({{ userTimezoneDisplay }})</span>
+      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }}</span>
+      <div class="gmt-selector">
+        <select 
+          [(ngModel)]="selectedGmtOffset" 
+          (ngModelChange)="onGmtOffsetChange()"
+          class="gmt-select"
+          [attr.aria-label]="'SCHEDULING.SELECT_TIMEZONE' | translate"
+        >
+          <option *ngFor="let gmt of gmtOptions" [ngValue]="gmt.value">
+            {{ gmt.label }}
+          </option>
+        </select>
+      </div>
     </div>
 
     <!-- Calendar View -->

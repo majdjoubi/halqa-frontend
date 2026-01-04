@@ -70,6 +70,38 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Language subscription
   private langSubscription?: Subscription;
 
+  // GMT offset selector
+  selectedGmtOffset: number = -new Date().getTimezoneOffset(); // Default to user's local timezone
+  userTimezoneDisplay: string = 'GMT+0';
+  gmtOptions: { label: string; value: number }[] = [
+    { label: 'GMT-12', value: -720 },
+    { label: 'GMT-11', value: -660 },
+    { label: 'GMT-10', value: -600 },
+    { label: 'GMT-9', value: -540 },
+    { label: 'GMT-8', value: -480 },
+    { label: 'GMT-7', value: -420 },
+    { label: 'GMT-6', value: -360 },
+    { label: 'GMT-5', value: -300 },
+    { label: 'GMT-4', value: -240 },
+    { label: 'GMT-3', value: -180 },
+    { label: 'GMT-2', value: -120 },
+    { label: 'GMT-1', value: -60 },
+    { label: 'GMT+0', value: 0 },
+    { label: 'GMT+1', value: 60 },
+    { label: 'GMT+2', value: 120 },
+    { label: 'GMT+3', value: 180 },
+    { label: 'GMT+4', value: 240 },
+    { label: 'GMT+5', value: 300 },
+    { label: 'GMT+5:30', value: 330 },
+    { label: 'GMT+6', value: 360 },
+    { label: 'GMT+7', value: 420 },
+    { label: 'GMT+8', value: 480 },
+    { label: 'GMT+9', value: 540 },
+    { label: 'GMT+10', value: 600 },
+    { label: 'GMT+11', value: 660 },
+    { label: 'GMT+12', value: 720 },
+  ];
+
   constructor(
     private translate: TranslateService,
     private _repo: RepoService,
@@ -80,12 +112,91 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
+    // Initialize timezone display
+    this.userTimezoneDisplay = this.formatTimezoneDisplay(this.selectedGmtOffset);
+    
     // Fetch all teachers on component initialization
     this.loadPage(this.currentpage);
     // load specializations once on init
     this.loadSpecializations();
     // load student's existing bookings for conflict detection
     this.loadStudentExistingBookings();
+  }
+
+  /**
+   * Format timezone offset to display string
+   */
+  private formatTimezoneDisplay(offsetMinutes: number): string {
+    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const minutes = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? '+' : '-';
+    
+    if (minutes === 0) {
+      return `GMT${sign}${hours}`;
+    } else {
+      return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+    }
+  }
+
+  /**
+   * Handle GMT offset change
+   */
+  onGmtOffsetChange(): void {
+    this.userTimezoneDisplay = this.formatTimezoneDisplay(this.selectedGmtOffset);
+    // Refresh time display if booking sidebar is open
+    if (this.bookingTeacher && this.bookingTeacher.availability) {
+      this.refreshAvailabilityTimes();
+    }
+  }
+
+  /**
+   * Refresh availability times based on selected GMT offset
+   */
+  private refreshAvailabilityTimes(): void {
+    if (!this.bookingTeacher?.availability) return;
+    // Re-normalize slots with new timezone
+    this.bookingTeacher.availability = this.bookingTeacher.availability.map((slot: any) => 
+      this.normalizeSlotToSelectedTimezone(slot)
+    );
+  }
+
+  /**
+   * Convert a slot time to selected timezone
+   */
+  private normalizeSlotToSelectedTimezone(slot: any): any {
+    if (!slot) return slot;
+    
+    // If slot has UTC ISO string, convert to selected timezone
+    if (slot.startIsoUtc) {
+      const utcDate = new Date(slot.startIsoUtc);
+      // Apply selected GMT offset
+      const offsetMs = this.selectedGmtOffset * 60 * 1000;
+      const localDate = new Date(utcDate.getTime() + offsetMs);
+      
+      slot.startTime = this.formatTimeFromDate(localDate);
+      slot.displayDate = this.dateLocale.formatDayMonth(localDate);
+      slot.dayOfWeek = localDate.getUTCDay();
+      
+      if (slot.endIsoUtc) {
+        const utcEndDate = new Date(slot.endIsoUtc);
+        const localEndDate = new Date(utcEndDate.getTime() + offsetMs);
+        slot.endTime = this.formatTimeFromDate(localEndDate);
+      } else if (slot.durationMinutes) {
+        const endDate = new Date(localDate.getTime() + Number(slot.durationMinutes) * 60000);
+        slot.endTime = this.formatTimeFromDate(endDate);
+      }
+    }
+    
+    return slot;
+  }
+
+  /**
+   * Format time from date object as HH:MM
+   */
+  private formatTimeFromDate(date: Date): string {
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   // Load student's existing bookings to check for time conflicts

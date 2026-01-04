@@ -27,6 +27,32 @@
     font-size: 14px;
     font-weight: 500;
   }
+
+  .gmt-selector {
+    margin-left: auto;
+    
+    .gmt-select {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #2e7d32;
+      background: #fff;
+      color: #1b5e20;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      min-width: 120px;
+      
+      &:focus {
+        outline: none;
+        border-color: #1b5e20;
+        box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+      }
+      
+      &:hover {
+        border-color: #1b5e20;
+      }
+    }
+  }
 }
 
 .my-booked {

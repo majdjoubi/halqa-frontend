@@ -168,8 +168,37 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   availabilityFilter: 'all' | 'available' | 'booked' = 'all';
   dateRangeFilter: 'week' | 'month' | 'all' = 'week';
 
-  // Timezone display
+  // Timezone display and GMT offset selector
   userTimezoneDisplay: string = 'GMT+0';
+  selectedGmtOffset: number = -new Date().getTimezoneOffset(); // Default to user's local timezone
+  gmtOptions: { label: string; value: number }[] = [
+    { label: 'GMT-12', value: -720 },
+    { label: 'GMT-11', value: -660 },
+    { label: 'GMT-10', value: -600 },
+    { label: 'GMT-9', value: -540 },
+    { label: 'GMT-8', value: -480 },
+    { label: 'GMT-7', value: -420 },
+    { label: 'GMT-6', value: -360 },
+    { label: 'GMT-5', value: -300 },
+    { label: 'GMT-4', value: -240 },
+    { label: 'GMT-3', value: -180 },
+    { label: 'GMT-2', value: -120 },
+    { label: 'GMT-1', value: -60 },
+    { label: 'GMT+0', value: 0 },
+    { label: 'GMT+1', value: 60 },
+    { label: 'GMT+2', value: 120 },
+    { label: 'GMT+3', value: 180 },
+    { label: 'GMT+4', value: 240 },
+    { label: 'GMT+5', value: 300 },
+    { label: 'GMT+5:30', value: 330 },
+    { label: 'GMT+6', value: 360 },
+    { label: 'GMT+7', value: 420 },
+    { label: 'GMT+8', value: 480 },
+    { label: 'GMT+9', value: 540 },
+    { label: 'GMT+10', value: 600 },
+    { label: 'GMT+11', value: 660 },
+    { label: 'GMT+12', value: 720 },
+  ];
 
   constructor(
     private repo: RepoService,
@@ -193,8 +222,8 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Initialize timezone display
-    this.userTimezoneDisplay = this.formatTimezoneDisplay();
+    // Initialize timezone display based on selected GMT offset
+    this.userTimezoneDisplay = this.formatTimezoneDisplayFromOffset(this.selectedGmtOffset);
 
     // Subscribe to language changes to refresh date formatting
     this.langSubscription = this.languageService.currentLanguage$.subscribe(() => {
@@ -1945,10 +1974,17 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Format timezone display based on user's local timezone offset
+   * Format timezone display based on user's local timezone offset (original method)
    */
   private formatTimezoneDisplay(): string {
     const offsetMinutes = -new Date().getTimezoneOffset();
+    return this.formatTimezoneDisplayFromOffset(offsetMinutes);
+  }
+
+  /**
+   * Format timezone display from a given offset in minutes
+   */
+  private formatTimezoneDisplayFromOffset(offsetMinutes: number): string {
     const hours = Math.floor(Math.abs(offsetMinutes) / 60);
     const minutes = Math.abs(offsetMinutes) % 60;
     const sign = offsetMinutes >= 0 ? '+' : '-';
@@ -1958,5 +1994,41 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     } else {
       return `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
     }
+  }
+
+  /**
+   * Handle GMT offset change from dropdown
+   */
+  onGmtOffsetChange(): void {
+    this.userTimezoneDisplay = this.formatTimezoneDisplayFromOffset(this.selectedGmtOffset);
+    // Refresh all time displays
+    this.refreshDateFormatting();
+  }
+
+  /**
+   * Convert a UTC date to the selected timezone for display
+   */
+  convertToSelectedTimezone(utcDateStr: string): Date {
+    const utcDate = new Date(utcDateStr);
+    const offsetMs = this.selectedGmtOffset * 60 * 1000;
+    return new Date(utcDate.getTime() + offsetMs);
+  }
+
+  /**
+   * Format time in selected timezone
+   */
+  formatTimeInSelectedTimezone(utcDateStr: string): string {
+    const localDate = this.convertToSelectedTimezone(utcDateStr);
+    const hours = localDate.getUTCHours().toString().padStart(2, '0');
+    const minutes = localDate.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  /**
+   * Format date in selected timezone
+   */
+  formatDateInSelectedTimezone(utcDateStr: string): string {
+    const localDate = this.convertToSelectedTimezone(utcDateStr);
+    return this.dateLocale.formatDayMonth(localDate);
   }
 }
