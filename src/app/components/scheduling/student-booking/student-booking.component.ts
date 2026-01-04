@@ -56,6 +56,7 @@ export class StudentBookingComponent implements OnInit {
   dateFilter: string = '';
   durationFilter: number = 0;
   minRating: number = 0;
+  minDate: string = '';
 
   // Timezone display
   userTimezoneDisplay: string = 'GMT+0';
@@ -94,8 +95,20 @@ export class StudentBookingComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Set minimum date to today
+    const today = new Date();
+    this.minDate = today.toISOString().split('T')[0];
+    this.dateFilter = this.minDate;
+    
     this.loadTeachers();
     this.loadMyBookings();
+  }
+  
+  // Called when date changes in slots view
+  onDateChange(): void {
+    if (this.selectedTeacher && this.dateFilter) {
+      this.loadTeacherSlots(this.selectedTeacher);
+    }
   }
 
   // View Navigation

@@ -977,6 +977,7 @@
     "NO_TEACHERS_FOUND": "لم يتم العثور على معلمين",
     "TRY_DIFFERENT_FILTERS": "حاول تعديل الفلاتر للعثور على المزيد",
     "SELECT_TIME_SLOT": "اختر وقتاً للحجز",
+    "SELECT_DATE": "اختر التاريخ",
     "TIMES_IN_YOUR_TIMEZONE": "جميع الأوقات معروضة بتوقيتك المحلي",
     "NO_SLOTS_AVAILABLE": "لا توجد أوقات متاحة",
     "TRY_ANOTHER_DATE": "حاول اختيار تاريخ آخر",

@@ -70,6 +70,40 @@ $card-bg: #ffffff;
   }
 }
 
+// Date Picker Section
+.date-picker-section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: $card-bg;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(13, 107, 31, 0.08);
+
+  label {
+    font-weight: 600;
+    color: $text-dark;
+    white-space: nowrap;
+  }
+
+  .date-input {
+    flex: 1;
+    max-width: 200px;
+    padding: 0.5rem 1rem;
+    border: 1px solid $border-color;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.2s;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-green;
+      box-shadow: 0 0 0 3px rgba(13, 107, 31, 0.1);
+    }
+  }
+}
+
 // Timezone Notice
 .timezone-notice {
   display: flex;

@@ -978,6 +978,7 @@
     "NO_TEACHERS_FOUND": "No Teachers Found",
     "TRY_DIFFERENT_FILTERS": "Try adjusting your filters to find more teachers",
     "SELECT_TIME_SLOT": "Select a time slot to book",
+    "SELECT_DATE": "Select Date",
     "TIMES_IN_YOUR_TIMEZONE": "All times shown in your local timezone",
     "NO_SLOTS_AVAILABLE": "No Slots Available",
     "TRY_ANOTHER_DATE": "Try selecting another date",

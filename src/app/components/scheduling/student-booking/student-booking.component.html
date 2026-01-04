@@ -144,6 +144,16 @@
       </div>
     </div>
 
+    <!-- Date Picker for Slots -->
+    <div class="date-picker-section">
+      <label>{{ 'SCHEDULING.SELECT_DATE' | translate }}</label>
+      <input type="date" 
+             [(ngModel)]="dateFilter" 
+             (change)="onDateChange()"
+             class="form-control date-input"
+             [min]="minDate">
+    </div>
+
     <!-- Timezone Notice -->
     <div class="timezone-notice">
       <i class="fas fa-globe"></i>
