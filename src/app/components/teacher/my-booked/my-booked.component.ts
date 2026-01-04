@@ -304,27 +304,35 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         }
 
         if (data.profile.availability) {
-          this.availabilitySlots = data.profile.availability.map((slot: any) => ({
-            id: slot.id,
-            dayOfWeek: slot.dayOfWeek ?? slot.day,
-            startTime: slot.startTime || slot.fromTime,
-            endTime: slot.endTime || slot.toTime,
-            isRecurring: slot.isRecurring ?? false,
-            isBooked: !!slot.studentId || !!slot.bookedBy,
-            studentId: slot.studentId,
-            studentName: slot.studentName,
-            bookingId: slot.bookingId,
-            price: slot.price || this.defaultHourlyRate,
-            // Non-recurring slot specific date fields
-            date: slot.date,
-            startDateTime: slot.startDateTime,
-            endDateTime: slot.endDateTime,
-          }));
+          this.availabilitySlots = data.profile.availability.map((slot: any) => {
+            // Convert ISO datetime to YYYY-MM-DD format for date field
+            let dateStr: string | undefined;
+            if (slot.date) {
+              const dateObj = new Date(slot.date);
+              dateStr = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+            }
+            return {
+              id: slot.id,
+              dayOfWeek: slot.dayOfWeek ?? slot.day,
+              startTime: slot.startTime || slot.fromTime,
+              endTime: slot.endTime || slot.toTime,
+              isRecurring: slot.isRecurring ?? false,
+              isBooked: !!slot.studentId || !!slot.bookedBy,
+              studentId: slot.studentId,
+              studentName: slot.studentName,
+              bookingId: slot.bookingId,
+              price: slot.price || this.defaultHourlyRate,
+              // Non-recurring slot specific date fields - date converted to YYYY-MM-DD
+              date: dateStr,
+              startDateTime: slot.startDateTime,
+              endDateTime: slot.endDateTime,
+            };
+          });
           
           // Debug: Log loaded availability slots
           console.log('Loaded availability slots from backend:', this.availabilitySlots);
           this.availabilitySlots.forEach((slot, index) => {
-            console.log(`Loaded slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, recurring=${slot.isRecurring}`);
+            console.log(`Loaded slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, recurring=${slot.isRecurring}, date=${slot.date}`);
           });
           
           this.updateCounts();
@@ -561,11 +569,14 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         let slotDate: Date;
         let dateStr: string;
         
+        console.log(`Processing non-recurring slot: id=${slot.id}, date=${slot.date}, isRecurring=${slot.isRecurring}`);
+        
         if (slot.date) {
           // Use the saved specific date for non-recurring slot
           const [year, month, day] = slot.date.split('-').map(Number);
           slotDate = new Date(year, month - 1, day);
           dateStr = slot.date;
+          console.log(`Non-recurring slot parsed: dateStr=${dateStr}, slotDate=${slotDate.toISOString()}`);
         } else {
           // Fallback: calculate from dayOfWeek for current week only
           const currentDayOfWeek = today.getDay();
@@ -603,6 +614,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           studentName: slot.studentName,
           price: slot.price,
         });
+        console.log(`Non-recurring event added: start=${dateStr}T${slot.startTime}, end=${endDateStr}T${slot.endTime}`);
       }
     });
 
