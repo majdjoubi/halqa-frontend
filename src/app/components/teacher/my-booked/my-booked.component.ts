@@ -1011,10 +1011,11 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     
     // Add specific date for non-recurring slots
     if (!formValue.isRecurring) {
-      newSlot.date = formValue.date; // YYYY-MM-DD format
       // Create full ISO datetime for the slot - convert to UTC using toISOString()
       const startDate = new Date(`${formValue.date}T${formValue.fromTime}:00`);
       newSlot.startDateTime = startDate.toISOString();
+      // date should also be ISO format for backend compatibility
+      newSlot.date = new Date(`${formValue.date}T00:00:00`).toISOString();
       
       // Handle midnight (00:00) end time - it means the next day
       if (formValue.toTime === '00:00') {
@@ -1111,7 +1112,8 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           dayOfWeek: slot.dayOfWeek,
           startTime: startTime,
           endTime: endTime,
-          isRecurring: slot.isRecurring ?? true,
+          // isRecurring: if explicitly set, use that value; otherwise check if date fields exist
+          isRecurring: slot.isRecurring !== undefined ? slot.isRecurring : !((slot as any).date || (slot as any).startDateTime),
           isAvailable: true, // Always true when saving availability
         };
         // Include date/datetime for non-recurring slots
@@ -1132,7 +1134,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     
     // Log each slot's times for debugging
     updateData.availability.forEach((slot: any, index: number) => {
-      console.log(`Slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, isRecurring=${slot.isRecurring}`);
+      console.log(`Slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, isRecurring=${slot.isRecurring}, date=${slot.date}, startDateTime=${slot.startDateTime}`);
     });
 
     this.repo.EditOrUpdateTeacherProfile(updateData).subscribe({
@@ -1153,7 +1155,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         this.isSavingAvailability = false;
         this.pendingRecurringSlot = null;
         console.error('Error saving availability:', err);
-        this.showErrorModal(this.translate.instant('common.error'), this.translate.instant('my_booked_page.messages.save_error'));
+        console.error('Error details:', err?.error?.message || err?.error?.errors || err?.message);
+        const errorMessage = err?.error?.message || err?.error?.errors?.join(', ') || this.translate.instant('my_booked_page.messages.save_error');
+        this.showErrorModal(this.translate.instant('common.error'), errorMessage);
       },
     });
   }
