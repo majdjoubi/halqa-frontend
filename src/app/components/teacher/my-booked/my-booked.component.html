@@ -152,19 +152,89 @@
       <span class="mecca-badge">GMT+3</span>
     </div>
 
-    <!-- Calendar View -->
-    <div *ngIf="view === 'calendar'" class="calendar-view">
-      <app-lesson-calendar
-        [userRole]="'teacher'"
-        [lessons]="calendarLessons"
-        [isLoading]="isLoading"
-        [gmtOffset]="selectedGmtOffset"
-        (eventClick)="onCalendarEventClick($event)"
-        (dateClick)="onCalendarDateClick($event)"
-        (eventDrop)="onCalendarEventDrop($event)"
-        (eventResize)="onCalendarEventResize($event)"
-        (select)="onCalendarSelect($event)"
-      ></app-lesson-calendar>
+    <!-- Calendar View - Simplified -->
+    <div *ngIf="view === 'calendar'" class="calendar-view simplified-calendar">
+      <div class="calendar-layout">
+        <!-- Left: Date Picker -->
+        <div class="date-picker-section">
+          <app-simple-date-picker
+            [availableDates]="availableDates"
+            [selectedDate]="selectedCalendarDate"
+            [rtl]="isRtl"
+            [allowAllFutureDates]="true"
+            (dateSelected)="onCalendarDateSelected($event)"
+          ></app-simple-date-picker>
+        </div>
+
+        <!-- Right: Hours Grid -->
+        <div class="time-slots-section">
+          <div *ngIf="!selectedCalendarDate" class="select-date-prompt">
+            <i class="fas fa-calendar-alt"></i>
+            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
+          </div>
+
+          <div *ngIf="selectedCalendarDate" class="slots-container">
+            <div class="slots-header">
+              <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
+              <!-- Group Session Mode Toggle Button -->
+              <button 
+                class="group-mode-toggle"
+                [class.active]="isGroupSessionMode"
+                (click)="toggleGroupSessionMode()"
+                [title]="isGroupSessionMode ? ('my_booked_page.group_mode.deactivate' | translate) : ('my_booked_page.group_mode.activate' | translate)"
+              >
+                <i class="fas fa-users"></i>
+                <span>{{ 'my_booked_page.group_mode.label' | translate }}</span>
+              </button>
+            </div>
+
+            <div class="hours-grid" [class.group-mode]="isGroupSessionMode">
+              <div 
+                *ngFor="let slot of allTimeSlots"
+                class="hour-slot"
+                [class.available]="slot.isAvailable && !slot.isBooked && !slot.isGroupSession"
+                [class.booked]="slot.isBooked && !slot.isGroupSession"
+                [class.group-session]="slot.isGroupSession"
+                [class.past]="slot.isPast"
+                [class.saving]="slot.isSaving"
+                [title]="slot.isBooked ? slot.studentName : (slot.isGroupSession ? slot.groupSessionTitle : '')"
+                (click)="toggleSlot(slot)"
+              >
+                <span class="hour-time">{{ slot.time }}</span>
+                
+                <!-- Delete button for available (not booked) slots -->
+                <button 
+                  class="hour-delete"
+                  *ngIf="slot.isAvailable && !slot.isBooked && !slot.isGroupSession && !slot.isPast"
+                  (click)="removeSlot(slot); $event.stopPropagation()"
+                  [disabled]="slot.isSaving"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Booked indicator -->
+                <i *ngIf="slot.isBooked && !slot.isGroupSession" class="fas fa-user booked-icon"></i>
+
+                <!-- Group session indicator -->
+                <i *ngIf="slot.isGroupSession" class="fas fa-users group-icon"></i>
+
+                <!-- Student name tooltip on hover -->
+                <span *ngIf="slot.isBooked && !slot.isGroupSession" class="student-tooltip">{{ slot.studentName }}</span>
+
+                <!-- Group session tooltip on hover -->
+                <span *ngIf="slot.isGroupSession" class="group-tooltip">
+                  {{ slot.groupSessionTitle }}
+                  <br>
+                  <small>{{ slot.participantsCount }}/{{ slot.maxParticipants }}</small>
+                </span>
+
+                <!-- Saving spinner -->
+                <span *ngIf="slot.isSaving" class="hour-spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Availability View -->
@@ -783,5 +853,105 @@
     <button class="btn btn-primary" (click)="closeResponseModal()">
       {{ "common.ok" | translate }}
     </button>
+  </div>
+</div>
+
+<!-- Group Session Modal -->
+<div class="modal-overlay group-session-modal-overlay" *ngIf="showGroupSessionModal" (click)="closeGroupSessionModal()">
+  <div class="modal-content group-session-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fas fa-users"></i>
+        {{ 'my_booked_page.group_session.title' | translate }}
+      </h3>
+      <button class="close-btn" (click)="closeGroupSessionModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="session-time-info">
+        <i class="fas fa-clock"></i>
+        <span>{{ selectedCalendarDate }} - {{ selectedGroupSessionTime }}</span>
+      </div>
+
+      <form [formGroup]="groupSessionForm" (ngSubmit)="createGroupSession()">
+        <!-- Title -->
+        <div class="form-group">
+          <label for="gsTitle">
+            {{ 'my_booked_page.group_session.session_title' | translate }} *
+          </label>
+          <input 
+            type="text" 
+            id="gsTitle" 
+            formControlName="title"
+            [placeholder]="'my_booked_page.group_session.title_placeholder' | translate"
+            class="form-control"
+          >
+          <div class="error-text" *ngIf="groupSessionForm.get('title')?.touched && groupSessionForm.get('title')?.errors?.['required']">
+            {{ 'my_booked_page.group_session.title_required' | translate }}
+          </div>
+        </div>
+
+        <!-- Price per Student -->
+        <div class="form-group">
+          <label for="gsPrice">
+            {{ 'my_booked_page.group_session.price_per_student' | translate }} ($)
+          </label>
+          <input 
+            type="number" 
+            id="gsPrice" 
+            formControlName="price"
+            min="0"
+            max="10000"
+            class="form-control"
+          >
+        </div>
+
+        <!-- Max Participants -->
+        <div class="form-group">
+          <label for="gsMaxParticipants">
+            {{ 'my_booked_page.group_session.max_participants' | translate }}
+          </label>
+          <input 
+            type="number" 
+            id="gsMaxParticipants" 
+            formControlName="maxParticipants"
+            min="2"
+            max="50"
+            class="form-control"
+          >
+        </div>
+
+        <!-- Description (optional) -->
+        <div class="form-group">
+          <label for="gsDescription">
+            {{ 'my_booked_page.group_session.description' | translate }}
+          </label>
+          <textarea 
+            id="gsDescription" 
+            formControlName="description"
+            rows="3"
+            [placeholder]="'my_booked_page.group_session.description_placeholder' | translate"
+            class="form-control"
+          ></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeGroupSessionModal()" [disabled]="isSavingGroupSession">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button 
+        class="btn btn-primary btn-purple" 
+        (click)="createGroupSession()"
+        [disabled]="groupSessionForm.invalid || isSavingGroupSession"
+      >
+        <i class="fas fa-plus" *ngIf="!isSavingGroupSession"></i>
+        <span *ngIf="!isSavingGroupSession">{{ 'my_booked_page.group_session.create' | translate }}</span>
+        <span *ngIf="isSavingGroupSession">{{ 'common.saving' | translate }}...</span>
+      </button>
+    </div>
   </div>
 </div>

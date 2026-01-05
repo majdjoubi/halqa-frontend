@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { take, filter } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { RepoService } from '../../../Repositories/repo.service';
 import { LessonCalendarComponent, LessonEvent } from '../../../shared/shared-component/lesson-calendar/lesson-calendar.component';
@@ -16,6 +17,25 @@ import {
   getGroupStatusLabel,
   getIndividualStatusLabel
 } from '../../../shared/enums/session-status.enum';
+import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
+
+// Time slot interface for simplified calendar
+interface TimeSlotDisplay {
+  time: string;       // e.g., "00:00"
+  endTime: string;    // e.g., "01:00"
+  isAvailable: boolean;
+  isBooked: boolean;
+  isPast: boolean;
+  slotId?: number;
+  isSaving?: boolean;
+  studentName?: string;
+  // Group session properties
+  isGroupSession?: boolean;
+  groupSessionId?: number;
+  groupSessionTitle?: string;
+  participantsCount?: number;
+  maxParticipants?: number;
+}
 
 // Availability slot interface
 interface AvailabilitySlot {
@@ -67,7 +87,7 @@ interface Booking {
 @Component({
   selector: 'app-my-booked',
   standalone: true,
-  imports: [CommonModule, TranslateModule, LessonCalendarComponent, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, TranslateModule, LessonCalendarComponent, FormsModule, ReactiveFormsModule, SimpleDatePickerComponent],
   templateUrl: './my-booked.component.html',
   styleUrl: './my-booked.component.scss',
 })
@@ -82,6 +102,8 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
   // Language subscription for refreshing dates on language change
   private langSubscription?: Subscription;
+  // Profile data subscription
+  private profileSubscription?: Subscription;
 
   // Cached counts to avoid recalculating on every change detection
   private _individualCount = 0;
@@ -164,6 +186,20 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   availabilityFilter: 'all' | 'available' | 'booked' = 'all';
   dateRangeFilter: 'week' | 'month' | 'all' = 'week';
 
+  // ===== SIMPLIFIED CALENDAR =====
+  selectedCalendarDate: string | null = null;
+  allTimeSlots: TimeSlotDisplay[] = [];
+  isRtl: boolean = false;
+  savingSlots: Set<string> = new Set(); // Track which slots are being saved
+
+  // ===== GROUP SESSION MODE =====
+  isGroupSessionMode: boolean = false;
+  showGroupSessionModal: boolean = false;
+  selectedGroupSessionTime: string = '';
+  groupSessionForm!: FormGroup;
+  isSavingGroupSession: boolean = false;
+
+
   // Timezone - Fixed to Mecca time (GMT+3)
   userTimezoneDisplay: string = 'GMT+3';
   selectedGmtOffset: number = 180; // Fixed to GMT+3 (Mecca time)
@@ -190,6 +226,14 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       toTime: ['10:00', Validators.required],
       price: [this.defaultHourlyRate, [Validators.required, Validators.min(0)]],
       isRecurring: [false],
+    });
+
+    // Group session form
+    this.groupSessionForm = this.fb.group({
+      title: ['', [Validators.required, Validators.maxLength(200)]],
+      price: [this.defaultHourlyRate, [Validators.required, Validators.min(0), Validators.max(10000)]],
+      maxParticipants: [10, [Validators.required, Validators.min(2), Validators.max(50)]],
+      description: ['', Validators.maxLength(1000)],
     });
   }
 
@@ -295,17 +339,20 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       },
     });
 
-    this.facadeProfilesService.getTeacherProfileData$.subscribe((data) => {
-      if (data?.profile) {
-        // Get default hourly rate from teacher profile
-        if (data.profile.hourlyRate) {
-          this.defaultHourlyRate = data.profile.hourlyRate;
-          // Update form with new default price
-          this.addAvailabilityForm.patchValue({ price: this.defaultHourlyRate });
-        }
+    // Use take(1) and filter to get only one emission with valid data
+    this.profileSubscription = this.facadeProfilesService.getTeacherProfileData$.pipe(
+      filter((data) => !!data?.profile),
+      take(1)
+    ).subscribe((data) => {
+      // Get default hourly rate from teacher profile
+      if (data.profile.hourlyRate) {
+        this.defaultHourlyRate = data.profile.hourlyRate;
+        // Update form with new default price
+        this.addAvailabilityForm.patchValue({ price: this.defaultHourlyRate });
+      }
 
-        if (data.profile.availability) {
-          this.availabilitySlots = data.profile.availability.map((slot: any) => {
+      if (data.profile.availability) {
+        this.availabilitySlots = data.profile.availability.map((slot: any) => {
             // Convert UTC times to Mecca timezone for display
             let dateStr: string | undefined;
             let displayStartTime: string | undefined;
@@ -366,16 +413,13 @@ export class MyBookedComponent implements OnInit, OnDestroy {
             };
           });
           
-          // Debug: Log loaded availability slots
-          console.log('Loaded availability slots from backend:', this.availabilitySlots);
-          this.availabilitySlots.forEach((slot, index) => {
-            console.log(`Loaded slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, recurring=${slot.isRecurring}, date=${slot.date}`);
-          });
-          
-          this.updateCounts();
-          this.updateCalendarLessons();
-        }
+        // Debug: Log loaded availability slots
+        console.log('Loaded availability slots from backend:', this.availabilitySlots);
+        this.availabilitySlots.forEach((slot, index) => {
+          console.log(`Loaded slot ${index}: day=${slot.dayOfWeek}, start=${slot.startTime}, end=${slot.endTime}, recurring=${slot.isRecurring}, date=${slot.date}`);
+        });
       }
+      // Note: updateCounts and updateCalendarLessons are called in finishRequest()
       this.finishRequest();
     });
   }
@@ -390,10 +434,574 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     if (this.pendingRequests === 0) {
       this.isLoading = false;
       this.hasLoaded = true;
+      
+      // Deduplicate bookings by id to prevent duplicate display
+      this.bookings = this.bookings.filter((booking, index, self) =>
+        index === self.findIndex((b) => b.id === booking.id)
+      );
+      
       // Update cached counts and calendar lessons when all requests complete
       this.updateCounts();
       this.updateCalendarLessons();
+      
+      // Initialize simplified calendar if date selected
+      if (this.selectedCalendarDate) {
+        this.generateTimeSlotsForDate(this.selectedCalendarDate);
+      }
     }
+  }
+
+  // ===== SIMPLIFIED CALENDAR METHODS =====
+
+  /**
+   * Get all dates that have availability (for SimpleDatePicker highlighting)
+   * Only returns dates with actual availability slots - not all future dates
+   */
+  get availableDates(): string[] {
+    const dates = new Set<string>();
+    
+    // Add dates from existing availability slots only
+    for (const slot of this.availabilitySlots) {
+      if (slot.date) {
+        dates.add(slot.date);
+      }
+    }
+    
+    // Also add dates that have group sessions
+    for (const booking of this.bookings) {
+      if (booking.type === 'group' && booking.rawDateTime) {
+        const dateStr = booking.rawDateTime.split('T')[0];
+        dates.add(dateStr);
+      }
+    }
+    
+    return Array.from(dates).sort();
+  }
+
+  /**
+   * Called when a date is selected from the SimpleDatePicker
+   */
+  onCalendarDateSelected(dateStr: string): void {
+    this.selectedCalendarDate = dateStr;
+    this.generateTimeSlotsForDate(dateStr);
+  }
+
+  /**
+   * Generate 24 hourly time slots for a selected date
+   */
+  generateTimeSlotsForDate(dateStr: string): void {
+    const slots: TimeSlotDisplay[] = [];
+    
+    // Get existing availability for this date
+    const existingSlots = this.availabilitySlots.filter(s => s.date === dateStr);
+    
+    // Get booked slots for this date (individual)
+    const bookedSlots = this.bookings.filter(b => {
+      if (!b.rawDateTime) return false;
+      const bookingDate = b.rawDateTime.split('T')[0];
+      return bookingDate === dateStr && b.type === 'individual';
+    });
+
+    // Get group sessions for this date
+    const groupSessionsForDate = this.bookings.filter(b => {
+      if (!b.rawDateTime || b.type !== 'group') return false;
+      const sessionDate = b.rawDateTime.split('T')[0];
+      return sessionDate === dateStr;
+    });
+
+    // Check if date is today to determine past hours
+    const now = new Date();
+    const currentHour = now.getHours();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const isToday = dateStr === todayStr;
+    const isPastDate = dateStr < todayStr;
+
+    // Generate 24 hourly slots (00:00 to 23:00)
+    for (let hour = 0; hour < 24; hour++) {
+      const startTime = `${String(hour).padStart(2, '0')}:00`;
+      const endHour = (hour + 1) % 24;
+      const endTime = `${String(endHour).padStart(2, '0')}:00`;
+
+      // Check if this slot is already available
+      const existingSlot = existingSlots.find(s => {
+        const slotStart = s.startTime.includes('T') ? s.startTime.split('T')[1].substring(0, 5) : s.startTime.substring(0, 5);
+        return slotStart === startTime;
+      });
+
+      // Check if this slot is booked and get student name (individual)
+      const bookedSlot = bookedSlots.find(b => {
+        if (!b.rawDateTime) return false;
+        const bookingTime = b.rawDateTime.split('T')[1]?.substring(0, 5);
+        return bookingTime === startTime;
+      });
+      const isBooked = !!bookedSlot || (existingSlot?.isBooked ?? false);
+      const studentName = bookedSlot?.name || existingSlot?.studentName || '';
+
+      // Check if this slot has a group session
+      const groupSession = groupSessionsForDate.find(g => {
+        if (!g.rawDateTime) return false;
+        const sessionTime = g.rawDateTime.split('T')[1]?.substring(0, 5);
+        return sessionTime === startTime;
+      });
+
+      // Check if hour is in the past
+      const isPast = isPastDate || (isToday && hour <= currentHour);
+
+      slots.push({
+        time: startTime,
+        endTime: endTime,
+        isAvailable: !!existingSlot && !groupSession,
+        isBooked: isBooked && !groupSession,
+        isPast: isPast,
+        slotId: existingSlot?.id,
+        isSaving: this.savingSlots.has(`${dateStr}-${startTime}`),
+        studentName: studentName,
+        // Group session properties
+        isGroupSession: !!groupSession,
+        groupSessionId: groupSession ? Number(groupSession.id) : undefined,
+        groupSessionTitle: groupSession?.title || '',
+        participantsCount: groupSession?.currentParticipants || 0,
+        maxParticipants: groupSession?.maxParticipants || 0,
+      });
+    }
+
+    this.allTimeSlots = slots;
+  }
+
+  /**
+   * Toggle slot availability (click to add, already handled removal separately)
+   */
+  toggleSlot(slot: TimeSlotDisplay): void {
+    if (slot.isPast || slot.isSaving || slot.isBooked || slot.isGroupSession) return;
+    
+    // Check if group session mode is active
+    if (this.isGroupSessionMode) {
+      // Open group session modal for this time
+      this.selectedGroupSessionTime = slot.time;
+      this.showGroupSessionModal = true;
+      // Reset form with defaults
+      this.groupSessionForm.patchValue({
+        title: '',
+        price: this.defaultHourlyRate,
+        maxParticipants: 10,
+        description: '',
+      });
+      return;
+    }
+
+    if (!slot.isAvailable) {
+      this.addSlot(slot);
+    }
+    // Removal is handled by the X button
+  }
+
+  /**
+   * Add a 1-hour availability slot
+   */
+  addSlot(slot: TimeSlotDisplay): void {
+    if (!this.selectedCalendarDate || slot.isAvailable || slot.isSaving || slot.isPast) return;
+    
+    // Check for conflicts with group sessions
+    const conflictingGroupSession = this.allTimeSlots.find(s => 
+      s.time === slot.time && s.isGroupSession
+    );
+    if (conflictingGroupSession) {
+      this.showErrorModal(
+        this.translate.instant('common.error'),
+        this.translate.instant('my_booked_page.messages.conflict_error')
+      );
+      return;
+    }
+
+    const slotKey = `${this.selectedCalendarDate}-${slot.time}`;
+    this.savingSlots.add(slotKey);
+    slot.isSaving = true;
+
+    const [hours] = slot.time.split(':').map(Number);
+    
+    // Subtract 3 hours for Mecca timezone (GMT+3) conversion to UTC
+    let utcStartHour = hours - 3;
+    let utcEndHour = (hours + 1) - 3;
+    let startDate = this.selectedCalendarDate;
+    let endDate = this.selectedCalendarDate;
+    
+    // Handle day rollback for start time
+    if (utcStartHour < 0) {
+      utcStartHour += 24;
+      const dateParts = this.selectedCalendarDate.split('-');
+      const prevDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) - 1);
+      startDate = `${prevDay.getFullYear()}-${String(prevDay.getMonth() + 1).padStart(2, '0')}-${String(prevDay.getDate()).padStart(2, '0')}`;
+    }
+    
+    // Handle day rollback for end time
+    if (utcEndHour < 0) {
+      utcEndHour += 24;
+      const dateParts = this.selectedCalendarDate.split('-');
+      const prevDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) - 1);
+      endDate = `${prevDay.getFullYear()}-${String(prevDay.getMonth() + 1).padStart(2, '0')}-${String(prevDay.getDate()).padStart(2, '0')}`;
+    } else if (utcEndHour >= 24) {
+      utcEndHour -= 24;
+      const dateParts = this.selectedCalendarDate.split('-');
+      const nextDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) + 1);
+      endDate = `${nextDay.getFullYear()}-${String(nextDay.getMonth() + 1).padStart(2, '0')}-${String(nextDay.getDate()).padStart(2, '0')}`;
+    }
+
+    // Build ISO strings with Z suffix (UTC time)
+    const startTimeISO = `${startDate}T${String(utcStartHour).padStart(2, '0')}:00:00.000Z`;
+    const endTimeISO = `${endDate}T${String(utcEndHour).padStart(2, '0')}:00:00.000Z`;
+
+    const date = new Date(this.selectedCalendarDate + 'T00:00:00');
+
+    const newSlot: any = {
+      dayOfWeek: date.getDay(),
+      startTime: startTimeISO,
+      endTime: endTimeISO,
+      isRecurring: false,
+      price: this.defaultHourlyRate,
+      date: this.selectedCalendarDate,
+      startDateTime: startTimeISO,
+      endDateTime: endTimeISO,
+    };
+
+    this.saveSlotToServerQuick(newSlot, slotKey);
+  }
+
+  /**
+   * Quick save slot to server without modal
+   */
+  private saveSlotToServerQuick(newSlot: any, ...slotKeys: string[]): void {
+    const currentAvailability = [...this.availabilitySlots];
+    currentAvailability.push(newSlot as AvailabilitySlot);
+
+    const extractTimeHHMM = (time: string): string => {
+      if (!time) return '00:00';
+      if (time.includes('T')) {
+        const timePart = time.split('T')[1];
+        if (timePart) return timePart.substring(0, 5);
+      }
+      if (time.length >= 5 && time[2] === ':') return time.substring(0, 5);
+      return time;
+    };
+
+    const updateData = {
+      availability: currentAvailability.map(slot => {
+        const startTime = extractTimeHHMM(slot.startTime);
+        const endTime = extractTimeHHMM(slot.endTime);
+        
+        const slotData: any = {
+          dayOfWeek: slot.dayOfWeek,
+          startTime: startTime,
+          endTime: endTime,
+          isRecurring: false,
+          isAvailable: true,
+        };
+        
+        if (slot.date) {
+          slotData.specificDate = slot.date;
+          slotData.date = slot.date;
+        }
+        if (slot.startDateTime) {
+          slotData.startDateTime = slot.startDateTime;
+        }
+        
+        return slotData;
+      })
+    };
+
+    this.repo.EditOrUpdateTeacherProfile(updateData).subscribe({
+      next: () => {
+        // Reload availability from backend to get proper IDs
+        this.reloadAvailabilityAndRefresh(slotKeys);
+      },
+      error: (err) => {
+        console.error('Error saving slot:', err);
+        slotKeys.forEach(key => this.savingSlots.delete(key));
+        
+        // Refresh to show correct state
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+        
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          this.translate.instant('my_booked_page.messages.save_error')
+        );
+      }
+    });
+  }
+
+  /**
+   * Reload availability slots from backend and refresh the display
+   */
+  private reloadAvailabilityAndRefresh(slotKeys: string[]): void {
+    this.facadeProfilesService.getTeacherProfile().subscribe({
+      next: () => {
+        // Data will come through the observable
+      },
+      error: (err) => {
+        console.error('Failed to reload availability', err);
+        slotKeys.forEach(key => this.savingSlots.delete(key));
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+      },
+    });
+
+    this.facadeProfilesService.getTeacherProfileData$.pipe(
+      filter((data) => !!data?.profile),
+      take(1)
+    ).subscribe((data) => {
+      if (data.profile.availability) {
+        this.availabilitySlots = data.profile.availability.map((slot: any) => {
+          let dateStr: string | undefined;
+          let displayStartTime: string | undefined;
+          let displayEndTime: string | undefined;
+          
+          if (slot.startDateTime) {
+            const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
+            const meccaEnd = slot.endDateTime 
+              ? this.luxonDate.fromServerTimeToMecca(slot.endDateTime)
+              : meccaStart.plus({ hours: 1 });
+            
+            if (meccaStart.isValid) {
+              dateStr = meccaStart.toFormat('yyyy-MM-dd');
+              displayStartTime = meccaStart.toFormat('HH:mm');
+              displayEndTime = meccaEnd.toFormat('HH:mm');
+            }
+          } else if (slot.date) {
+            const startTimeStr = slot.startTime || slot.fromTime || '09:00';
+            const endTimeStr = slot.endTime || slot.toTime || '10:00';
+            dateStr = slot.date;
+            displayStartTime = startTimeStr.substring(0, 5);
+            displayEndTime = endTimeStr.substring(0, 5);
+          }
+          
+          return {
+            id: slot.id,
+            dayOfWeek: slot.dayOfWeek ?? slot.day,
+            startTime: displayStartTime || slot.startTime || slot.fromTime,
+            endTime: displayEndTime || slot.endTime || slot.toTime,
+            isRecurring: slot.isRecurring ?? false,
+            isBooked: slot.isBooked ?? false,
+            studentId: slot.studentId,
+            studentName: slot.studentName,
+            bookingId: slot.bookingId,
+            price: slot.price,
+            date: dateStr,
+            startDateTime: slot.startDateTime,
+            endDateTime: slot.endDateTime,
+          };
+        });
+        
+        console.log('Reloaded availability slots:', this.availabilitySlots.length);
+      }
+      
+      this.updateCounts();
+      this.updateCalendarLessons();
+      
+      // Refresh the time slots display
+      if (this.selectedCalendarDate) {
+        this.generateTimeSlotsForDate(this.selectedCalendarDate);
+      }
+      
+      // Clear saving state
+      slotKeys.forEach(key => this.savingSlots.delete(key));
+    });
+  }
+
+  /**
+   * Remove an availability slot
+   */
+  removeSlot(slot: TimeSlotDisplay): void {
+    if (!this.selectedCalendarDate || !slot.isAvailable || slot.isBooked || !slot.slotId) return;
+    
+    const slotKey = `${this.selectedCalendarDate}-${slot.time}`;
+    this.savingSlots.add(slotKey);
+    slot.isSaving = true;
+
+    // Remove from local list
+    const updatedSlots = this.availabilitySlots.filter(s => s.id !== slot.slotId);
+
+    const extractTimeHHMM = (time: string): string => {
+      if (!time) return '00:00';
+      if (time.includes('T')) {
+        const timePart = time.split('T')[1];
+        if (timePart) return timePart.substring(0, 5);
+      }
+      if (time.length >= 5 && time[2] === ':') return time.substring(0, 5);
+      return time;
+    };
+
+    const updateData = {
+      availability: updatedSlots.map(s => ({
+        dayOfWeek: s.dayOfWeek,
+        startTime: extractTimeHHMM(s.startTime),
+        endTime: extractTimeHHMM(s.endTime),
+        isRecurring: false,
+        isAvailable: true,
+        specificDate: s.date,
+        date: s.date,
+        startDateTime: s.startDateTime,
+      }))
+    };
+
+    this.repo.EditOrUpdateTeacherProfile(updateData).subscribe({
+      next: () => {
+        this.availabilitySlots = updatedSlots;
+        this.updateCounts();
+        this.updateCalendarLessons();
+        
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+        
+        this.savingSlots.delete(slotKey);
+      },
+      error: (err) => {
+        console.error('Error removing slot:', err);
+        this.savingSlots.delete(slotKey);
+        
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+        
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          this.translate.instant('my_booked_page.messages.delete_error')
+        );
+      }
+    });
+  }
+
+  /**
+   * Get selected day name for display
+   */
+  getSelectedDayName(): string {
+    if (!this.selectedCalendarDate) return '';
+    const date = new Date(this.selectedCalendarDate + 'T00:00:00');
+    const dayIndex = date.getDay();
+    return this.getDayName(dayIndex);
+  }
+
+  // ===== GROUP SESSION MODE METHODS =====
+
+  /**
+   * Toggle group session mode on/off
+   */
+  toggleGroupSessionMode(): void {
+    this.isGroupSessionMode = !this.isGroupSessionMode;
+  }
+
+  /**
+   * Close group session modal
+   */
+  closeGroupSessionModal(): void {
+    this.showGroupSessionModal = false;
+    this.selectedGroupSessionTime = '';
+    this.groupSessionForm.reset({
+      title: '',
+      price: this.defaultHourlyRate,
+      maxParticipants: 10,
+      description: '',
+    });
+  }
+
+  /**
+   * Create group session from modal
+   */
+  createGroupSession(): void {
+    if (this.groupSessionForm.invalid || !this.selectedCalendarDate || !this.selectedGroupSessionTime) {
+      return;
+    }
+
+    this.isSavingGroupSession = true;
+
+    const [hours] = this.selectedGroupSessionTime.split(':').map(Number);
+
+    // Check for conflicts with existing availability or booked slots
+    const conflictingSlot = this.allTimeSlots.find(s => 
+      s.time === this.selectedGroupSessionTime && (s.isAvailable || s.isBooked)
+    );
+    if (conflictingSlot) {
+      this.isSavingGroupSession = false;
+      this.showErrorModal(
+        this.translate.instant('common.error'),
+        this.translate.instant('my_booked_page.messages.conflict_error')
+      );
+      return;
+    }
+
+    // Build ISO string with Z suffix to prevent timezone conversion by JSON parser
+    const scheduledDateTimeISO = `${this.selectedCalendarDate}T${String(hours).padStart(2, '0')}:00:00.000Z`;
+
+    const formValue = this.groupSessionForm.value;
+    const groupSessionData = {
+      title: formValue.title,
+      price: formValue.price,
+      duration: 1, // Fixed 1 hour
+      scheduledDateTime: scheduledDateTimeISO,
+      description: formValue.description || '',
+      maxParticipants: formValue.maxParticipants,
+      createMeetingRoomImmediately: true,
+    };
+
+    this.repo.CreateGroupSession(groupSessionData).subscribe({
+      next: (response) => {
+        this.isSavingGroupSession = false;
+        this.closeGroupSessionModal();
+        
+        // Refresh group sessions list
+        this.fetchGroupSessions();
+        
+        // Update calendar
+        this.updateCalendarLessons();
+        
+        // Refresh time slots
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+
+        this.showSuccessModal(
+          this.translate.instant('common.success'),
+          this.translate.instant('my_booked_page.messages.group_session_created')
+        );
+      },
+      error: (err) => {
+        console.error('Error creating group session:', err);
+        this.isSavingGroupSession = false;
+        this.showErrorModal(
+          this.translate.instant('common.error'),
+          err.error?.message || this.translate.instant('my_booked_page.messages.group_session_error')
+        );
+      }
+    });
+  }
+
+  /**
+   * Fetch group sessions from API and update bookings list
+   */
+  private fetchGroupSessions(): void {
+    this.repo.getGroupSessionsByTeacher().subscribe({
+      next: (resp: any) => {
+        const sessions: any[] | null = Array.isArray(resp)
+          ? resp
+          : resp && Array.isArray((resp as any).data)
+          ? (resp as any).data
+          : null;
+        if (sessions) {
+          const mapped = sessions.map((s: any) =>
+            this.mapGroupSessionToBooking(s)
+          );
+          // merge: remove any existing group entries, then append mapped
+          const others = this.bookings.filter((b) => b.type !== 'group');
+          this.bookings = [...others, ...mapped];
+          this.updateCounts();
+        }
+      },
+      error: (err) => {
+        console.error('Failed to load group sessions', err);
+      },
+    });
   }
 
   private mapApiToBooking(a: any): Booking {
@@ -462,16 +1070,25 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Apply Mecca timezone (GMT+3) to a UTC datetime string and return adjusted ISO string.
-   * The resulting string is in "pseudo-local" time for calendar display.
+   * Format datetime string for calendar display.
+   * Since times are now stored as Mecca timezone directly, no conversion needed.
    */
-  private applyGmtOffsetToDatetime(utcDateStr: string): string {
-    if (!utcDateStr) return utcDateStr;
-    const parsed = this.luxonDate.fromServerTimeToMecca(utcDateStr);
-    if (!parsed.isValid) return utcDateStr;
-    
-    // Return as ISO string without 'Z' suffix (local time for calendar)
-    return parsed.toFormat("yyyy-MM-dd'T'HH:mm:ss");
+  private applyGmtOffsetToDatetime(dateStr: string): string {
+    if (!dateStr) return dateStr;
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return dateStr;
+      // Use UTC methods since server stores Mecca time as UTC representation
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+    } catch {
+      return dateStr;
+    }
   }
 
   /**
@@ -546,6 +1163,21 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     
     console.log('Calendar - Total bookings:', this.bookings.length, 'Valid for calendar:', bookingEvents.length);
 
+    // Create a set of booked time slots for quick lookup (to filter out overlapping availability)
+    // Only include confirmed/scheduled bookings, not cancelled ones
+    const bookedTimeSlots = new Set<string>();
+    this.bookings
+      .filter(b => b.rawDateTime && b.status.toLowerCase() !== 'cancelled')
+      .forEach(b => {
+        const startStr = this.applyGmtOffsetToDatetime(b.rawDateTime!);
+        if (startStr) {
+          // Store just the date and time portion (YYYY-MM-DDTHH:mm)
+          const key = startStr.substring(0, 16);
+          bookedTimeSlots.add(key);
+        }
+      });
+    console.log('Booked time slots:', Array.from(bookedTimeSlots));
+
     // Then, map availability slots to events
     // For recurring slots, generate events for multiple weeks
     const availabilityEvents: LessonEvent[] = [];
@@ -598,6 +1230,13 @@ export class MyBookedComponent implements OnInit, OnDestroy {
             endDateStr = `${nextYear}-${nextMonth}-${nextDayNum}`;
           }
 
+          // Skip if this time slot is already booked
+          const slotKey = `${dateStr}T${startTimeStr}`;
+          if (bookedTimeSlots.has(slotKey)) {
+            console.log(`Skipping recurring availability - already booked: ${slotKey}`);
+            continue;
+          }
+
           availabilityEvents.push({
             id: `avail-${slot.id || index}-week${weekOffset}`,
             title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
@@ -626,6 +1265,13 @@ export class MyBookedComponent implements OnInit, OnDestroy {
             const startDate = new Date(startStr);
             if (startDate < today) {
               console.log(`Skipping past slot: ${startStr}`);
+              return;
+            }
+            
+            // Skip if this time slot is already booked
+            const slotKey = startStr.substring(0, 16);
+            if (bookedTimeSlots.has(slotKey)) {
+              console.log(`Skipping availability - already booked: ${slotKey}`);
               return;
             }
             
@@ -700,6 +1346,13 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           const nextMonth = (nextDay.getMonth() + 1).toString().padStart(2, '0');
           const nextDayNum = nextDay.getDate().toString().padStart(2, '0');
           endDateStr = `${nextYear}-${nextMonth}-${nextDayNum}`;
+        }
+
+        // Skip if this time slot is already booked
+        const fallbackSlotKey = `${dateStr}T${startTimeStr}`;
+        if (bookedTimeSlots.has(fallbackSlotKey)) {
+          console.log(`Skipping availability (fallback) - already booked: ${fallbackSlotKey}`);
+          return;
         }
 
         availabilityEvents.push({
@@ -1031,6 +1684,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.langSubscription?.unsubscribe();
+    this.profileSubscription?.unsubscribe();
     if (this.modalAutoCloseTimer) {
       clearTimeout(this.modalAutoCloseTimer);
     }
@@ -1131,21 +1785,15 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     // Add specific date for non-recurring slots
     if (!formValue.isRecurring) {
       // Convert selected GMT offset time to UTC for storage
-      // The user enters time in their selected GMT offset, we need to convert to UTC
-      // 
-      // Example: User selects GMT+1, enters "00:00" on "2026-01-05"
-      // This means 00:00 in GMT+1 timezone = 23:00 on 2026-01-04 in UTC
-      //
-      // Steps:
-      // 1. Parse the entered date/time as if it's in the selected GMT offset
-      // 2. Convert to UTC by subtracting the offset
+      // Times are stored as Mecca timezone directly (no UTC conversion)
+      // The user enters time in Mecca timezone, send as-is
       
       const [startHours, startMinutes] = formValue.fromTime.split(':').map(Number);
       const [endHours, endMinutes] = formValue.toTime.split(':').map(Number);
       
-      // Build a Date object that represents the selected time in UTC
-      // by treating the input as UTC and then adjusting for the offset
-      const utcStartDateTime = new Date(Date.UTC(
+      // Build a Date object representing the entered time in Mecca timezone
+      // We use UTC methods but treat the values as Mecca time
+      const meccaStartDateTime = new Date(Date.UTC(
         parseInt(dateParts[0]),  // year
         parseInt(dateParts[1]) - 1,  // month (0-indexed)
         parseInt(dateParts[2]),  // day
@@ -1154,18 +1802,13 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         0
       ));
       
-      // Subtract the GMT offset to convert from "selected timezone" to UTC
-      // If GMT+1, offset is 60 minutes, so we subtract 60 minutes
-      const offsetMs = this.selectedGmtOffset * 60 * 1000;
-      utcStartDateTime.setTime(utcStartDateTime.getTime() - offsetMs);
-      
-      // Store as ISO string (UTC)
-      newSlot.startDateTime = utcStartDateTime.toISOString();
-      newSlot.date = utcStartDateTime.toISOString().split('T')[0]; // UTC date
+      // Store as ISO string (representing Mecca time, not UTC)
+      newSlot.startDateTime = meccaStartDateTime.toISOString();
+      newSlot.date = `${dateParts[0]}-${dateParts[1]}-${dateParts[2]}`; // Keep original date
       
       // For display in calendar, startTime and endTime should also be the full ISO datetime
       // updateCalendarLessons() checks if startTime.includes('T') to detect ISO format
-      newSlot.startTime = utcStartDateTime.toISOString();
+      newSlot.startTime = meccaStartDateTime.toISOString();
       
       // Handle end time
       let endDay = parseInt(dateParts[2]);
@@ -1174,7 +1817,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         endDay += 1;
       }
       
-      const utcEndDateTime = new Date(Date.UTC(
+      const meccaEndDateTime = new Date(Date.UTC(
         parseInt(dateParts[0]),
         parseInt(dateParts[1]) - 1,
         endDay,
@@ -1182,12 +1825,11 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         endMinutes,
         0
       ));
-      utcEndDateTime.setTime(utcEndDateTime.getTime() - offsetMs);
-      newSlot.endDateTime = utcEndDateTime.toISOString();
-      newSlot.endTime = utcEndDateTime.toISOString();
+      newSlot.endDateTime = meccaEndDateTime.toISOString();
+      newSlot.endTime = meccaEndDateTime.toISOString();
       
-      console.log('Saving slot - User entered:', formValue.date, formValue.fromTime, 'GMT offset:', this.selectedGmtOffset);
-      console.log('Converted to UTC:', newSlot.startTime, 'to', newSlot.endTime);
+      console.log('Saving slot - Mecca time:', formValue.date, formValue.fromTime, 'to', formValue.toTime);
+      console.log('Stored as:', newSlot.startTime, 'to', newSlot.endTime);
     }
 
     // If recurring, show confirmation modal first

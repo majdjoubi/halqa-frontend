@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { SideMenuComponent } from '../../../shared/shared-component/side-menu/side-menu.component';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
@@ -61,6 +62,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   pageSizeOptions = [5, 10, 20, 50];
   // Store student's existing bookings for conflict checking
   studentExistingBookings: any[] = [];
+  
+  // Group session modal controls
+  showGroupSessionModal = false;
+  selectedGroupSession: any = null;
+  groupBookingProcessing = false;
 
   // sample options - replace with real data or inputs as needed
   // label fields are kept as translation keys where possible
@@ -379,52 +385,59 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // show spinner on the clicked Book button
     this.loadingBookId = teacherId;
 
-    // Prefer public availability/booking endpoint for student view which
-    // returns hourly availability for the given teacher. The API returns
-    // UTC times (UTC+0). We convert those to the user's local timezone
-    // before rendering.
-    this._repo.getIndividualBookingsByStudent(teacherId).subscribe(
-      (availabilityResp: any[]) => {
-        // DEBUG: Log raw API response to check isRecurring and date fields
-        console.log('🔍 [DEBUG] Raw API availability response:', availabilityResp);
-        if (Array.isArray(availabilityResp) && availabilityResp.length > 0) {
-          console.log('🔍 [DEBUG] First slot fields:', Object.keys(availabilityResp[0]));
-          console.log('🔍 [DEBUG] First slot isRecurring:', availabilityResp[0].isRecurring);
-          console.log('🔍 [DEBUG] First slot date:', availabilityResp[0].date);
-        }
+    // Fetch both individual availability AND group sessions in parallel
+    forkJoin({
+      individual: this._repo.getIndividualBookingsByStudent(teacherId).pipe(
+        catchError(err => {
+          console.error('Failed to load individual availability', err);
+          return of([]);
+        })
+      ),
+      groupSessions: this._repo.getGroupSessionsByTeacherId(teacherId).pipe(
+        catchError(err => {
+          console.error('Failed to load group sessions', err);
+          return of({ sessions: [] });
+        })
+      )
+    }).subscribe({
+      next: ({ individual, groupSessions }) => {
+        console.log('🔍 [DEBUG] Raw API individual availability:', individual);
+        console.log('🔍 [DEBUG] Raw API group sessions:', groupSessions);
         
         try {
-          // Normalize response into an object similar to earlier shape so
-          // template can remain unchanged (bookingTeacher.availability).
+          // Process individual slots
+          let individualSlots = Array.isArray(individual)
+            ? individual.map((s: any) => ({ ...this._mapUtcSlotToLocal(s), slotType: 'individual' }))
+            : [];
+          
+          // Process group sessions
+          const sessionsArray = groupSessions?.sessions || groupSessions || [];
+          let groupSlots = Array.isArray(sessionsArray)
+            ? sessionsArray.map((gs: any) => this._mapGroupSessionToSlot(gs))
+            : [];
+          
+          // Combine all slots
+          const allSlots = [...individualSlots, ...groupSlots];
+          
+          // Mark past slots as unavailable
+          const processedSlots = this._processAvailability(allSlots);
+          
           const teacherObj: any = {
             id: teacherId,
             firstName: '',
-            availability: Array.isArray(availabilityResp)
-              ? availabilityResp.map((s: any) => this._mapUtcSlotToLocal(s))
-              : [],
+            availability: processedSlots,
+            groupSessions: sessionsArray // Keep original group sessions for modal
           };
 
-          // Mark past slots as unavailable using existing logic
-          if (Array.isArray(teacherObj.availability)) {
-            teacherObj.availability = this._processAvailability(
-              teacherObj.availability
-            );
-          }
-
-          // DEBUG: Log processed slots
-          console.log('🔍 [DEBUG] Processed availability:', teacherObj.availability);
-          if (teacherObj.availability?.length > 0) {
-            console.log('🔍 [DEBUG] First processed slot:', teacherObj.availability[0]);
-            console.log('🔍 [DEBUG] First slot displayDate:', teacherObj.availability[0].displayDate);
-          }
+          console.log('🔍 [DEBUG] Combined availability:', teacherObj.availability);
 
           this.bookingTeacher = teacherObj;
           this.bookingSidebarOpen = true;
           this.selectedSlotIndex = null;
-          this.selectedCalendarDate = null; // Reset calendar date for new booking
+          this.selectedCalendarDate = null;
         } catch (e) {
           console.error('Failed to process availability response', e);
-          this.bookingTeacher = { id: teacherId, availability: [] };
+          this.bookingTeacher = { id: teacherId, availability: [], groupSessions: [] };
           this.bookingSidebarOpen = true;
           this.selectedSlotIndex = null;
           this.selectedCalendarDate = null;
@@ -432,135 +445,129 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
         this.loadingBookId = null;
       },
-      (err) => {
-        console.error('Failed to load teacher availability for booking', err);
-        // as a fallback, try the older endpoint so UX isn't broken
-        this._getTeacher.getTeacherById(teacherId).subscribe(
-          (response: any) => {
-            let teacherObj: any = null;
-            if (response && response.availability) {
-              teacherObj = response;
-            } else if (
-              response &&
-              response.teachers &&
-              Array.isArray(response.teachers)
-            ) {
-              teacherObj = response.teachers[0] || null;
-            } else if (response && response.profile) {
-              teacherObj = response.profile;
-            } else {
-              teacherObj = response;
-            }
-
-            if (teacherObj && Array.isArray(teacherObj.availability)) {
-              // attempt to normalize any ISO/UTC times from the teacher endpoint
-              teacherObj.availability = teacherObj.availability.map((s: any) =>
-                this._mapUtcSlotToLocal(s)
-              );
-              teacherObj.availability = this._processAvailability(
-                teacherObj.availability
-              );
-            }
-
-            this.bookingTeacher = teacherObj || response;
-            this.bookingSidebarOpen = true;
-            this.selectedSlotIndex = null;
-            this.selectedCalendarDate = null; // Reset calendar date for new booking
-            this.loadingBookId = null;
-          },
-          (err2) => {
-            console.error('Fallback also failed', err2);
-            this.loadingBookId = null;
-          }
-        );
+      error: (err) => {
+        console.error('Failed to load teacher data', err);
+        this.loadingBookId = null;
       }
-    );
+    });
+  }
+
+  // Map group session to slot format for display in the calendar
+  private _mapGroupSessionToSlot(gs: any): any {
+    const pad = (n: number) => (n < 10 ? '0' + n : '' + n);
+    
+    const scheduledDate = new Date(gs.scheduledDateTime);
+    const year = scheduledDate.getUTCFullYear();
+    const month = scheduledDate.getUTCMonth() + 1;
+    const day = scheduledDate.getUTCDate();
+    const hours = scheduledDate.getUTCHours();
+    const minutes = scheduledDate.getUTCMinutes();
+    
+    // Calculate end time based on duration (default 1 hour)
+    const durationHours = gs.duration || 1;
+    const endDate = new Date(scheduledDate.getTime() + durationHours * 60 * 60 * 1000);
+    
+    return {
+      slotType: 'group',
+      isGroupSession: true,
+      groupSessionId: gs.id,
+      groupSessionData: gs, // Keep full data for modal
+      title: gs.title,
+      description: gs.description,
+      price: gs.price,
+      maxParticipants: gs.maxParticipants,
+      currentParticipants: gs.currentParticipants,
+      teacherName: gs.teacherName,
+      status: gs.status,
+      isAvailable: gs.status === 'Open' || gs.status === 0, // 0 = Open status
+      startTime: `${pad(hours)}:${pad(minutes)}`,
+      endTime: `${pad(endDate.getUTCHours())}:${pad(endDate.getUTCMinutes())}`,
+      displayDate: this.dateLocale.formatDayMonth(scheduledDate),
+      dayOfWeek: scheduledDate.getUTCDay(),
+      date: `${year}-${pad(month)}-${pad(day)}`,
+      adjustedDateKey: `${year}-${pad(month)}-${pad(day)}`,
+      startIsoUtc: gs.scheduledDateTime,
+      _originalStartIso: gs.scheduledDateTime
+    };
   }
 
   // Mark slots in the past as unavailable or filter them out.
   // For non-recurring slots with specific dates, check if the date has passed.
   private _processAvailability(slots: any[]) {
-    const now = new Date();
-    const todayDay = now.getDay(); // 0=Sunday
+    // We treat all displayed times as "Mecca wall-clock" (GMT+3) regardless of the viewer's local timezone.
+    // To compare fairly, compute "now" as Mecca wall-clock represented in a UTC timeline.
+    const nowMeccaWall = DateTime.utc().plus({ minutes: this.selectedGmtOffset });
 
-    return slots.filter((s) => {
-      const slot = { ...s };
-      // default isAvailable true if missing
-      if (typeof slot.isAvailable === 'undefined') slot.isAvailable = true;
+    const normalizeTimeForIso = (t: string): string => {
+      if (!t) return '00:00:00';
+      // Accept HH:mm or HH:mm:ss. If an ISO string sneaks in, ignore and fall back.
+      if (t.includes('T') || t.includes('Z')) return '00:00:00';
+      const parts = t.split(':');
+      const hh = (parts[0] || '00').padStart(2, '0');
+      const mm = (parts[1] || '00').padStart(2, '0');
+      const ss = (parts[2] || '00').padStart(2, '0');
+      return `${hh}:${mm}:${ss}`;
+    };
 
-      // For non-recurring slots with specific dates, filter out past dates entirely
-      if (!slot.isRecurring && slot.specificDate) {
-        const slotDate = new Date(slot.specificDate);
-        if (slotDate.getTime() < now.getTime()) {
-          return false; // Remove from list - slot is in the past
-        }
+    const getSlotStartMeccaWall = (slot: any): DateTime | null => {
+      // Prefer the preserved ISO timestamp (already treated as Mecca wall-clock with a Z suffix).
+      const iso = slot._originalStartIso || slot.startIsoUtc || slot.startDateTime || slot.start;
+      if (typeof iso === 'string' && iso.length > 0 && (iso.includes('T') || iso.includes('Z'))) {
+        const dt = DateTime.fromISO(iso, { zone: 'utc' });
+        return dt.isValid ? dt : null;
       }
-      
-      // For non-recurring slots with date string, parse and check
-      if (!slot.isRecurring && slot.date) {
+
+      // Fall back to date + startTime (both represent Mecca wall-clock).
+      const dateKey = slot.adjustedDateKey || slot.date;
+      if (typeof dateKey === 'string' && dateKey.includes('-') && typeof slot.startTime === 'string') {
+        const time = normalizeTimeForIso(slot.startTime);
+        const dt = DateTime.fromISO(`${dateKey}T${time}`, { zone: 'utc' });
+        return dt.isValid ? dt : null;
+      }
+
+      // Last resort: specificDate
+      if (slot.specificDate) {
         try {
-          const [year, month, day] = slot.date.split('-').map(Number);
-          const timeStr = slot.startTime || '00:00';
-          const [hours, minutes] = timeStr.split(':').map(Number);
-          const slotDate = new Date(year, month - 1, day, hours, minutes);
-          if (slotDate.getTime() < now.getTime()) {
-            return false; // Remove from list - slot is in the past
-          }
-        } catch (e) {
-          // continue with slot if date parsing fails
+          const jsDate = new Date(slot.specificDate);
+          const dt = DateTime.fromJSDate(jsDate, { zone: 'utc' });
+          return dt.isValid ? dt : null;
+        } catch {
+          return null;
         }
       }
 
-      // For recurring slots or slots without specific date, check if today's occurrence is past
-      if (typeof slot.dayOfWeek === 'number' && slot.dayOfWeek === todayDay) {
-        // For same day, compare startTime to current time
-        if (slot.startTime) {
-          // startTime may be "HH:mm" or "HH:mm:ss"
-          const parts = slot.startTime.split(':').map((p: string) => Number(p));
-          const sh = parts[0] || 0;
-          const sm = parts[1] || 0;
-          const ss = parts[2] || 0;
-          const slotDate = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            now.getDate(),
-            sh,
-            sm,
-            ss
-          );
-          if (slotDate.getTime() <= now.getTime()) {
-            // For non-recurring slots, remove entirely
-            if (!slot.isRecurring) {
-              return false;
-            }
-            // For recurring slots, mark as unavailable for today but keep
-            slot.isAvailable = false;
-          }
-        }
-      }
+      return null;
+    };
 
-      return true;
-    }).map((slot) => ({ ...slot }));
+    // Clone first so any isAvailable edits persist.
+    return (slots || [])
+      .map((s) => ({ ...s, isAvailable: typeof s?.isAvailable === 'undefined' ? true : s.isAvailable }))
+      .filter((slot) => {
+        // Only apply past filtering when we can compute an exact slot start.
+        const slotStartMeccaWall = getSlotStartMeccaWall(slot);
+        if (!slotStartMeccaWall) return true;
+
+        if (slotStartMeccaWall <= nowMeccaWall) {
+          // Non-recurring slots in the past should disappear.
+          if (!slot.isRecurring) return false;
+          // Recurring slots can remain but should be disabled.
+          slot.isAvailable = false;
+        }
+
+        return true;
+      });
   }
 
-  // Convert various UTC-based slot shapes into a normalized slot where
-  // startTime/endTime are formatted for display according to the selected
-  // GMT offset and dayOfWeek reflects the adjusted weekday number.
+  // Convert slot data to normalized display format
+  // Times are now stored as Mecca timezone directly (no UTC conversion needed)
   private _mapUtcSlotToLocal(s: any) {
     const slot: any = { ...s };
 
     const pad = (n: number) => (n < 10 ? '0' + n : '' + n);
 
-    // Use selected GMT offset for time conversion
-    const offsetMs = this.selectedGmtOffset * 60 * 1000;
-    
-    const formatTimeWithOffset = (utcDate: Date) => {
-      const adjustedDate = new Date(utcDate.getTime() + offsetMs);
-      return `${pad(adjustedDate.getUTCHours())}:${pad(adjustedDate.getUTCMinutes())}`;
-    };
-    
-    const getAdjustedDate = (utcDate: Date) => {
-      return new Date(utcDate.getTime() + offsetMs);
+    // No offset conversion needed - times are already in Mecca timezone
+    const formatTime = (date: Date) => {
+      return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
     };
 
     // Helper to try parse common keys
@@ -578,35 +585,39 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // If slot has a date field, treat it as non-recurring regardless of isRecurring flag
     if (slot.date && slot.isRecurring === false) {
       try {
-        // Parse the specific date with time - assume times are in UTC
+        // Parse the specific date with time - times are already in Mecca timezone
         const dateStr = slot.date;
         const timeStr = slot.startTime || '00:00';
         const endTimeStr = slot.endTime || '01:00';
         
-        // Create UTC date from date + time
+        // Parse time strings
+        const [hours, minutes] = timeStr.includes('T') 
+          ? [new Date(timeStr).getUTCHours(), new Date(timeStr).getUTCMinutes()]
+          : timeStr.split(':').map(Number);
+        const [endHours, endMinutes] = endTimeStr.includes('T')
+          ? [new Date(endTimeStr).getUTCHours(), new Date(endTimeStr).getUTCMinutes()]
+          : endTimeStr.split(':').map(Number);
+        
+        // Parse date
         const [year, month, day] = dateStr.split('-').map(Number);
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
         
-        // Create as UTC
-        const startDateUtc = new Date(Date.UTC(year, month - 1, day, hours, minutes));
-        const endDateUtc = new Date(Date.UTC(year, month - 1, day, endHours, endMinutes));
+        // Create Date objects (treated as Mecca time)
+        const startDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+        const endDate = new Date(Date.UTC(year, month - 1, day, endHours, endMinutes));
         
-        // Store original UTC ISO
-        slot.startIsoUtc = startDateUtc.toISOString();
-        slot.endIsoUtc = endDateUtc.toISOString();
+        // Store for booking
+        slot.startIsoUtc = startDate.toISOString();
+        slot.endIsoUtc = endDate.toISOString();
         slot._originalStartIso = slot.startIsoUtc;
         slot._originalEndIso = slot.endIsoUtc;
         
-        // Format with selected GMT offset
-        const adjustedStart = getAdjustedDate(startDateUtc);
-        const adjustedEnd = getAdjustedDate(endDateUtc);
-        
-        slot.startTime = formatTimeWithOffset(startDateUtc);
-        slot.endTime = formatTimeWithOffset(endDateUtc);
-        slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
-        slot.dayOfWeek = adjustedStart.getUTCDay();
-        slot.specificDate = adjustedStart;
+        // Format for display (no conversion needed)
+        slot.startTime = formatTime(startDate);
+        slot.endTime = formatTime(endDate);
+        slot.displayDate = this.dateLocale.formatDayMonth(startDate);
+        slot.dayOfWeek = startDate.getUTCDay();
+        slot.specificDate = startDate;
+        slot.adjustedDateKey = `${year}-${pad(month)}-${pad(day)}`;
         
         return slot;
       } catch (e) {
@@ -614,35 +625,35 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       }
     }
 
-    // If startTime (or other field) is an ISO datetime in UTC, parse and convert
+    // If startTime (or other field) is an ISO datetime, parse and use directly
     const foundIso = isoCandidates.find((c) => isIsoString(c));
     if (foundIso) {
       try {
-        const startDateUtc = new Date(foundIso);
-        // preserve original UTC ISO so we can send exact slot when booking
+        const startDate = new Date(foundIso);
+        // preserve original ISO for booking
         slot.startIsoUtc = foundIso;
         slot._originalStartIso = foundIso;
         
-        // Format with selected GMT offset
-        const adjustedStart = getAdjustedDate(startDateUtc);
-        slot.startTime = formatTimeWithOffset(startDateUtc);
-        slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
-        slot.dayOfWeek = adjustedStart.getUTCDay();
+        // Use directly (no offset conversion)
+        slot.startTime = formatTime(startDate);
+        slot.displayDate = this.dateLocale.formatDayMonth(startDate);
+        slot.dayOfWeek = startDate.getUTCDay();
+        slot.adjustedDateKey = `${startDate.getUTCFullYear()}-${pad(startDate.getUTCMonth() + 1)}-${pad(startDate.getUTCDate())}`;
         
         // try end
         const endIso =
           slot.endTime || slot.endDate || slot.endDateTime || slot.end;
         if (isIsoString(endIso)) {
-          const endDateUtc = new Date(endIso);
-          slot.endTime = formatTimeWithOffset(endDateUtc);
+          const endDate = new Date(endIso);
+          slot.endTime = formatTime(endDate);
           slot.endIsoUtc = endIso;
           slot._originalEndIso = endIso;
         } else if (slot.durationMinutes) {
-          const endDateUtc = new Date(
-            startDateUtc.getTime() + Number(slot.durationMinutes) * 60000
+          const endDate = new Date(
+            startDate.getTime() + Number(slot.durationMinutes) * 60000
           );
-          slot.endTime = formatTimeWithOffset(endDateUtc);
-          slot.endIsoUtc = endDateUtc.toISOString();
+          slot.endTime = formatTime(endDate);
+          slot.endIsoUtc = endDate.toISOString();
           slot._originalEndIso = slot.endIsoUtc;
         }
         return slot;
@@ -652,8 +663,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
 
     // If startTime is a plain HH:mm string and we have dayOfWeek,
-    // construct a Date for display. For non-recurring slots with a specific date,
-    // use that date. For recurring slots or fallback, use next occurrence.
+    // construct a Date for display
     if (
       typeof slot.startTime === 'string' &&
       slot.startTime.split(':').length >= 2 &&
@@ -662,33 +672,31 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       const parts = slot.startTime.split(':').map((p: string) => Number(p));
       const sh = parts[0] || 0;
       const sm = parts[1] || 0;
-      const ss = parts[2] || 0;
 
       const now = new Date();
       const today = now.getDay();
       let targetDay = Number(slot.dayOfWeek);
       if (isNaN(targetDay)) targetDay = today;
 
-      // For non-recurring slots with a date field, use the specific date
-      // (This case should already be handled above, but as a safety check)
+      // For non-recurring slots with a date field
       if (!slot.isRecurring && slot.date && !slot.specificDate) {
         try {
           const [year, month, day] = slot.date.split('-').map(Number);
-          const specificDateUtc = new Date(Date.UTC(year, month - 1, day, sh, sm, ss));
-          slot.startIsoUtc = specificDateUtc.toISOString();
+          const specificDate = new Date(Date.UTC(year, month - 1, day, sh, sm, 0));
+          slot.startIsoUtc = specificDate.toISOString();
           slot._originalStartIso = slot.startIsoUtc;
           
-          const adjustedStart = getAdjustedDate(specificDateUtc);
-          slot.startTime = formatTimeWithOffset(specificDateUtc);
-          slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
-          slot.dayOfWeek = adjustedStart.getUTCDay();
-          slot.specificDate = adjustedStart;
+          slot.startTime = formatTime(specificDate);
+          slot.displayDate = this.dateLocale.formatDayMonth(specificDate);
+          slot.dayOfWeek = specificDate.getUTCDay();
+          slot.specificDate = specificDate;
+          slot.adjustedDateKey = `${year}-${pad(month)}-${pad(day)}`;
           
           if (slot.endTime && typeof slot.endTime === 'string') {
             const ep = slot.endTime.split(':').map((p: string) => Number(p));
-            const endDateUtc = new Date(Date.UTC(year, month - 1, day, ep[0] || 0, ep[1] || 0, 0));
-            slot.endTime = formatTimeWithOffset(endDateUtc);
-            slot.endIsoUtc = endDateUtc.toISOString();
+            const endDate = new Date(Date.UTC(year, month - 1, day, ep[0] || 0, ep[1] || 0, 0));
+            slot.endTime = formatTime(endDate);
+            slot.endIsoUtc = endDate.toISOString();
             slot._originalEndIso = slot.endIsoUtc;
           }
           return slot;
@@ -697,41 +705,38 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         }
       }
 
-      // For recurring slots or slots without specific date, find next occurrence
+      // For recurring slots, find next occurrence
       const daysUntil = (targetDay - today + 7) % 7;
-      const candidateUtc = new Date(
+      const candidateDate = new Date(
         Date.UTC(
           now.getFullYear(),
           now.getMonth(),
           now.getDate() + daysUntil,
           sh,
           sm,
-          ss
+          0
         )
       );
-      // Store original UTC ISO
-      slot.startIsoUtc = candidateUtc.toISOString();
+      slot.startIsoUtc = candidateDate.toISOString();
       slot._originalStartIso = slot.startIsoUtc;
       
-      // Format with selected GMT offset
-      const adjustedDate = getAdjustedDate(candidateUtc);
-      slot.startTime = formatTimeWithOffset(candidateUtc);
-      slot.displayDate = this.dateLocale.formatDayMonth(adjustedDate);
-      slot.dayOfWeek = adjustedDate.getUTCDay();
+      slot.startTime = formatTime(candidateDate);
+      slot.displayDate = this.dateLocale.formatDayMonth(candidateDate);
+      slot.dayOfWeek = candidateDate.getUTCDay();
+      slot.adjustedDateKey = `${candidateDate.getUTCFullYear()}-${pad(candidateDate.getUTCMonth() + 1)}-${pad(candidateDate.getUTCDate())}`;
       
       if (slot.durationMinutes) {
-        const endDateUtc = new Date(
-          candidateUtc.getTime() + Number(slot.durationMinutes) * 60000
+        const endDate = new Date(
+          candidateDate.getTime() + Number(slot.durationMinutes) * 60000
         );
-        slot.endTime = formatTimeWithOffset(endDateUtc);
-        slot.endIsoUtc = endDateUtc.toISOString();
+        slot.endTime = formatTime(endDate);
+        slot.endIsoUtc = endDate.toISOString();
         slot._originalEndIso = slot.endIsoUtc;
       } else if (slot.endTime && typeof slot.endTime === 'string') {
-        // if endTime provided as HH:mm (UTC) convert similarly
         const ep = slot.endTime.split(':').map((p: string) => Number(p));
         const eh = ep[0] || 0;
         const em = ep[1] || 0;
-        const candidateEndUtc = new Date(
+        const candidateEndDate = new Date(
           Date.UTC(
             now.getFullYear(),
             now.getMonth(),
@@ -741,15 +746,15 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             0
           )
         );
-        slot.endTime = formatTimeWithOffset(candidateEndUtc);
-        slot.endIsoUtc = candidateEndUtc.toISOString();
+        slot.endTime = formatTime(candidateEndDate);
+        slot.endIsoUtc = candidateEndDate.toISOString();
         slot._originalEndIso = slot.endIsoUtc;
       }
 
       return slot;
     }
 
-    // Default: leave slot mostly unchanged, but try to coerce dayOfWeek to number
+    // Default: leave slot mostly unchanged
     if (typeof slot.dayOfWeek === 'string') {
       const n = parseInt(slot.dayOfWeek, 10);
       if (!isNaN(n)) slot.dayOfWeek = n;
@@ -759,10 +764,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   }
 
   // Select an availability slot by index. If the slot is not available, ignore.
+  // For group sessions, open the group session modal instead of selecting.
   selectSlot(index: number) {
     if (!this.bookingTeacher || !this.bookingTeacher.availability) return;
     const slot = this.bookingTeacher.availability[index];
     if (!slot || slot.isAvailable === false) return; // cannot select unavailable slot
+
+    // If this is a group session, open the modal instead
+    if (slot.isGroupSession) {
+      this.openGroupSessionModal(slot);
+      return;
+    }
 
     // Toggle selection: selecting same index will deselect
     if (this.selectedSlotIndex === index) {
@@ -903,6 +915,82 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.showModal = false;
     this.modalMessage = null;
     this.isInsufficientBalance = false;
+  }
+
+  // Open group session details modal
+  openGroupSessionModal(slot: any) {
+    if (!slot.isGroupSession || !slot.groupSessionData) return;
+    this.selectedGroupSession = slot.groupSessionData;
+    this.showGroupSessionModal = true;
+  }
+
+  // Close group session modal
+  closeGroupSessionModal() {
+    this.showGroupSessionModal = false;
+    this.selectedGroupSession = null;
+  }
+
+  // Book group session
+  bookGroupSession() {
+    if (!this.selectedGroupSession) return;
+    
+    this.groupBookingProcessing = true;
+    
+    const payload = {
+      groupSessionId: this.selectedGroupSession.id
+    };
+
+    this._repo.bookGroupSession(payload).subscribe({
+      next: (res) => {
+        console.log('Group session booked successfully', res);
+        this.groupBookingProcessing = false;
+        this.closeGroupSessionModal();
+        this.bookingSidebarOpen = false;
+        
+        // Refresh student bookings
+        this.loadStudentExistingBookings();
+        
+        // Show success modal
+        this.showModal = true;
+        this.modalType = 'success';
+        this.modalMessage = this.translate.instant('booking.group_booking_success');
+      },
+      error: (err) => {
+        console.error('Failed to book group session', err);
+        const msg =
+          (err && err.error && (err.error.message || err.error.msg)) ||
+          err.message ||
+          (typeof err === 'string' ? err : JSON.stringify(err));
+        
+        const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
+        this.isInsufficientBalance = isBalanceError;
+        
+        this.groupBookingProcessing = false;
+        this.closeGroupSessionModal();
+        
+        this.showModal = true;
+        this.modalType = 'error';
+        this.modalMessage = isBalanceError 
+          ? this.translate.instant('booking.errors.insufficient_balance')
+          : msg;
+      }
+    });
+  }
+
+  // Format date for group session modal display
+  formatGroupSessionDate(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    return this.dateLocale.formatDayMonth(date);
+  }
+
+  // Format time for group session modal display
+  formatGroupSessionTime(dateStr: string): string {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const hours = date.getUTCHours().toString().padStart(2, '0');
+    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
   }
 
   goToWalletTopUp() {
@@ -1102,22 +1190,24 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       // Try to get date from various slot formats
       let dateKey = '';
       
-      if (slot.specificDate) {
+      // First priority: use adjustedDateKey (calculated during slot processing)
+      if (slot.adjustedDateKey) {
+        const [year, month, day] = slot.adjustedDateKey.split('-').map(Number);
+        const d = new Date(year, month - 1, day);
+        if (d >= today) {
+          dateKey = slot.adjustedDateKey;
+        }
+      } else if (slot.specificDate) {
         const d = new Date(slot.specificDate);
         if (d >= today) {
           dateKey = this.formatDateKey(d);
         }
       } else if (slot.date) {
         // Format: 'YYYY-MM-DD'
-        const d = new Date(slot.date);
+        const [year, month, day] = slot.date.split('-').map(Number);
+        const d = new Date(year, month - 1, day);
         if (d >= today) {
           dateKey = slot.date;
-        }
-      } else if (slot._originalStartIso) {
-        // Extract date from ISO string
-        const d = new Date(slot._originalStartIso);
-        if (d >= today) {
-          dateKey = this.formatDateKey(d);
         }
       }
       
@@ -1164,16 +1254,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     let slotsToGroup = this.bookingTeacher.availability;
     if (this.selectedCalendarDate) {
       slotsToGroup = this.bookingTeacher.availability.filter((slot: any) => {
-        // Match against various date formats
-        if (slot.date === this.selectedCalendarDate) return true;
-        
-        if (slot.specificDate) {
-          const d = new Date(slot.specificDate);
-          return this.formatDateKey(d) === this.selectedCalendarDate;
+        // First priority: use adjustedDateKey (calculated during slot processing)
+        if (slot.adjustedDateKey) {
+          return slot.adjustedDateKey === this.selectedCalendarDate;
         }
         
-        if (slot._originalStartIso) {
-          const d = new Date(slot._originalStartIso);
+        // Fallback: Match against slot.date
+        if (slot.date === this.selectedCalendarDate) return true;
+        
+        // Fallback: Match against specificDate
+        if (slot.specificDate) {
+          const d = new Date(slot.specificDate);
           return this.formatDateKey(d) === this.selectedCalendarDate;
         }
         

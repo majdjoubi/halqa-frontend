@@ -150,6 +150,13 @@ $today-bg: #f0f0f0;
         transform: scale(0.98);
       }
     }
+
+    // Clickable but no availability yet (for teacher mode)
+    &.clickable:not(.has-availability) {
+      &:hover {
+        background: #f3f4f6;
+      }
+    }
   }
 
   // Selected state

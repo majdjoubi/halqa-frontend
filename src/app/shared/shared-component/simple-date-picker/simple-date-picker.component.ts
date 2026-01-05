@@ -33,6 +33,12 @@ export class SimpleDatePickerComponent implements OnChanges {
   @Input() rtl: boolean = false;
 
   /**
+   * Allow clicking all future dates (for teacher mode)
+   * When true, all non-past dates are clickable, not just those with availability
+   */
+  @Input() allowAllFutureDates: boolean = false;
+
+  /**
    * Emits when user selects a date
    */
   @Output() dateSelected = new EventEmitter<string>();
@@ -197,10 +203,13 @@ export class SimpleDatePickerComponent implements OnChanges {
   selectDate(dateKey: string): void {
     if (!dateKey) return;
     
-    // Check if date has availability and is not in the past
+    // Check if date is clickable
     const day = this.calendarDays.find(d => d.date === dateKey);
-    if (day && day.hasAvailability && !day.isPast) {
-      this.dateSelected.emit(dateKey);
+    if (day && !day.isPast && day.isCurrentMonth) {
+      // Allow selection if has availability OR allowAllFutureDates is true
+      if (day.hasAvailability || this.allowAllFutureDates) {
+        this.dateSelected.emit(dateKey);
+      }
     }
   }
 

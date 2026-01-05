@@ -525,12 +525,13 @@
               class="time-slot"
               *ngFor="let slot of group.slots"
               [class.disabled]="!slot.isAvailable"
-              [class.selected]="selectedSlotIndex === getSlotOriginalIndex(slot)"
+              [class.selected]="selectedSlotIndex === getSlotOriginalIndex(slot) && !slot.isGroupSession"
+              [class.group-session]="slot.isGroupSession"
               [disabled]="!slot.isAvailable"
               (click)="selectSlot(getSlotOriginalIndex(slot))"
             >
               <span class="slot-time">{{ slot.startTime }} - {{ slot.endTime }}</span>
-              <span class="slot-price" *ngIf="slot.price">${{ slot.price }}</span>
+              <span class="slot-price" *ngIf="slot.price && !slot.isGroupSession">${{ slot.price }}</span>
             </button>
           </div>
         </div>
@@ -573,3 +574,92 @@
     <small class="muted" *ngIf="groupedAvailability.length === 0">{{ "all_teachers.booking_footer" | translate }}</small>
   </div>
 </app-side-menu>
+
+<!-- Group Session Details Modal -->
+<div class="group-session-modal-overlay" *ngIf="showGroupSessionModal" (click)="closeGroupSessionModal()">
+  <div class="group-session-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ selectedGroupSession?.title || ('booking.group_session' | translate) }}</h3>
+      <button class="close-btn" (click)="closeGroupSessionModal()" type="button">
+        &times;
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedGroupSession">
+      <div class="session-info-row">
+        <div class="info-icon">
+          <i class="fas fa-calendar"></i>
+        </div>
+        <div class="info-content">
+          <span class="info-label">{{ 'booking.date' | translate }}</span>
+          <span class="info-value">{{ formatGroupSessionDate(selectedGroupSession.scheduledDateTime) }}</span>
+        </div>
+      </div>
+      
+      <div class="session-info-row">
+        <div class="info-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="info-content">
+          <span class="info-label">{{ 'booking.time' | translate }}</span>
+          <span class="info-value">{{ formatGroupSessionTime(selectedGroupSession.scheduledDateTime) }}</span>
+        </div>
+      </div>
+      
+      <div class="session-info-row">
+        <div class="info-icon">
+          <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="info-content">
+          <span class="info-label">{{ 'booking.price_per_person' | translate }}</span>
+          <span class="info-value price">${{ selectedGroupSession.price }}</span>
+        </div>
+      </div>
+      
+      <div class="session-info-row">
+        <div class="info-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="info-content">
+          <span class="info-label">{{ 'booking.participants' | translate }}</span>
+          <span class="info-value">{{ selectedGroupSession.currentParticipants || 0 }} / {{ selectedGroupSession.maxParticipants }}</span>
+        </div>
+      </div>
+      
+      <div class="session-info-row" *ngIf="selectedGroupSession.teacherName">
+        <div class="info-icon">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        <div class="info-content">
+          <span class="info-label">{{ 'booking.teacher' | translate }}</span>
+          <span class="info-value">{{ selectedGroupSession.teacherName }}</span>
+        </div>
+      </div>
+      
+      <div class="session-description" *ngIf="selectedGroupSession.description">
+        <h4>{{ 'booking.description' | translate }}</h4>
+        <p>{{ selectedGroupSession.description }}</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button 
+        class="btn btn-cancel" 
+        (click)="closeGroupSessionModal()" 
+        type="button"
+        [disabled]="groupBookingProcessing"
+      >
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button 
+        class="btn btn-book-group" 
+        (click)="bookGroupSession()" 
+        type="button"
+        [disabled]="groupBookingProcessing"
+      >
+        <span *ngIf="!groupBookingProcessing">{{ 'booking.book_now' | translate }}</span>
+        <span *ngIf="groupBookingProcessing" class="btn-spinner" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</div>

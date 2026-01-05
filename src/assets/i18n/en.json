@@ -15,7 +15,16 @@
     },
     "top_up_wallet": "Top Up Wallet",
     "request_sent_title": "Booking Confirmed!",
-    "request_sent_message": "Your booking has been confirmed successfully. We wish you an enjoyable learning experience!"
+    "request_sent_message": "Your booking has been confirmed successfully. We wish you an enjoyable learning experience!",
+    "group_booking_success": "You have successfully joined the group session! You will be notified when the session starts.",
+    "group_session": "Group Session",
+    "date": "Date",
+    "time": "Time",
+    "price_per_person": "Price per Person",
+    "participants": "Participants",
+    "teacher": "Teacher",
+    "description": "Description",
+    "book_now": "Book Now"
   },
   "my_booked_page": {
     "header": {
@@ -139,10 +148,31 @@
       "pattern_error": "Failed to save weekly pattern. Please try again.",
       "slot_updated": "Availability slot updated successfully.",
       "past_date_error": "Cannot add availability for a past date. Please select a future date.",
-      "conflict_error": "This time slot conflicts with an existing lesson or availability."
+      "conflict_error": "This time slot conflicts with an existing lesson or availability.",
+      "group_session_created": "Group lesson created successfully!",
+      "group_session_error": "Failed to create group lesson. Please try again."
     },
     "available": "Available",
     "booked": "Booked",
+    "select_date_prompt": "Select a date from the calendar to manage your availability",
+    "add_slot": "Add available hour",
+    "remove_slot": "Remove this slot",
+    "group_mode": {
+      "label": "Group Lesson",
+      "activate": "Click to enable group lesson mode",
+      "deactivate": "Click to disable group lesson mode"
+    },
+    "group_session": {
+      "title": "Create Group Lesson",
+      "session_title": "Lesson Title",
+      "title_placeholder": "e.g., Tajweed Basics, Quran Reading...",
+      "title_required": "Title is required",
+      "price_per_student": "Price per Student",
+      "max_participants": "Maximum Students",
+      "description": "Description (Optional)",
+      "description_placeholder": "Describe what students will learn...",
+      "create": "Create Lesson"
+    },
     "delete_confirm": {
       "title": "Delete Time Slot",
       "message_available": "Are you sure you want to delete this time slot? This action cannot be undone.",

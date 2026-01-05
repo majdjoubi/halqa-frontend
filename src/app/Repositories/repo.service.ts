@@ -415,6 +415,14 @@ export class RepoService {
     );
   }
 
+  // get available group sessions for a specific teacher (public endpoint for students)
+  getGroupSessionsByTeacherId(teacherId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.base_url}/api/groupsession/available`,
+      { params: { teacherId, onlyAvailable: 'true' } }
+    );
+  }
+
   // get all individual bookings for a teacher
   getIndividualBookingsByTeacher(): Observable<any[]> {
     return this.http.get<any[]>(`${this.base_url}/api/booking/teacher`);

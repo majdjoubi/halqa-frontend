@@ -15,7 +15,16 @@
     },
     "top_up_wallet": "شحن المحفظة",
     "request_sent_title": "تم الحجز بنجاح!",
-    "request_sent_message": "تم تأكيد حجزك بنجاح. نتمنى لك تعلماً ممتعاً!"
+    "request_sent_message": "تم تأكيد حجزك بنجاح. نتمنى لك تعلماً ممتعاً!",
+    "group_booking_success": "تم الانضمام للجلسة الجماعية بنجاح! سيتم إشعارك عند بدء الجلسة.",
+    "group_session": "جلسة جماعية",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "price_per_person": "السعر للشخص",
+    "participants": "المشاركون",
+    "teacher": "المعلم",
+    "description": "الوصف",
+    "book_now": "احجز الآن"
   },
   "my_booked_page": {
     "header": {
@@ -139,10 +148,31 @@
       "pattern_error": "فشل حفظ النمط الأسبوعي. حاول مرة أخرى.",
       "slot_updated": "تم تحديث الموعد بنجاح.",
       "past_date_error": "لا يمكن إضافة موعد في تاريخ ماضٍ. اختر تاريخاً مستقبلياً.",
-      "conflict_error": "هذا الوقت يتعارض مع درس أو موعد موجود مسبقاً."
+      "conflict_error": "هذا الوقت يتعارض مع درس أو موعد موجود مسبقاً.",
+      "group_session_created": "تم إنشاء الدرس الجماعي بنجاح!",
+      "group_session_error": "فشل إنشاء الدرس الجماعي. حاول مرة أخرى."
     },
     "available": "متاح",
     "booked": "محجوز",
+    "select_date_prompt": "اختر تاريخاً من التقويم لإدارة أوقاتك المتاحة",
+    "add_slot": "إضافة ساعة متاحة",
+    "remove_slot": "إزالة هذا الوقت",
+    "group_mode": {
+      "label": "درس جماعي",
+      "activate": "اضغط لتفعيل وضع الدرس الجماعي",
+      "deactivate": "اضغط لإلغاء وضع الدرس الجماعي"
+    },
+    "group_session": {
+      "title": "إنشاء درس جماعي",
+      "session_title": "عنوان الدرس",
+      "title_placeholder": "مثال: أساسيات التجويد، قراءة القرآن...",
+      "title_required": "العنوان مطلوب",
+      "price_per_student": "السعر لكل طالب",
+      "max_participants": "الحد الأقصى للطلاب",
+      "description": "الوصف (اختياري)",
+      "description_placeholder": "صف ما سيتعلمه الطلاب...",
+      "create": "إنشاء الدرس"
+    },
     "delete_confirm": {
       "title": "حذف الوقت المتاح",
       "message_available": "هل أنت متأكد من حذف هذا الوقت؟ لا يمكن التراجع عن هذا الإجراء.",

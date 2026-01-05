@@ -44,8 +44,8 @@
       [class.selected]="day.isSelected"
       [class.has-availability]="day.hasAvailability"
       [class.past]="day.isPast"
-      [class.clickable]="day.isCurrentMonth && day.hasAvailability && !day.isPast"
-      [disabled]="!day.isCurrentMonth || !day.hasAvailability || day.isPast"
+      [class.clickable]="day.isCurrentMonth && !day.isPast && (day.hasAvailability || allowAllFutureDates)"
+      [disabled]="!day.isCurrentMonth || day.isPast || (!day.hasAvailability && !allowAllFutureDates)"
       (click)="day.date && selectDate(day.date)"
     >
       <span class="day-number">{{ day.day }}</span>
