@@ -9,8 +9,7 @@
   "BENEFITS": "الفوائد",
   "OUR_MISSION": "مهمتنا",
   "ALL_Teachers": "احجز درسك الآن",
-  "my_Booked": "حُجُوزاتي",
-  "my_booked": "تقويمي",
+  "my_calendar": "تقويمي",
   "booking": {
     "errors": {
       "time_conflict": "لديك درس محجوز بالفعل في هذا الوقت. يرجى اختيار وقت آخر.",
@@ -71,6 +70,7 @@
       "save_error": "فشل في تحديث سعر الساعة الافتراضي",
       "min_error": "لا يمكن أن يكون سعر الساعة سالباً"
     },
+    "current_rate_info": "سعر الساعة الحالي الظاهر للطلاب",
     "availability_filters": {
       "title": "تصفية:",
       "all": "جميع دروسي",

@@ -4,7 +4,7 @@ import { ProtectedGuard } from './core/guards/protected.guard';
 import { TeacherGuard } from './core/guards/teacher.guard';
 import { StudentGuard } from './core/guards/student.guard';
 import { AdminGuard } from './core/guards/admin.guard';
-import { WalletTopupComponent } from './components/wallet-topup/wallet-topup.component';
+
 export const routes: Routes = [
   {
     path: '',
@@ -16,14 +16,6 @@ export const routes: Routes = [
     canActivate: [ProtectedGuard],
     loadComponent: () =>
       import('./components/home/home.component').then((m) => m.HomeComponent),
-  },
-
-  {
-    path: 'video-room-bootstrap',
-    loadComponent: () =>
-      import(
-        './components/100mscomp/video-room-bootstrap/video-room-bootstrap.component'
-      ).then((m) => m.VideoRoomBootstrapComponent),
   },
   {
     path: 'student-register',
@@ -50,15 +42,6 @@ export const routes: Routes = [
       ).then((m) => m.TeacherRegisterComponent),
   },
   {
-    path: 'my-booked',
-    canActivate: [TeacherGuard],
-    loadComponent: () =>
-      import('./components/teacher/my-booked/my-booked.component').then(
-        (m) => m.MyBookedComponent
-      ),
-  },
-
-  {
     path: 'teacher-create-profile',
     canActivate: [TeacherGuard],
     loadComponent: () =>
@@ -66,7 +49,14 @@ export const routes: Routes = [
         './components/auth/teacher-auth/teacher-create-profile/teacher-create-profile.component'
       ).then((m) => m.TeacherCreateProfileComponent),
   },
-
+  {
+    path: 'my-calendar',
+    canActivate: [TeacherGuard],
+    loadComponent: () =>
+      import('./components/teacher/my-calendar/my-calendar.component').then(
+        (m) => m.MyCalendarComponent
+      ),
+  },
   {
     path: 'forgot-password',
     canActivate: [AuthGuard],
@@ -91,7 +81,6 @@ export const routes: Routes = [
         (m) => m.SetPasswordComponent
       ),
   },
-
   {
     path: 'student-profile',
     canActivate: [StudentGuard],
@@ -109,14 +98,6 @@ export const routes: Routes = [
       ).then((m) => m.TeacherProfileComponent),
   },
   {
-    path: 'lesson-manage',
-    canActivate: [TeacherGuard],
-    loadComponent: () =>
-      import('./components/teacher/lesson-manage/lesson-manage.component').then(
-        (m) => m.LessonManageComponent
-      ),
-  },
-  {
     path: 'all-teachers',
     canActivate: [StudentGuard],
     loadComponent: () =>
@@ -124,23 +105,6 @@ export const routes: Routes = [
         (m) => m.AllTeachersComponent
       ),
   },
-  {
-    path: 'all-lessons',
-    canActivate: [StudentGuard],
-    loadComponent: () =>
-      import('./components/student/all-lessons/all-lessons.component').then(
-        (m) => m.AllLessonsComponent
-      ),
-  },
-  {
-    path: 'my-booked-teachers',
-    canActivate: [StudentGuard],
-    loadComponent: () =>
-      import(
-        './components/student/my-booked-teachers/my-booked-teachers.component'
-      ).then((m) => m.MyBookedTeachersComponent),
-  },
-
   {
     path: 'join-us',
     canActivate: [AuthGuard],
@@ -160,7 +124,6 @@ export const routes: Routes = [
   {
     path: 'pending-teachers',
     canActivate: [AdminGuard],
-
     loadComponent: () =>
       import(
         './components/admin/pending-teachers/pending-teachers.component'
@@ -169,7 +132,6 @@ export const routes: Routes = [
   {
     path: 'all-users',
     canActivate: [AdminGuard],
-
     loadComponent: () =>
       import('./components/admin/all-user/all-user.component').then(
         (m) => m.AllUserComponent
@@ -178,7 +140,6 @@ export const routes: Routes = [
   {
     path: 'withdraw-requests',
     canActivate: [AdminGuard],
-
     loadComponent: () =>
       import('./components/admin/withdraw/withdraw.component').then(
         (m) => m.WithdrawComponent
@@ -187,7 +148,6 @@ export const routes: Routes = [
   {
     path: 'payments-log',
     canActivate: [AdminGuard],
-
     loadComponent: () =>
       import('./components/admin/payments-log/payments-log.component').then(
         (m) => m.PaymentsLogComponent
@@ -196,28 +156,9 @@ export const routes: Routes = [
   {
     path: 'wallet/topup',
     canActivate: [StudentGuard],
-
     loadComponent: () =>
       import('./components/wallet-topup/wallet-topup.component').then(
         (m) => m.WalletTopupComponent
-      ),
-  },
-  // Teacher Scheduling Routes
-  {
-    path: 'teacher/scheduling',
-    canActivate: [TeacherGuard],
-    loadComponent: () =>
-      import('./components/scheduling/teacher-scheduling/teacher-scheduling.component').then(
-        (m) => m.TeacherSchedulingComponent
-      ),
-  },
-  // Student Booking Routes
-  {
-    path: 'student/booking',
-    canActivate: [StudentGuard],
-    loadComponent: () =>
-      import('./components/scheduling/student-booking/student-booking.component').then(
-        (m) => m.StudentBookingComponent
       ),
   },
   {

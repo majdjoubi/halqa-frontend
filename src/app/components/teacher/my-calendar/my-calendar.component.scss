@@ -519,6 +519,27 @@
   color: #9ca3af;
   font-weight: 500;
   margin-left: auto;
+  
+  [dir="rtl"] & {
+    margin-left: 0;
+    margin-right: auto;
+  }
+}
+
+/* Current Rate Display */
+.current-rate-display {
+  font-size: 13px;
+  color: #059669;
+  font-weight: 500;
+  background: #ecfdf5;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #a7f3d0;
+  
+  strong {
+    font-weight: 700;
+    color: #047857;
+  }
 }
 
 .action-buttons {

@@ -109,37 +109,20 @@
                 {{ "ALL_Teachers" | translate }}
               </a>
             </li>
-            <li class="nav-item">
-              <a
-                routerLink="/my-booked-teachers"
-                class="nav-link"
-                (click)="closeMobileMenu()"
-              >
-                {{ "my_Booked" | translate }}
-              </a>
-            </li>
-            <li class="nav-item">
-              <a
-                routerLink="/all-lessons"
-                class="nav-link"
-                (click)="closeMobileMenu()"
-              >
-                {{ "ALL_Lessons" | translate }}
-              </a>
-            </li>
           </ng-container>
 
           <ng-container *ngIf="role === 2">
             <li class="nav-item">
               <a
-                routerLink="/my-booked"
+                routerLink="/my-calendar"
                 class="nav-link"
                 (click)="closeMobileMenu()"
               >
-                {{ "my_booked" | translate }}
+                {{ "my_calendar" | translate }}
               </a>
             </li>
           </ng-container>
+
           <ng-container *ngIf="role === 3">
             <li class="nav-item">
               <a

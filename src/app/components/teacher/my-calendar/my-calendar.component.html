@@ -1,0 +1,178 @@
+<!-- Page-level loader -->
+<div *ngIf="isLoading" class="page-loader-holder">
+  <div class="loader" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <span class="loader-text">{{ "common.loading" | translate }}</span>
+  </div>
+</div>
+
+<!-- Main page content -->
+<section *ngIf="!isLoading" class="my-booked Teacher-custom-marginTop">
+  <div class="header">
+    <div class="header-content">
+      <div class="text-col">
+        <h1 class="title">
+          {{ "my_booked_page.header.title" | translate }}
+        </h1>
+        <p class="subtitle">
+          {{ "my_booked_page.header.subtitle" | translate }}
+        </p>
+      </div>
+      <div class="image-col">
+        <img
+          src="/assets/images/lessons.webp"
+          [alt]="'my_booked_page.header.image_alt' | translate"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="all-lessons-content">
+    <!-- Header with timezone hint -->
+    <div class="action-header compact-header">
+      <div class="default-rate-compact">
+        <span class="rate-label-inline">{{ "my_booked_page.default_rate.label" | translate }}:</span>
+        <span class="currency-small">$</span>
+        <input 
+          type="number" 
+          class="rate-input-small" 
+          [(ngModel)]="defaultHourlyRate" 
+          min="0" 
+          step="0.5"
+        />
+        <button 
+          class="btn-save-small" 
+          (click)="saveHourlyRate()"
+          [disabled]="isSavingRate"
+        >
+          <i class="fas fa-check" *ngIf="!isSavingRate"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isSavingRate"></i>
+        </button>
+      </div>
+      <span class="current-rate-display">
+        {{ "my_booked_page.current_rate_info" | translate }}: <strong>${{ currentHourlyRate }}</strong>
+      </span>
+      <span class="timezone-hint">{{ 'SCHEDULING.MECCA_TIME' | translate }} (GMT+3)</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="filters">
+      <div class="tabs" role="tablist">
+        <button
+          class="tab"
+          [class.active]="view === 'calendar'"
+          (click)="view = 'calendar'"
+          role="tab"
+          [attr.aria-selected]="view === 'calendar'"
+        >
+          <i class="fas fa-calendar-alt"></i>
+          {{ "my_booked_page.filters.calendar_title" | translate }}
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'availability'"
+          (click)="view = 'availability'"
+          role="tab"
+          [attr.aria-selected]="view === 'availability'"
+        >
+          <i class="fas fa-clock"></i>
+          {{ "my_booked_page.filters.availability_title" | translate }}
+          <span class="tab-count">({{ availabilityCount }})</span>
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'individual'"
+          (click)="view = 'individual'"
+          role="tab"
+          [attr.aria-selected]="view === 'individual'"
+        >
+          {{ "my_booked_page.filters.individual_title" | translate }}
+          <span class="tab-count">({{ individualCount }})</span>
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'group'"
+          (click)="view = 'group'"
+          role="tab"
+          [attr.aria-selected]="view === 'group'"
+        >
+          {{ "my_booked_page.filters.group_title" | translate }}
+          <span class="tab-count">({{ groupCount }})</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div *ngIf="view === 'calendar'" class="calendar-view simplified-calendar">
+      <div class="calendar-layout">
+        <!-- Left: Date Picker Placeholder -->
+        <div class="date-picker-section">
+          <div class="date-picker-placeholder">
+            <i class="fas fa-calendar-alt"></i>
+            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
+          </div>
+        </div>
+
+        <!-- Right: Hours Grid -->
+        <div class="time-slots-section">
+          <div class="select-date-prompt">
+            <i class="fas fa-calendar-alt"></i>
+            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Availability View -->
+    <div *ngIf="view === 'availability'" class="availability-view">
+      <div class="empty-state">
+        <img src="/assets/images/emptyData.svg" alt="No availability" />
+        <p>{{ "my_booked_page.empty.availability" | translate }}</p>
+      </div>
+    </div>
+
+    <!-- Individual Bookings View -->
+    <div *ngIf="view === 'individual'" class="bookings-view">
+      <div class="empty-state">
+        <img src="/assets/images/emptyData.svg" alt="No bookings" />
+        <p>{{ "my_booked_page.empty.individual" | translate }}</p>
+      </div>
+    </div>
+
+    <!-- Group Bookings View -->
+    <div *ngIf="view === 'group'" class="bookings-view">
+      <div class="empty-state">
+        <img src="/assets/images/emptyData.svg" alt="No group sessions" />
+        <p>{{ "my_booked_page.empty.group" | translate }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Success Modal -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+  <div class="modal-content success-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon success">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <h3>{{ successTitle }}</h3>
+    <p>{{ successMessage }}</p>
+    <button class="btn btn-primary" (click)="closeSuccessModal()">
+      {{ "common.ok" | translate }}
+    </button>
+  </div>
+</div>
+
+<!-- Error Modal -->
+<div class="modal-overlay" *ngIf="showErrorModal" (click)="closeErrorModal()">
+  <div class="modal-content error-modal" (click)="$event.stopPropagation()">
+    <div class="modal-icon error">
+      <i class="fas fa-times-circle"></i>
+    </div>
+    <h3>{{ errorTitle }}</h3>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="closeErrorModal()">
+      {{ "common.ok" | translate }}
+    </button>
+  </div>
+</div>

@@ -9,8 +9,7 @@
   "BENEFITS": "Benefits",
   "OUR_MISSION": "our mission",
   "ALL_Teachers": "Book Your Lesson",
-  "my_Booked": "My Booked",
-  "my_booked": "My Calendar",
+  "my_calendar": "My Calendar",
   "booking": {
     "errors": {
       "time_conflict": "You already have a lesson booked at this time. Please select a different time slot.",
@@ -71,6 +70,7 @@
       "save_error": "Failed to update default hourly rate",
       "min_error": "Hourly rate cannot be negative"
     },
+    "current_rate_info": "Current rate shown to students",
     "availability_filters": {
       "title": "Filter:",
       "all": "All My Lessons",
