@@ -1,12 +1,12 @@
 {
   "/api": {
-    "target": "https://halqa-api.onrender.com",
+    "target": "https://halqa-api-k60w.onrender.com",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
   },
   "/uploads": {
-    "target": "https://halqa-api.onrender.com",
+    "target": "https://halqa-api-k60w.onrender.com",
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
