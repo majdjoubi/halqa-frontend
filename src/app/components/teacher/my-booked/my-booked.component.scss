@@ -53,6 +53,32 @@
       }
     }
   }
+  
+  // Mecca time style
+  &.mecca-time {
+    background: linear-gradient(135deg, #fef3e2 0%, #fff8f0 100%);
+    border-color: #f5d99a;
+    
+    i {
+      color: #c69500;
+      font-size: 18px;
+    }
+    
+    span {
+      color: #8b6914;
+    }
+    
+    .mecca-badge {
+      margin-left: auto;
+      background: linear-gradient(135deg, #c69500 0%, #d4a700 100%);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+  }
 }
 
 .my-booked {

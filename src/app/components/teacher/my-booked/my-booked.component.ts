@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { DateTime } from 'luxon';
 import { RepoService } from '../../../Repositories/repo.service';
 import { LessonCalendarComponent, LessonEvent } from '../../../shared/shared-component/lesson-calendar/lesson-calendar.component';
 import { DateLocaleService } from '../../../services/common/date-locale.service';
+import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import { FacadeProfilesService } from '../../../services/profiles/facade-profiles.service';
 import {
@@ -116,13 +118,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   showAddAvailabilityModal = false;
   addAvailabilityForm!: FormGroup;
   isSavingAvailability = false;
-  minDate: string = (() => {
-    const d = new Date();
-    const year = d.getFullYear();
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
-    const day = d.getDate().toString().padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  })();
+  minDate: string = DateTime.now().toFormat('yyyy-MM-dd');
   defaultHourlyRate: number = 10; // Default price from teacher profile
   isSavingDefaultRate: boolean = false; // Loading state for saving default rate
 
@@ -168,41 +164,17 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   availabilityFilter: 'all' | 'available' | 'booked' = 'all';
   dateRangeFilter: 'week' | 'month' | 'all' = 'week';
 
-  // Timezone display and GMT offset selector
-  userTimezoneDisplay: string = 'GMT+0';
-  selectedGmtOffset: number = -new Date().getTimezoneOffset(); // Default to user's local timezone
+  // Timezone - Fixed to Mecca time (GMT+3)
+  userTimezoneDisplay: string = 'GMT+3';
+  selectedGmtOffset: number = 180; // Fixed to GMT+3 (Mecca time)
   gmtOptions: { label: string; value: number }[] = [
-    { label: 'GMT-12', value: -720 },
-    { label: 'GMT-11', value: -660 },
-    { label: 'GMT-10', value: -600 },
-    { label: 'GMT-9', value: -540 },
-    { label: 'GMT-8', value: -480 },
-    { label: 'GMT-7', value: -420 },
-    { label: 'GMT-6', value: -360 },
-    { label: 'GMT-5', value: -300 },
-    { label: 'GMT-4', value: -240 },
-    { label: 'GMT-3', value: -180 },
-    { label: 'GMT-2', value: -120 },
-    { label: 'GMT-1', value: -60 },
-    { label: 'GMT+0', value: 0 },
-    { label: 'GMT+1', value: 60 },
-    { label: 'GMT+2', value: 120 },
-    { label: 'GMT+3', value: 180 },
-    { label: 'GMT+4', value: 240 },
-    { label: 'GMT+5', value: 300 },
-    { label: 'GMT+5:30', value: 330 },
-    { label: 'GMT+6', value: 360 },
-    { label: 'GMT+7', value: 420 },
-    { label: 'GMT+8', value: 480 },
-    { label: 'GMT+9', value: 540 },
-    { label: 'GMT+10', value: 600 },
-    { label: 'GMT+11', value: 660 },
-    { label: 'GMT+12', value: 720 },
+    { label: 'GMT+3 (توقيت مكة)', value: 180 },
   ];
 
   constructor(
     private repo: RepoService,
     private dateLocale: DateLocaleService,
+    private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private fb: FormBuilder,
     private facadeProfilesService: FacadeProfilesService,
@@ -334,24 +306,60 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
         if (data.profile.availability) {
           this.availabilitySlots = data.profile.availability.map((slot: any) => {
-            // Convert ISO datetime to YYYY-MM-DD format for date field
+            // Convert UTC times to Mecca timezone for display
             let dateStr: string | undefined;
-            if (slot.date) {
-              const dateObj = new Date(slot.date);
-              dateStr = `${dateObj.getFullYear()}-${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+            let displayStartTime: string | undefined;
+            let displayEndTime: string | undefined;
+            
+            // If we have startDateTime (full ISO), use it to calculate Mecca time
+            if (slot.startDateTime) {
+              const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
+              const meccaEnd = slot.endDateTime 
+                ? this.luxonDate.fromServerTimeToMecca(slot.endDateTime)
+                : meccaStart.plus({ hours: 1 });
+              
+              if (meccaStart.isValid) {
+                dateStr = meccaStart.toFormat('yyyy-MM-dd');
+                displayStartTime = meccaStart.toFormat('HH:mm');
+                displayEndTime = meccaEnd.toFormat('HH:mm');
+              }
+            } else if (slot.date) {
+              // Legacy: date + time without timezone info
+              // Assume the stored time is UTC and convert to Mecca
+              const startTimeStr = slot.startTime || slot.fromTime || '09:00';
+              const endTimeStr = slot.endTime || slot.toTime || '10:00';
+              
+              // Create full datetime from date + time (assume UTC)
+              const isoStart = `${slot.date}T${startTimeStr.substring(0, 5)}:00Z`;
+              const isoEnd = `${slot.date}T${endTimeStr.substring(0, 5)}:00Z`;
+              
+              const meccaStart = this.luxonDate.fromServerTimeToMecca(isoStart);
+              const meccaEnd = this.luxonDate.fromServerTimeToMecca(isoEnd);
+              
+              if (meccaStart.isValid) {
+                dateStr = meccaStart.toFormat('yyyy-MM-dd');
+                displayStartTime = meccaStart.toFormat('HH:mm');
+                displayEndTime = meccaEnd.toFormat('HH:mm');
+              } else {
+                // Fallback: use as-is
+                dateStr = slot.date;
+                displayStartTime = startTimeStr;
+                displayEndTime = endTimeStr;
+              }
             }
+            
             return {
               id: slot.id,
               dayOfWeek: slot.dayOfWeek ?? slot.day,
-              startTime: slot.startTime || slot.fromTime,
-              endTime: slot.endTime || slot.toTime,
+              startTime: displayStartTime || slot.startTime || slot.fromTime,
+              endTime: displayEndTime || slot.endTime || slot.toTime,
               isRecurring: slot.isRecurring ?? false,
               isBooked: !!slot.studentId || !!slot.bookedBy,
               studentId: slot.studentId,
               studentName: slot.studentName,
               bookingId: slot.bookingId,
               price: slot.price || this.defaultHourlyRate,
-              // Non-recurring slot specific date fields - date converted to YYYY-MM-DD
+              // Store both display date and original UTC data
               date: dateStr,
               startDateTime: slot.startDateTime,
               endDateTime: slot.endDateTime,
@@ -433,59 +441,47 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
   private formatDate(dt?: string): string {
     if (!dt) return '';
-    const d = this.dateLocale.parseDate(dt);
-    if (!d) return dt;
-    // Format as DD/MM HH:mm
-    const dayMonth = this.dateLocale.formatDayMonth(d);
-    const time = this.dateLocale.formatTime(d);
-    return `${dayMonth} ${time}`;
+    const parsed = this.luxonDate.fromServerTimeToMecca(dt);
+    if (!parsed.isValid) return dt;
+    
+    return parsed.toFormat('dd/MM HH:mm');
   }
 
-  // Refresh date formatting for all bookings when language changes
+  // Refresh date formatting for all bookings when language/timezone changes
   private refreshDateFormatting(): void {
     this.bookings = this.bookings.map((b) => ({
       ...b,
       datetime: b.rawDateTime ? this.formatDate(b.rawDateTime) : b.datetime,
     }));
+    
+    // Update counts
+    this.updateCounts();
+    
+    // Refresh calendar lessons to apply GMT offset to all events
+    this.updateCalendarLessons();
+  }
+
+  /**
+   * Apply Mecca timezone (GMT+3) to a UTC datetime string and return adjusted ISO string.
+   * The resulting string is in "pseudo-local" time for calendar display.
+   */
+  private applyGmtOffsetToDatetime(utcDateStr: string): string {
+    if (!utcDateStr) return utcDateStr;
+    const parsed = this.luxonDate.fromServerTimeToMecca(utcDateStr);
+    if (!parsed.isValid) return utcDateStr;
+    
+    // Return as ISO string without 'Z' suffix (local time for calendar)
+    return parsed.toFormat("yyyy-MM-dd'T'HH:mm:ss");
   }
 
   /**
    * Parse a date coming from the API which is expected to be UTC+0.
-   * Handles ISO strings with or without timezone, numeric timestamps, and Date objects.
-   * If the string has no timezone offset, we treat it as UTC by appending 'Z'.
+   * Returns a Luxon DateTime in Mecca timezone.
    */
   private parseApiDateAsUTC(value: any): Date | null {
     if (!value) return null;
-    // If it's already a Date
-    if (value instanceof Date) return value;
-
-    // If it's a numeric timestamp
-    if (typeof value === 'number' && Number.isFinite(value)) {
-      return new Date(value);
-    }
-
-    // If it's a string
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-      // If string ends with Z or contains +/- offset, Date will parse as UTC
-      if (/Z$|[+-]\d{2}:?\d{2}$/.test(trimmed)) {
-        const d = new Date(trimmed);
-        return Number.isNaN(d.getTime()) ? null : d;
-      }
-
-      // If it's an ISO-like string without timezone (e.g. '2025-10-23T14:30:00'),
-      // append 'Z' to force UTC parsing from backend.
-      if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?/.test(trimmed)) {
-        const d = new Date(trimmed + 'Z');
-        return Number.isNaN(d.getTime()) ? null : d;
-      }
-
-      // Last resort: let Date try to parse (may be locale-dependent)
-      const d = new Date(trimmed);
-      return Number.isNaN(d.getTime()) ? null : d;
-    }
-
-    return null;
+    const parsed = this.luxonDate.parseAny(value);
+    return parsed.isValid ? parsed.toJSDate() : null;
   }
 
   private statusLabel(code: any): string {
@@ -538,7 +534,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       .map((b) => ({
         id: b.id.toString(),
         title: b.title,
-        start: b.rawDateTime!,
+        start: this.applyGmtOffsetToDatetime(b.rawDateTime!), // Apply GMT offset
         type: (b.type as 'individual' | 'group') || 'individual',
         status: this.mapStatusToCalendar(b.status),
         studentName: b.name,
@@ -558,13 +554,34 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     
     this.availabilitySlots.forEach((slot, index) => {
       if (slot.isRecurring) {
+        // For recurring slots, startTime/endTime from API are full ISO datetime
+        // We need to extract the time part and apply GMT offset
+        
+        let startTimeStr: string;
+        let endTimeStr: string;
+        
+        // Check if startTime is a full ISO datetime (contains 'T')
+        if (slot.startTime && slot.startTime.includes('T')) {
+          // Apply GMT offset to get the display time
+          const adjustedStart = this.applyGmtOffsetToDatetime(slot.startTime);
+          const adjustedEnd = this.applyGmtOffsetToDatetime(slot.endTime);
+          
+          // Extract just the time part (HH:mm)
+          startTimeStr = adjustedStart.split('T')[1]?.substring(0, 5) || '00:00';
+          endTimeStr = adjustedEnd.split('T')[1]?.substring(0, 5) || '00:00';
+        } else {
+          // Legacy format - time strings like "16:00"
+          startTimeStr = slot.startTime || '00:00';
+          endTimeStr = slot.endTime || '00:00';
+        }
+        
         // Generate events for the next 8 weeks for recurring slots
         for (let weekOffset = 0; weekOffset < 8; weekOffset++) {
           const slotDate = this.getNextDateForDay(slot.dayOfWeek, weekOffset);
           // Skip if the date is in the past
           if (slotDate < today) continue;
           
-          // Use local date string to avoid timezone shifts
+          // Use local date string
           const year = slotDate.getFullYear();
           const month = (slotDate.getMonth() + 1).toString().padStart(2, '0');
           const day = slotDate.getDate().toString().padStart(2, '0');
@@ -572,7 +589,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           
           // Handle end time at midnight (00:00) - treat as next day
           let endDateStr = dateStr;
-          if (slot.endTime === '00:00' || slot.endTime === '00:00:00') {
+          if (endTimeStr === '00:00' || endTimeStr === '00:00:00') {
             const nextDay = new Date(slotDate);
             nextDay.setDate(nextDay.getDate() + 1);
             const nextYear = nextDay.getFullYear();
@@ -584,8 +601,8 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           availabilityEvents.push({
             id: `avail-${slot.id || index}-week${weekOffset}`,
             title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
-            start: `${dateStr}T${slot.startTime}`,
-            end: `${endDateStr}T${slot.endTime}`,
+            start: `${dateStr}T${startTimeStr}`,
+            end: `${endDateStr}T${endTimeStr}`,
             type: 'individual' as const,
             status: slot.isBooked ? 'booked' as const : 'available' as const,
             studentName: slot.studentName,
@@ -594,18 +611,60 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           });
         }
       } else {
-        // Non-recurring: use the specific date if available
-        let slotDate: Date;
-        let dateStr: string;
+        // Non-recurring: use startTime/endTime from API (they contain full ISO datetime)
+        console.log(`Processing non-recurring slot: id=${slot.id}, startTime=${slot.startTime}, endTime=${slot.endTime}, isRecurring=${slot.isRecurring}`);
         
-        console.log(`Processing non-recurring slot: id=${slot.id}, date=${slot.date}, isRecurring=${slot.isRecurring}`);
+        // Check if startTime is a full ISO datetime (contains 'T')
+        if (slot.startTime && slot.startTime.includes('T')) {
+          // startTime is a full ISO datetime like "2026-01-06T16:00:00Z"
+          // Apply GMT offset for display
+          const startStr = this.applyGmtOffsetToDatetime(slot.startTime);
+          const endStr = this.applyGmtOffsetToDatetime(slot.endTime);
+          
+          if (startStr && endStr) {
+            // Check if it's in the past
+            const startDate = new Date(startStr);
+            if (startDate < today) {
+              console.log(`Skipping past slot: ${startStr}`);
+              return;
+            }
+            
+            availabilityEvents.push({
+              id: `avail-${slot.id || index}`,
+              title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
+              start: startStr,
+              end: endStr,
+              type: 'individual' as const,
+              status: slot.isBooked ? 'booked' as const : 'available' as const,
+              studentName: slot.studentName,
+              price: slot.price,
+            });
+            console.log(`Non-recurring event added with GMT offset: start=${startStr}, end=${endStr}`);
+            return;
+          }
+        }
+        
+        // Fallback: use date + startTime/endTime as simple time strings
+        // After loading, these should already be in Mecca timezone
+        let slotDate: Date | null = null;
+        let dateStr: string = '';
         
         if (slot.date) {
-          // Use the saved specific date for non-recurring slot
-          const [year, month, day] = slot.date.split('-').map(Number);
-          slotDate = new Date(year, month - 1, day);
+          // Date should be in YYYY-MM-DD format (already converted to Mecca time during load)
           dateStr = slot.date;
-          console.log(`Non-recurring slot parsed: dateStr=${dateStr}, slotDate=${slotDate.toISOString()}`);
+          const parts = dateStr.split('-').map(Number);
+          if (parts.length === 3 && parts.every(p => !isNaN(p))) {
+            const [year, month, day] = parts;
+            slotDate = new Date(year, month - 1, day);
+          }
+          
+          // Only log if slotDate is valid
+          if (slotDate && !isNaN(slotDate.getTime())) {
+            console.log(`Non-recurring slot parsed: dateStr=${dateStr}, startTime=${slot.startTime}, endTime=${slot.endTime}`);
+          } else {
+            console.warn(`Failed to parse slot date: ${slot.date}`);
+            return; // Skip this slot
+          }
         } else {
           // Fallback: calculate from dayOfWeek for current week only
           const currentDayOfWeek = today.getDay();
@@ -619,12 +678,22 @@ export class MyBookedComponent implements OnInit, OnDestroy {
           dateStr = `${year}-${month}-${day}`;
         }
         
+        // Skip if slotDate is null or invalid
+        if (!slotDate || isNaN(slotDate.getTime())) {
+          console.warn('Skipping slot with invalid date');
+          return;
+        }
+        
         // Skip if the date is in the past
         if (slotDate < today) return;
         
+        // Extract time from slot.startTime and slot.endTime (should be HH:mm format here)
+        const startTimeStr = slot.startTime.includes(':') ? slot.startTime.split('T').pop()?.substring(0, 5) || slot.startTime : slot.startTime;
+        const endTimeStr = slot.endTime.includes(':') ? slot.endTime.split('T').pop()?.substring(0, 5) || slot.endTime : slot.endTime;
+        
         // Handle end time at midnight (00:00) - treat as next day
         let endDateStr = dateStr;
-        if (slot.endTime === '00:00' || slot.endTime === '00:00:00') {
+        if (endTimeStr === '00:00' || endTimeStr === '00:00:00') {
           const nextDay = new Date(slotDate);
           nextDay.setDate(nextDay.getDate() + 1);
           const nextYear = nextDay.getFullYear();
@@ -636,14 +705,14 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         availabilityEvents.push({
           id: `avail-${slot.id || index}`,
           title: slot.isBooked ? (slot.studentName || this.translate.instant('my_booked_page.booked')) : this.translate.instant('my_booked_page.available'),
-          start: `${dateStr}T${slot.startTime}`,
-          end: `${endDateStr}T${slot.endTime}`,
+          start: `${dateStr}T${startTimeStr}`,
+          end: `${endDateStr}T${endTimeStr}`,
           type: 'individual' as const,
           status: slot.isBooked ? 'booked' as const : 'available' as const,
           studentName: slot.studentName,
           price: slot.price,
         });
-        console.log(`Non-recurring event added: start=${dateStr}T${slot.startTime}, end=${endDateStr}T${slot.endTime}`);
+        console.log(`Non-recurring event added (fallback): start=${dateStr}T${startTimeStr}, end=${endDateStr}T${endTimeStr}`);
       }
     });
 
@@ -665,7 +734,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     return this._calendarLessons;
   }
 
-  private mapStatusToCalendar(status: string): 'available' | 'booked' | 'completed' | 'cancelled' {
+  private mapStatusToCalendar(status: string): 'available' | 'booked' | 'completed' {
     switch (status.toLowerCase()) {
       case 'confirmed':
       case 'open':
@@ -673,8 +742,6 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         return 'booked';
       case 'completed':
         return 'completed';
-      case 'cancelled':
-        return 'cancelled';
       default:
         return 'booked';
     }
@@ -907,12 +974,23 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Calculate end time (1 hour after start)
+    // Calculate end time (60 minutes after start, except last slot ends at 23:59)
     let endTimeStr = '';
     if (timeStr) {
       const [hours, minutes] = timeStr.split(':').map(Number);
-      const endHours = (hours + 1) % 24;
-      endTimeStr = `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      // If starting at 23:00, end at 23:59 (last slot of the day)
+      if (hours === 23 && minutes === 0) {
+        endTimeStr = '23:59';
+      } else {
+        // Add 60 minutes to get end time
+        let endMinutes = minutes + 60;
+        let endHours = hours;
+        if (endMinutes >= 60) {
+          endMinutes -= 60;
+          endHours = (endHours + 1) % 24;
+        }
+        endTimeStr = `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')}`;
+      }
     }
 
     this.openAddAvailabilityModal(dateStr, timeStr, endTimeStr);
@@ -1052,23 +1130,64 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     
     // Add specific date for non-recurring slots
     if (!formValue.isRecurring) {
-      // Create full ISO datetime for the slot - convert to UTC using toISOString()
-      const startDate = new Date(`${formValue.date}T${formValue.fromTime}:00`);
-      newSlot.startDateTime = startDate.toISOString();
-      // date should also be ISO format for backend compatibility
-      newSlot.date = new Date(`${formValue.date}T00:00:00`).toISOString();
+      // Convert selected GMT offset time to UTC for storage
+      // The user enters time in their selected GMT offset, we need to convert to UTC
+      // 
+      // Example: User selects GMT+1, enters "00:00" on "2026-01-05"
+      // This means 00:00 in GMT+1 timezone = 23:00 on 2026-01-04 in UTC
+      //
+      // Steps:
+      // 1. Parse the entered date/time as if it's in the selected GMT offset
+      // 2. Convert to UTC by subtracting the offset
       
-      // Handle midnight (00:00) end time - it means the next day
+      const [startHours, startMinutes] = formValue.fromTime.split(':').map(Number);
+      const [endHours, endMinutes] = formValue.toTime.split(':').map(Number);
+      
+      // Build a Date object that represents the selected time in UTC
+      // by treating the input as UTC and then adjusting for the offset
+      const utcStartDateTime = new Date(Date.UTC(
+        parseInt(dateParts[0]),  // year
+        parseInt(dateParts[1]) - 1,  // month (0-indexed)
+        parseInt(dateParts[2]),  // day
+        startHours,
+        startMinutes,
+        0
+      ));
+      
+      // Subtract the GMT offset to convert from "selected timezone" to UTC
+      // If GMT+1, offset is 60 minutes, so we subtract 60 minutes
+      const offsetMs = this.selectedGmtOffset * 60 * 1000;
+      utcStartDateTime.setTime(utcStartDateTime.getTime() - offsetMs);
+      
+      // Store as ISO string (UTC)
+      newSlot.startDateTime = utcStartDateTime.toISOString();
+      newSlot.date = utcStartDateTime.toISOString().split('T')[0]; // UTC date
+      
+      // For display in calendar, startTime and endTime should also be the full ISO datetime
+      // updateCalendarLessons() checks if startTime.includes('T') to detect ISO format
+      newSlot.startTime = utcStartDateTime.toISOString();
+      
+      // Handle end time
+      let endDay = parseInt(dateParts[2]);
       if (formValue.toTime === '00:00') {
-        // Calculate next day's date for endDateTime
-        const nextDay = new Date(selectedDate);
-        nextDay.setDate(nextDay.getDate() + 1);
-        const endDate = new Date(`${nextDay.getFullYear()}-${(nextDay.getMonth() + 1).toString().padStart(2, '0')}-${nextDay.getDate().toString().padStart(2, '0')}T00:00:00`);
-        newSlot.endDateTime = endDate.toISOString();
-      } else {
-        const endDate = new Date(`${formValue.date}T${formValue.toTime}:00`);
-        newSlot.endDateTime = endDate.toISOString();
+        // Midnight means next day
+        endDay += 1;
       }
+      
+      const utcEndDateTime = new Date(Date.UTC(
+        parseInt(dateParts[0]),
+        parseInt(dateParts[1]) - 1,
+        endDay,
+        endHours,
+        endMinutes,
+        0
+      ));
+      utcEndDateTime.setTime(utcEndDateTime.getTime() - offsetMs);
+      newSlot.endDateTime = utcEndDateTime.toISOString();
+      newSlot.endTime = utcEndDateTime.toISOString();
+      
+      console.log('Saving slot - User entered:', formValue.date, formValue.fromTime, 'GMT offset:', this.selectedGmtOffset);
+      console.log('Converted to UTC:', newSlot.startTime, 'to', newSlot.endTime);
     }
 
     // If recurring, show confirmation modal first
@@ -1109,6 +1228,15 @@ export class MyBookedComponent implements OnInit, OnDestroy {
     // Helper function to normalize time to comparable format
     const normalizeTime = (time: string): string => {
       if (!time) return '00:00:00';
+      
+      // If it's an ISO datetime string (contains 'T'), extract time part
+      if (time.includes('T')) {
+        const timePart = time.split('T')[1];
+        if (timePart) {
+          return timePart.substring(0, 8); // Get HH:mm:ss
+        }
+      }
+      
       // If already in HH:mm:ss format, return as-is
       if (time.length === 8 && time[2] === ':' && time[5] === ':') {
         return time;
@@ -1116,6 +1244,25 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       // If in HH:mm format, append :00
       if (time.length === 5 && time[2] === ':') {
         return time + ':00';
+      }
+      return time;
+    };
+    
+    // Helper to extract just HH:mm from time string (for API)
+    const extractTimeHHMM = (time: string): string => {
+      if (!time) return '00:00';
+      
+      // If it's an ISO datetime string (contains 'T'), extract time part
+      if (time.includes('T')) {
+        const timePart = time.split('T')[1];
+        if (timePart) {
+          return timePart.substring(0, 5); // Get HH:mm
+        }
+      }
+      
+      // If already in HH:mm or HH:mm:ss format
+      if (time.length >= 5 && time[2] === ':') {
+        return time.substring(0, 5);
       }
       return time;
     };
@@ -1140,9 +1287,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
     const updateData = {
       availability: validSlots.map(slot => {
-        // Ensure times are in correct format
-        const startTime = slot.startTime || '00:00';
-        const endTime = slot.endTime || '00:00';
+        // Extract HH:mm format for API (handles both ISO datetime and HH:mm)
+        const startTime = extractTimeHHMM(slot.startTime);
+        const endTime = extractTimeHHMM(slot.endTime);
         
         // Validate that we have actual times
         if (!startTime.includes(':') || !endTime.includes(':')) {

@@ -13,7 +13,7 @@ import { FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { SideMenuComponent } from '../../../../shared/shared-component/side-menu/side-menu.component';
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
-import { LessonCalendarComponent, LessonEvent } from '../../../../shared/shared-component/lesson-calendar/lesson-calendar.component';
+import { LessonEvent } from '../../../../shared/shared-component/lesson-calendar/lesson-calendar.component';
 import { FacadeProfilesService } from '../../../../services/profiles/facade-profiles.service';
 import { UploadFilesService } from '../../../../services/common/upload-files.service';
 import { compressProfileImage } from '../../../../services/common/image-compression';
@@ -38,7 +38,6 @@ import { RepoService } from '../../../../Repositories/repo.service';
     ReactiveFormsModule,
     FormsModule,
     FormValidationComponent,
-    LessonCalendarComponent,
   ],
   templateUrl: './teacher-profile.component.html',
   styleUrls: ['./teacher-profile.component.scss'],
@@ -1213,14 +1212,14 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   onWeeklyDayToggle(dayIndex: number): void {
     this.weekDays[dayIndex].enabled = !this.weekDays[dayIndex].enabled;
     if (this.weekDays[dayIndex].enabled && this.weekDays[dayIndex].slots.length === 0) {
-      this.weekDays[dayIndex].slots = [{ fromTime: '09:00', toTime: '10:00' }];
+      this.weekDays[dayIndex].slots = [{ fromTime: '09:00', toTime: '09:59' }];
     }
   }
 
   // Add time slot to a day
   addWeeklySlot(dayIndex: number): void {
     if (this.weekDays[dayIndex].slots.length < 3) {
-      this.weekDays[dayIndex].slots.push({ fromTime: '09:00', toTime: '10:00' });
+      this.weekDays[dayIndex].slots.push({ fromTime: '09:00', toTime: '09:59' });
     }
   }
 

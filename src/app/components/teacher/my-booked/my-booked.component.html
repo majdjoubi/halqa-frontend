@@ -145,22 +145,11 @@
       </div>
     </div>
 
-    <!-- Timezone Notice with GMT Selector -->
-    <div class="timezone-notice">
-      <i class="fas fa-globe"></i>
-      <span>{{ 'SCHEDULING.TIMES_IN_YOUR_TIMEZONE' | translate }}</span>
-      <div class="gmt-selector">
-        <select 
-          [(ngModel)]="selectedGmtOffset" 
-          (ngModelChange)="onGmtOffsetChange()"
-          class="gmt-select"
-          [attr.aria-label]="'SCHEDULING.SELECT_TIMEZONE' | translate"
-        >
-          <option *ngFor="let gmt of gmtOptions" [ngValue]="gmt.value">
-            {{ gmt.label }}
-          </option>
-        </select>
-      </div>
+    <!-- Timezone Notice - Fixed to Mecca Time -->
+    <div class="timezone-notice mecca-time">
+      <i class="fas fa-kaaba"></i>
+      <span>{{ 'SCHEDULING.ALL_TIMES_MECCA' | translate }}</span>
+      <span class="mecca-badge">GMT+3</span>
     </div>
 
     <!-- Calendar View -->
@@ -169,6 +158,7 @@
         [userRole]="'teacher'"
         [lessons]="calendarLessons"
         [isLoading]="isLoading"
+        [gmtOffset]="selectedGmtOffset"
         (eventClick)="onCalendarEventClick($event)"
         (dateClick)="onCalendarDateClick($event)"
         (eventDrop)="onCalendarEventDrop($event)"

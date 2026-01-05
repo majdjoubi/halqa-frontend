@@ -8,32 +8,29 @@ export enum GroupSessionStatus {
   Full = 2,
   InProgress = 3,
   Completed = 4,
-  Cancelled = 5,
 }
 
 /**
  * Status enum for individual booking sessions
  */
 export enum IndividualSessionStatus {
-  Pending = 1,
   Confirmed = 2,
   InProgress = 3,
   Completed = 4,
-  Cancelled = 5,
+  StudentNoShow = 8,
 }
 
 /**
  * Unified booking status for UI display
  */
 export type BookingStatusLabel = 
-  | 'pending'
   | 'confirmed'
   | 'open'
   | 'full'
   | 'in-progress'
   | 'completed'
-  | 'cancelled'
-  | 'scheduled';
+  | 'scheduled'
+  | 'no-show';
 
 /**
  * Lesson type enum
@@ -66,8 +63,6 @@ export function getGroupStatusLabel(status: GroupSessionStatus): BookingStatusLa
       return 'in-progress';
     case GroupSessionStatus.Completed:
       return 'completed';
-    case GroupSessionStatus.Cancelled:
-      return 'cancelled';
     default:
       return 'scheduled';
   }
@@ -78,16 +73,14 @@ export function getGroupStatusLabel(status: GroupSessionStatus): BookingStatusLa
  */
 export function getIndividualStatusLabel(status: IndividualSessionStatus): BookingStatusLabel {
   switch (status) {
-    case IndividualSessionStatus.Pending:
-      return 'pending';
     case IndividualSessionStatus.Confirmed:
       return 'confirmed';
     case IndividualSessionStatus.InProgress:
       return 'in-progress';
     case IndividualSessionStatus.Completed:
       return 'completed';
-    case IndividualSessionStatus.Cancelled:
-      return 'cancelled';
+    case IndividualSessionStatus.StudentNoShow:
+      return 'no-show';
     default:
       return 'scheduled';
   }

@@ -135,15 +135,6 @@ export class SchedulingService {
   }
 
   /**
-   * Cancel a group session (refunds all students)
-   */
-  cancelGroupSession(groupSessionId: number): Observable<SuccessResponse> {
-    return this.http.delete<SuccessResponse>(
-      `${this.baseUrl}/api/scheduling/group-session/${groupSessionId}`
-    );
-  }
-
-  /**
    * Get teacher's calendar view
    */
   getTeacherCalendar(fromDate: Date, toDate: Date): Observable<TeacherCalendarResponse> {

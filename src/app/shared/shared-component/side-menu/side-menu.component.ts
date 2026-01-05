@@ -126,8 +126,8 @@ export class SideMenuComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
-  onEscape(event: KeyboardEvent) {
+  @HostListener('document:keydown.escape')
+  onEscape() {
     if (this._open && this.closable) this.closeMenu();
   }
 

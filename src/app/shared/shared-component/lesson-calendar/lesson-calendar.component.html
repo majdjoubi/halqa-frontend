@@ -6,8 +6,8 @@
   </div>
 
   <!-- Calendar -->
-  <div class="calendar-container" *ngIf="!isLoading">
-    <full-calendar [options]="calendarOptions"></full-calendar>
+  <div class="calendar-container" *ngIf="!isLoading && calendarVisible">
+    <full-calendar #calendar [options]="calendarOptions"></full-calendar>
   </div>
 
   <!-- Empty State -->

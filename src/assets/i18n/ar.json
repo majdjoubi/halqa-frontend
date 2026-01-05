@@ -886,7 +886,20 @@
       "month": "شهر",
       "week": "أسبوع",
       "day": "يوم"
-    }
+    },
+    "days": {
+      "sun": "أحد",
+      "mon": "إثن",
+      "tue": "ثلا",
+      "wed": "أرب",
+      "thu": "خمي",
+      "fri": "جمع",
+      "sat": "سبت"
+    },
+    "prev_month": "الشهر السابق",
+    "next_month": "الشهر التالي",
+    "available": "متاح",
+    "select_date": "اختر تاريخاً"
   },
   "lesson": {
     "duration": {
@@ -981,6 +994,8 @@
     "TIMES_IN_YOUR_TIMEZONE": "جميع الأوقات معروضة بتوقيت",
     "SELECT_TIMEZONE": "اختر التوقيت",
     "TIMEZONE": "التوقيت",
+    "ALL_TIMES_MECCA": "جميع الأوقات بتوقيت مكة المكرمة",
+    "MECCA_TIME": "توقيت مكة المكرمة",
     "NO_SLOTS_AVAILABLE": "لا توجد أوقات متاحة",
     "TRY_ANOTHER_DATE": "حاول اختيار تاريخ آخر",
     "NO_GROUP_SESSIONS": "لا توجد جلسات جماعية متاحة",

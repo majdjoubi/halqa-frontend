@@ -100,7 +100,7 @@
             <span class="reviews">({{ teacher.totalReviews }})</span>
           </div>
           <div class="teacher-specializations">
-            <span class="tag" *ngFor="let spec of teacher.specializations?.slice(0, 3)">
+            <span class="tag" *ngFor="let spec of teacher.specializations.slice(0, 3)">
               {{ spec }}
             </span>
           </div>

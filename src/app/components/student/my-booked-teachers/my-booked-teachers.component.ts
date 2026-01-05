@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { DateTime } from 'luxon';
 import { RepoService } from '../../../Repositories/repo.service';
 import { DateLocaleService } from '../../../services/common/date-locale.service';
+import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import {
   GroupSessionStatus,
@@ -86,19 +88,19 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
 
   // Get upcoming (confirmed) bookings sorted by date
   get upcomingBookings(): StudentBooking[] {
-    const now = new Date();
+    const now = DateTime.now();
     return this.bookings
       .filter(b => {
         if (b.status === 'cancelled' || b.rawStatus === 5) return false;
         if (b.status === 'completed' || b.rawStatus === 4) return false;
         if (!b.rawDateTime) return false;
-        const bookingDate = this.dateLocale.parseDate(b.rawDateTime);
-        return bookingDate && bookingDate.getTime() > now.getTime();
+        const bookingDate = this.luxonDate.fromServerTimeToMecca(b.rawDateTime);
+        return bookingDate.isValid && bookingDate > now;
       })
       .sort((a, b) => {
-        const dateA = a.rawDateTime ? new Date(a.rawDateTime).getTime() : 0;
-        const dateB = b.rawDateTime ? new Date(b.rawDateTime).getTime() : 0;
-        return dateA - dateB;
+        const dateA = a.rawDateTime ? DateTime.fromISO(a.rawDateTime) : DateTime.invalid('empty');
+        const dateB = b.rawDateTime ? DateTime.fromISO(b.rawDateTime) : DateTime.invalid('empty');
+        return dateA.toMillis() - dateB.toMillis();
       });
   }
 
@@ -182,21 +184,21 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const now = new Date().getTime();
-    const lessonTime = new Date(this.nextLesson.rawDateTime).getTime();
-    const diff = lessonTime - now;
+    const now = DateTime.now();
+    const lessonTime = this.luxonDate.fromServerTimeToMecca(this.nextLesson.rawDateTime);
+    const diff = lessonTime.diff(now, ['days', 'hours', 'minutes', 'seconds']);
 
-    if (diff <= 0) {
+    if (diff.toMillis() <= 0) {
       this.countdown = { days: 0, hours: 0, minutes: 0, seconds: 0 };
       // Refresh to find next lesson
       this.startCountdownTimer();
       return;
     }
 
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+    const days = Math.floor(diff.days);
+    const hours = Math.floor(diff.hours);
+    const minutes = Math.floor(diff.minutes);
+    const seconds = Math.floor(diff.seconds);
 
     this.countdown = { days, hours, minutes, seconds };
   }
@@ -204,6 +206,7 @@ export class MyBookedTeachersComponent implements OnInit, OnDestroy {
   constructor(
     private repo: RepoService,
     private dateLocale: DateLocaleService,
+    private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private translate: TranslateService
   ) {}

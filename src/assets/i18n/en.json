@@ -887,7 +887,20 @@
       "month": "Month",
       "week": "Week",
       "day": "Day"
-    }
+    },
+    "days": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    },
+    "prev_month": "Previous month",
+    "next_month": "Next month",
+    "available": "Available",
+    "select_date": "Select a date"
   },
   "lesson": {
     "duration": {
@@ -982,6 +995,8 @@
     "TIMES_IN_YOUR_TIMEZONE": "All times shown in",
     "SELECT_TIMEZONE": "Select Timezone",
     "TIMEZONE": "Timezone",
+    "ALL_TIMES_MECCA": "All times are in Mecca time",
+    "MECCA_TIME": "Mecca Time",
     "NO_SLOTS_AVAILABLE": "No Slots Available",
     "TRY_ANOTHER_DATE": "Try selecting another date",
     "NO_GROUP_SESSIONS": "No Group Sessions Available",

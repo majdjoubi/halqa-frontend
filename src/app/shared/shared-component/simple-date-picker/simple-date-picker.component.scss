@@ -1,0 +1,225 @@
+// Colors matching the app theme
+$primary-green: #016836;
+$light-green: #cce1d7;
+$very-light-green: #effff4;
+$available-green: #10b981;
+$text-color: #333;
+$text-muted: #8692a6;
+$border-color: #e1e5e9;
+$white: #fff;
+$today-bg: #f0f0f0;
+
+.simple-date-picker {
+  background: $white;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid $border-color;
+
+  &.rtl {
+    direction: rtl;
+    
+    .nav-btn.prev svg {
+      transform: rotate(180deg);
+    }
+    
+    .nav-btn.next svg {
+      transform: rotate(180deg);
+    }
+  }
+}
+
+// Header with month navigation
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.month-year {
+  font-size: 16px;
+  font-weight: 600;
+  color: $text-color;
+}
+
+.nav-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 8px;
+  color: $text-muted;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background: $very-light-green;
+    color: $primary-green;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// Weekday names row
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 8px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: $text-muted;
+  padding: 4px 0;
+  text-transform: uppercase;
+}
+
+// Calendar grid
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar-day {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: default;
+  border-radius: 8px;
+  font-size: 14px;
+  color: $text-color;
+  padding: 4px;
+  transition: all 0.2s ease;
+
+  .day-number {
+    z-index: 1;
+  }
+
+  // Other month days (grey out)
+  &.other-month {
+    color: lighten($text-muted, 20%);
+    opacity: 0.4;
+  }
+
+  // Past days
+  &.past {
+    color: $text-muted;
+    opacity: 0.5;
+  }
+
+  // Today
+  &.today {
+    background: $today-bg;
+    font-weight: 600;
+
+    .day-number {
+      position: relative;
+    }
+  }
+
+  // Has availability - highlight with green
+  &.has-availability {
+    background: $very-light-green;
+    color: $primary-green;
+    font-weight: 500;
+
+    &.clickable {
+      cursor: pointer;
+
+      &:hover {
+        background: $light-green;
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.98);
+      }
+    }
+  }
+
+  // Selected state
+  &.selected {
+    background: $primary-green !important;
+    color: $white !important;
+    font-weight: 600;
+
+    .availability-dot {
+      background: $white;
+    }
+  }
+}
+
+// Green dot indicator for available dates
+.availability-dot {
+  position: absolute;
+  bottom: 4px;
+  width: 6px;
+  height: 6px;
+  background: $available-green;
+  border-radius: 50%;
+}
+
+// Legend at bottom
+.calendar-legend {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid $border-color;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+
+  &.available {
+    background: $available-green;
+  }
+}
+
+.legend-text {
+  font-size: 12px;
+  color: $text-muted;
+}
+
+// Responsive adjustments
+@media (max-width: 420px) {
+  .simple-date-picker {
+    padding: 12px;
+  }
+
+  .calendar-day {
+    font-size: 13px;
+  }
+
+  .weekday {
+    font-size: 10px;
+  }
+
+  .month-year {
+    font-size: 14px;
+  }
+}

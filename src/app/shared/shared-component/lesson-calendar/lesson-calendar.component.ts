@@ -1,11 +1,12 @@
-import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges, HostListener } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, OnDestroy, SimpleChanges, HostListener, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FullCalendarModule } from '@fullcalendar/angular';
-import { CalendarOptions, EventInput, DateSelectArg, EventDropArg } from '@fullcalendar/core';
+import { FullCalendarModule, FullCalendarComponent } from '@fullcalendar/angular';
+import { CalendarOptions, EventInput, DateSelectArg, EventDropArg, Calendar } from '@fullcalendar/core';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin, { EventResizeDoneArg } from '@fullcalendar/interaction';
 import { TranslateModule } from '@ngx-translate/core';
+import { DateTime } from 'luxon';
 import { DateLocaleService } from '../../../services/common/date-locale.service';
 import { LanguageService } from '../../../services/language.service';
 import { Subscription } from 'rxjs';
@@ -16,7 +17,7 @@ export interface LessonEvent {
   start: Date | string;
   end?: Date | string;
   type: 'individual' | 'group';
-  status: 'available' | 'booked' | 'completed' | 'cancelled';
+  status: 'available' | 'booked' | 'completed';
   studentName?: string;
   teacherName?: string;
   price?: number;
@@ -44,6 +45,10 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   // Input: loading state
   @Input() isLoading = false;
   
+  // Input: GMT offset in minutes (e.g., 60 for GMT+1, -300 for GMT-5)
+  // Fixed to Mecca time (GMT+3 = 180 minutes)
+  @Input() gmtOffset: number = 180;
+  
   // Output: when user clicks on an event
   @Output() eventClick = new EventEmitter<LessonEvent>();
   
@@ -58,6 +63,12 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
 
   // Output: when user selects a date range
   @Output() select = new EventEmitter<DateSelectArg>();
+
+  // ViewChild to access FullCalendar API
+  @ViewChild('calendar') calendarComponent?: FullCalendarComponent;
+
+  // Used to force calendar re-creation when GMT offset changes
+  calendarVisible = true;
 
   private langSubscription?: Subscription;
 
@@ -80,6 +91,7 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
     scrollTime: '08:00:00',
     allDaySlot: false,
     nowIndicator: true,
+    now: () => this.getNowInSelectedTimezone(),
     height: 'auto',
     slotLabelFormat: {
       hour: '2-digit',
@@ -161,6 +173,39 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
     if (changes['userRole']) {
       this.updateInteractivity();
     }
+    if (changes['gmtOffset']) {
+      // Update the now indicator when GMT offset changes
+      this.updateNowIndicator();
+    }
+  }
+
+  /**
+   * Get current time adjusted to selected GMT offset for the now indicator
+   * Uses Luxon for DST-safe timezone handling
+   */
+  private getNowInSelectedTimezone(): Date {
+    // Use Luxon to handle timezone correctly
+    const now = DateTime.utc();
+    // Apply GMT offset (in minutes)
+    const adjusted = now.plus({ minutes: this.gmtOffset });
+    return adjusted.toJSDate();
+  }
+
+  /**
+   * Force calendar to update the now indicator by recreating it
+   */
+  private updateNowIndicator(): void {
+    // Update the now option
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      now: () => this.getNowInSelectedTimezone()
+    };
+    
+    // Force calendar to re-create by hiding and showing
+    this.calendarVisible = false;
+    setTimeout(() => {
+      this.calendarVisible = true;
+    }, 0);
   }
 
   private updateInteractivity(): void {
@@ -263,10 +308,6 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
         case 'completed':
           backgroundColor = '#95a5a6';
           borderColor = '#7f8c8d';
-          break;
-        case 'cancelled':
-          backgroundColor = '#e74c3c';
-          borderColor = '#c0392b';
           break;
       }
 

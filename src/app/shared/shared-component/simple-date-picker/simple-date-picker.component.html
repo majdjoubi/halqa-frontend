@@ -1,0 +1,63 @@
+<div class="simple-date-picker" [class.rtl]="rtl">
+  <!-- Month Navigation Header -->
+  <div class="calendar-header">
+    <button 
+      type="button" 
+      class="nav-btn prev" 
+      (click)="prevMonth()"
+      [attr.aria-label]="'calendar.prev_month' | translate"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"></polyline>
+      </svg>
+    </button>
+    
+    <span class="month-year">{{ getMonthName() }}</span>
+    
+    <button 
+      type="button" 
+      class="nav-btn next" 
+      (click)="nextMonth()"
+      [attr.aria-label]="'calendar.next_month' | translate"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"></polyline>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Day Names Header -->
+  <div class="calendar-weekdays">
+    <div class="weekday" *ngFor="let dayName of dayNames">
+      {{ getDayName(dayName) | translate }}
+    </div>
+  </div>
+
+  <!-- Calendar Grid -->
+  <div class="calendar-grid">
+    <button
+      type="button"
+      *ngFor="let day of calendarDays; trackBy: trackByDay"
+      class="calendar-day"
+      [class.other-month]="!day.isCurrentMonth"
+      [class.today]="day.isToday"
+      [class.selected]="day.isSelected"
+      [class.has-availability]="day.hasAvailability"
+      [class.past]="day.isPast"
+      [class.clickable]="day.isCurrentMonth && day.hasAvailability && !day.isPast"
+      [disabled]="!day.isCurrentMonth || !day.hasAvailability || day.isPast"
+      (click)="day.date && selectDate(day.date)"
+    >
+      <span class="day-number">{{ day.day }}</span>
+      <span class="availability-dot" *ngIf="day.hasAvailability && day.isCurrentMonth"></span>
+    </button>
+  </div>
+
+  <!-- Legend -->
+  <div class="calendar-legend">
+    <div class="legend-item">
+      <span class="legend-dot available"></span>
+      <span class="legend-text">{{ 'calendar.available' | translate }}</span>
+    </div>
+  </div>
+</div>

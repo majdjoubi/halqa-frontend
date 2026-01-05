@@ -129,25 +129,13 @@
               </div>
             </div>
 
-            <!-- GMT Timezone Selector -->
-            <div class="filter-item timezone-selector">
-              <label for="gmtSelect" class="visually-hidden">{{ 'SCHEDULING.TIMEZONE' | translate }}</label>
-              <div class="select-wrapper">
-                <select 
-                  id="gmtSelect" 
-                  [(ngModel)]="selectedGmtOffset" 
-                  (ngModelChange)="onGmtOffsetChange()"
-                  class="gmt-select"
-                >
-                  <option *ngFor="let gmt of gmtOptions" [ngValue]="gmt.value">
-                    {{ gmt.label }}
-                  </option>
-                </select>
-                <span class="timezone-hint">
-                  <i class="fas fa-globe"></i>
-                  {{ userTimezoneDisplay }}
-                </span>
-              </div>
+            <!-- Mecca Timezone Notice -->
+            <div class="filter-item timezone-notice-inline">
+              <span class="mecca-time-badge">
+                <i class="fas fa-kaaba"></i>
+                {{ 'SCHEDULING.MECCA_TIME' | translate }}
+                <span class="gmt-label">GMT+3</span>
+              </span>
             </div>
           </div>
         </div>
@@ -515,7 +503,16 @@
         {{ "all_teachers.no_availability" | translate }}
       </p>
 
-      <!-- Grouped by day view -->
+      <!-- Calendar date picker for selecting available dates -->
+      <app-simple-date-picker
+        *ngIf="bookingTeacher.availability && bookingTeacher.availability.length > 0"
+        [availableDates]="availableDates"
+        [selectedDate]="selectedCalendarDate"
+        [rtl]="isRtl"
+        (dateSelected)="onCalendarDateSelected($event)"
+      ></app-simple-date-picker>
+
+      <!-- Time slots for selected date -->
       <div class="day-groups" *ngIf="groupedAvailability.length > 0">
         <div class="day-group" *ngFor="let group of groupedAvailability">
           <div class="day-header">
@@ -538,6 +535,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Message when date is selected but no slots -->
+      <p
+        *ngIf="selectedCalendarDate && groupedAvailability.length === 0 && bookingTeacher.availability.length > 0"
+        class="no-slots-for-date"
+      >
+        {{ "calendar.select_date" | translate }}
+      </p>
     </div>
   </div>
 

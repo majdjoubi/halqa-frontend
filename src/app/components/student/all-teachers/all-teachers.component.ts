@@ -4,17 +4,20 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { DateTime } from 'luxon';
 import { SideMenuComponent } from '../../../shared/shared-component/side-menu/side-menu.component';
+import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
 import { LessonsHandelingFacadeService } from '../../../services/lessons-teachers/lessons-handeling-facade.service';
 import { RepoService } from '../../../Repositories/repo.service';
 import { GetTeacherByIDService } from '../../../services/lessons-teachers/get-teacher-by-id.service';
 import { DateLocaleService } from '../../../services/common/date-locale.service';
+import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 
 @Component({
   selector: 'app-all-teachers',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, SideMenuComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, SideMenuComponent, SimpleDatePickerComponent],
   templateUrl: './all-teachers.component.html',
   styleUrls: ['./all-teachers.component.scss'],
 })
@@ -50,6 +53,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   bookingTeacher: any = null;
   // index of the selected availability slot inside bookingTeacher.availability
   selectedSlotIndex: number | null = null;
+  // Selected date from calendar picker (format: 'YYYY-MM-DD')
+  selectedCalendarDate: string | null = null;
   // processing flag for payment action
   payProcessing = false;
   // available page sizes for the user to choose from
@@ -70,36 +75,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Language subscription
   private langSubscription?: Subscription;
 
-  // GMT offset selector
-  selectedGmtOffset: number = -new Date().getTimezoneOffset(); // Default to user's local timezone
-  userTimezoneDisplay: string = 'GMT+0';
+  // Timezone - Fixed to Mecca time (GMT+3)
+  selectedGmtOffset: number = 180; // Fixed to GMT+3 (Mecca time)
+  userTimezoneDisplay: string = 'GMT+3';
   gmtOptions: { label: string; value: number }[] = [
-    { label: 'GMT-12', value: -720 },
-    { label: 'GMT-11', value: -660 },
-    { label: 'GMT-10', value: -600 },
-    { label: 'GMT-9', value: -540 },
-    { label: 'GMT-8', value: -480 },
-    { label: 'GMT-7', value: -420 },
-    { label: 'GMT-6', value: -360 },
-    { label: 'GMT-5', value: -300 },
-    { label: 'GMT-4', value: -240 },
-    { label: 'GMT-3', value: -180 },
-    { label: 'GMT-2', value: -120 },
-    { label: 'GMT-1', value: -60 },
-    { label: 'GMT+0', value: 0 },
-    { label: 'GMT+1', value: 60 },
-    { label: 'GMT+2', value: 120 },
-    { label: 'GMT+3', value: 180 },
-    { label: 'GMT+4', value: 240 },
-    { label: 'GMT+5', value: 300 },
-    { label: 'GMT+5:30', value: 330 },
-    { label: 'GMT+6', value: 360 },
-    { label: 'GMT+7', value: 420 },
-    { label: 'GMT+8', value: 480 },
-    { label: 'GMT+9', value: 540 },
-    { label: 'GMT+10', value: 600 },
-    { label: 'GMT+11', value: 660 },
-    { label: 'GMT+12', value: 720 },
+    { label: 'GMT+3 (توقيت مكة)', value: 180 },
   ];
 
   constructor(
@@ -107,6 +87,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private _repo: RepoService,
     private _getTeacher: GetTeacherByIDService,
     private dateLocale: DateLocaleService,
+    private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private router: Router
   ) {}
@@ -154,41 +135,32 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    */
   private refreshAvailabilityTimes(): void {
     if (!this.bookingTeacher?.availability) return;
-    // Re-normalize slots with new timezone
-    this.bookingTeacher.availability = this.bookingTeacher.availability.map((slot: any) => 
-      this.normalizeSlotToSelectedTimezone(slot)
-    );
+    
+    const pad = (n: number) => (n < 10 ? '0' + n : '' + n);
+    const offsetMs = this.selectedGmtOffset * 60 * 1000;
+    
+    // Re-calculate times for each slot based on stored UTC ISO strings
+    this.bookingTeacher.availability = this.bookingTeacher.availability.map((slot: any) => {
+      if (!slot._originalStartIso) return slot;
+      
+      const utcStart = new Date(slot._originalStartIso);
+      const adjustedStart = new Date(utcStart.getTime() + offsetMs);
+      
+      slot.startTime = `${pad(adjustedStart.getUTCHours())}:${pad(adjustedStart.getUTCMinutes())}`;
+      slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
+      slot.dayOfWeek = adjustedStart.getUTCDay();
+      
+      if (slot._originalEndIso) {
+        const utcEnd = new Date(slot._originalEndIso);
+        const adjustedEnd = new Date(utcEnd.getTime() + offsetMs);
+        slot.endTime = `${pad(adjustedEnd.getUTCHours())}:${pad(adjustedEnd.getUTCMinutes())}`;
+      }
+      
+      return slot;
+    });
   }
 
-  /**
-   * Convert a slot time to selected timezone
-   */
-  private normalizeSlotToSelectedTimezone(slot: any): any {
-    if (!slot) return slot;
-    
-    // If slot has UTC ISO string, convert to selected timezone
-    if (slot.startIsoUtc) {
-      const utcDate = new Date(slot.startIsoUtc);
-      // Apply selected GMT offset
-      const offsetMs = this.selectedGmtOffset * 60 * 1000;
-      const localDate = new Date(utcDate.getTime() + offsetMs);
-      
-      slot.startTime = this.formatTimeFromDate(localDate);
-      slot.displayDate = this.dateLocale.formatDayMonth(localDate);
-      slot.dayOfWeek = localDate.getUTCDay();
-      
-      if (slot.endIsoUtc) {
-        const utcEndDate = new Date(slot.endIsoUtc);
-        const localEndDate = new Date(utcEndDate.getTime() + offsetMs);
-        slot.endTime = this.formatTimeFromDate(localEndDate);
-      } else if (slot.durationMinutes) {
-        const endDate = new Date(localDate.getTime() + Number(slot.durationMinutes) * 60000);
-        slot.endTime = this.formatTimeFromDate(endDate);
-      }
-    }
-    
-    return slot;
-  }
+  // Load student's existing bookings to check for time conflicts
 
   /**
    * Format time from date object as HH:MM
@@ -449,11 +421,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           this.bookingTeacher = teacherObj;
           this.bookingSidebarOpen = true;
           this.selectedSlotIndex = null;
+          this.selectedCalendarDate = null; // Reset calendar date for new booking
         } catch (e) {
           console.error('Failed to process availability response', e);
           this.bookingTeacher = { id: teacherId, availability: [] };
           this.bookingSidebarOpen = true;
           this.selectedSlotIndex = null;
+          this.selectedCalendarDate = null;
         }
 
         this.loadingBookId = null;
@@ -491,6 +465,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             this.bookingTeacher = teacherObj || response;
             this.bookingSidebarOpen = true;
             this.selectedSlotIndex = null;
+            this.selectedCalendarDate = null; // Reset calendar date for new booking
             this.loadingBookId = null;
           },
           (err2) => {
@@ -569,15 +544,24 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   }
 
   // Convert various UTC-based slot shapes into a normalized slot where
-  // startTime/endTime are formatted for display according to the user's
-  // local timezone and dayOfWeek reflects the local weekday number.
+  // startTime/endTime are formatted for display according to the selected
+  // GMT offset and dayOfWeek reflects the adjusted weekday number.
   private _mapUtcSlotToLocal(s: any) {
     const slot: any = { ...s };
 
     const pad = (n: number) => (n < 10 ? '0' + n : '' + n);
 
-    const formatTime = (d: Date) =>
-      `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    // Use selected GMT offset for time conversion
+    const offsetMs = this.selectedGmtOffset * 60 * 1000;
+    
+    const formatTimeWithOffset = (utcDate: Date) => {
+      const adjustedDate = new Date(utcDate.getTime() + offsetMs);
+      return `${pad(adjustedDate.getUTCHours())}:${pad(adjustedDate.getUTCMinutes())}`;
+    };
+    
+    const getAdjustedDate = (utcDate: Date) => {
+      return new Date(utcDate.getTime() + offsetMs);
+    };
 
     // Helper to try parse common keys
     const isoCandidates = [
@@ -594,26 +578,35 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // If slot has a date field, treat it as non-recurring regardless of isRecurring flag
     if (slot.date && slot.isRecurring === false) {
       try {
-        // Parse the specific date with time
+        // Parse the specific date with time - assume times are in UTC
         const dateStr = slot.date;
         const timeStr = slot.startTime || '00:00';
         const endTimeStr = slot.endTime || '01:00';
         
-        // Create date from date + time
+        // Create UTC date from date + time
         const [year, month, day] = dateStr.split('-').map(Number);
         const [hours, minutes] = timeStr.split(':').map(Number);
         const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
         
-        const startDate = new Date(year, month - 1, day, hours, minutes);
-        const endDate = new Date(year, month - 1, day, endHours, endMinutes);
+        // Create as UTC
+        const startDateUtc = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+        const endDateUtc = new Date(Date.UTC(year, month - 1, day, endHours, endMinutes));
         
-        slot.startIsoUtc = startDate.toISOString();
-        slot.endIsoUtc = endDate.toISOString();
-        slot.startTime = formatTime(startDate);
-        slot.endTime = formatTime(endDate);
-        slot.displayDate = this.dateLocale.formatDayMonth(startDate);
-        slot.dayOfWeek = startDate.getDay();
-        slot.specificDate = startDate; // Mark as specific date slot
+        // Store original UTC ISO
+        slot.startIsoUtc = startDateUtc.toISOString();
+        slot.endIsoUtc = endDateUtc.toISOString();
+        slot._originalStartIso = slot.startIsoUtc;
+        slot._originalEndIso = slot.endIsoUtc;
+        
+        // Format with selected GMT offset
+        const adjustedStart = getAdjustedDate(startDateUtc);
+        const adjustedEnd = getAdjustedDate(endDateUtc);
+        
+        slot.startTime = formatTimeWithOffset(startDateUtc);
+        slot.endTime = formatTimeWithOffset(endDateUtc);
+        slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
+        slot.dayOfWeek = adjustedStart.getUTCDay();
+        slot.specificDate = adjustedStart;
         
         return slot;
       } catch (e) {
@@ -625,27 +618,32 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const foundIso = isoCandidates.find((c) => isIsoString(c));
     if (foundIso) {
       try {
-        const startDate = new Date(foundIso);
+        const startDateUtc = new Date(foundIso);
         // preserve original UTC ISO so we can send exact slot when booking
         slot.startIsoUtc = foundIso;
-        slot.startTime = formatTime(startDate);
-        slot.displayDate = this.dateLocale.formatDayMonth(startDate);
-        slot.dayOfWeek = startDate.getDay();
+        slot._originalStartIso = foundIso;
+        
+        // Format with selected GMT offset
+        const adjustedStart = getAdjustedDate(startDateUtc);
+        slot.startTime = formatTimeWithOffset(startDateUtc);
+        slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
+        slot.dayOfWeek = adjustedStart.getUTCDay();
+        
         // try end
         const endIso =
           slot.endTime || slot.endDate || slot.endDateTime || slot.end;
         if (isIsoString(endIso)) {
-          const endDate = new Date(endIso);
-          slot.endTime = formatTime(endDate);
+          const endDateUtc = new Date(endIso);
+          slot.endTime = formatTimeWithOffset(endDateUtc);
           slot.endIsoUtc = endIso;
+          slot._originalEndIso = endIso;
         } else if (slot.durationMinutes) {
-          const endDate = new Date(
-            startDate.getTime() + Number(slot.durationMinutes) * 60000
+          const endDateUtc = new Date(
+            startDateUtc.getTime() + Number(slot.durationMinutes) * 60000
           );
-          slot.endTime = formatTime(endDate);
-          slot.endIsoUtc = new Date(
-            startDate.getTime() + Number(slot.durationMinutes) * 60000
-          ).toISOString();
+          slot.endTime = formatTimeWithOffset(endDateUtc);
+          slot.endIsoUtc = endDateUtc.toISOString();
+          slot._originalEndIso = slot.endIsoUtc;
         }
         return slot;
       } catch (e) {
@@ -676,18 +674,22 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       if (!slot.isRecurring && slot.date && !slot.specificDate) {
         try {
           const [year, month, day] = slot.date.split('-').map(Number);
-          const specificDate = new Date(year, month - 1, day, sh, sm, ss);
-          slot.startIsoUtc = specificDate.toISOString();
-          slot.startTime = formatTime(specificDate);
-          slot.displayDate = this.dateLocale.formatDayMonth(specificDate);
-          slot.dayOfWeek = specificDate.getDay();
-          slot.specificDate = specificDate;
+          const specificDateUtc = new Date(Date.UTC(year, month - 1, day, sh, sm, ss));
+          slot.startIsoUtc = specificDateUtc.toISOString();
+          slot._originalStartIso = slot.startIsoUtc;
+          
+          const adjustedStart = getAdjustedDate(specificDateUtc);
+          slot.startTime = formatTimeWithOffset(specificDateUtc);
+          slot.displayDate = this.dateLocale.formatDayMonth(adjustedStart);
+          slot.dayOfWeek = adjustedStart.getUTCDay();
+          slot.specificDate = adjustedStart;
           
           if (slot.endTime && typeof slot.endTime === 'string') {
             const ep = slot.endTime.split(':').map((p: string) => Number(p));
-            const endDate = new Date(year, month - 1, day, ep[0] || 0, ep[1] || 0, 0);
-            slot.endTime = formatTime(endDate);
-            slot.endIsoUtc = endDate.toISOString();
+            const endDateUtc = new Date(Date.UTC(year, month - 1, day, ep[0] || 0, ep[1] || 0, 0));
+            slot.endTime = formatTimeWithOffset(endDateUtc);
+            slot.endIsoUtc = endDateUtc.toISOString();
+            slot._originalEndIso = slot.endIsoUtc;
           }
           return slot;
         } catch (e) {
@@ -707,16 +709,23 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           ss
         )
       );
-      // convert to local Date by creating Date from UTC timestamp
-      const localDate = new Date(candidateUtc.getTime());
-      slot.startTime = formatTime(localDate);
-      slot.displayDate = this.dateLocale.formatDayMonth(localDate);
-      slot.dayOfWeek = localDate.getDay();
+      // Store original UTC ISO
+      slot.startIsoUtc = candidateUtc.toISOString();
+      slot._originalStartIso = slot.startIsoUtc;
+      
+      // Format with selected GMT offset
+      const adjustedDate = getAdjustedDate(candidateUtc);
+      slot.startTime = formatTimeWithOffset(candidateUtc);
+      slot.displayDate = this.dateLocale.formatDayMonth(adjustedDate);
+      slot.dayOfWeek = adjustedDate.getUTCDay();
+      
       if (slot.durationMinutes) {
-        const endDate = new Date(
-          localDate.getTime() + Number(slot.durationMinutes) * 60000
+        const endDateUtc = new Date(
+          candidateUtc.getTime() + Number(slot.durationMinutes) * 60000
         );
-        slot.endTime = formatTime(endDate);
+        slot.endTime = formatTimeWithOffset(endDateUtc);
+        slot.endIsoUtc = endDateUtc.toISOString();
+        slot._originalEndIso = slot.endIsoUtc;
       } else if (slot.endTime && typeof slot.endTime === 'string') {
         // if endTime provided as HH:mm (UTC) convert similarly
         const ep = slot.endTime.split(':').map((p: string) => Number(p));
@@ -732,7 +741,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             0
           )
         );
-        slot.endTime = formatTime(new Date(candidateEndUtc.getTime()));
+        slot.endTime = formatTimeWithOffset(candidateEndUtc);
+        slot.endIsoUtc = candidateEndUtc.toISOString();
+        slot._originalEndIso = slot.endIsoUtc;
       }
 
       return slot;
@@ -1074,13 +1085,105 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     return this.translate.get(found.label || found.value);
   }
 
+  /**
+   * Get unique dates that have available slots (for calendar highlighting)
+   * Returns array of ISO date strings 'YYYY-MM-DD'
+   */
+  get availableDates(): string[] {
+    if (!this.bookingTeacher?.availability) return [];
+    
+    const datesSet = new Set<string>();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (const slot of this.bookingTeacher.availability) {
+      if (!slot.isAvailable) continue;
+      
+      // Try to get date from various slot formats
+      let dateKey = '';
+      
+      if (slot.specificDate) {
+        const d = new Date(slot.specificDate);
+        if (d >= today) {
+          dateKey = this.formatDateKey(d);
+        }
+      } else if (slot.date) {
+        // Format: 'YYYY-MM-DD'
+        const d = new Date(slot.date);
+        if (d >= today) {
+          dateKey = slot.date;
+        }
+      } else if (slot._originalStartIso) {
+        // Extract date from ISO string
+        const d = new Date(slot._originalStartIso);
+        if (d >= today) {
+          dateKey = this.formatDateKey(d);
+        }
+      }
+      
+      if (dateKey) {
+        datesSet.add(dateKey);
+      }
+    }
+    
+    return Array.from(datesSet);
+  }
+
+  /**
+   * Format Date to 'YYYY-MM-DD' string
+   */
+  private formatDateKey(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  /**
+   * Handle date selection from calendar picker
+   */
+  onCalendarDateSelected(dateKey: string): void {
+    this.selectedCalendarDate = dateKey;
+    // Reset slot selection when date changes
+    this.selectedSlotIndex = null;
+  }
+
+  /**
+   * Check if current language is RTL (Arabic)
+   */
+  get isRtl(): boolean {
+    return this.translate.currentLang === 'ar';
+  }
+
   // Group availability slots by day for simple display
+  // Now filters by selectedCalendarDate if set
   get groupedAvailability(): { day: string; date: string; slots: any[] }[] {
     if (!this.bookingTeacher?.availability) return [];
     
+    // Filter slots by selected calendar date if set
+    let slotsToGroup = this.bookingTeacher.availability;
+    if (this.selectedCalendarDate) {
+      slotsToGroup = this.bookingTeacher.availability.filter((slot: any) => {
+        // Match against various date formats
+        if (slot.date === this.selectedCalendarDate) return true;
+        
+        if (slot.specificDate) {
+          const d = new Date(slot.specificDate);
+          return this.formatDateKey(d) === this.selectedCalendarDate;
+        }
+        
+        if (slot._originalStartIso) {
+          const d = new Date(slot._originalStartIso);
+          return this.formatDateKey(d) === this.selectedCalendarDate;
+        }
+        
+        return false;
+      });
+    }
+    
     const groups: { [key: string]: { day: string; date: string; dayOfWeek: number; slots: any[] } } = {};
     
-    for (const slot of this.bookingTeacher.availability) {
+    for (const slot of slotsToGroup) {
       // Create a unique key based on dayOfWeek and displayDate
       const dayKey = `${slot.dayOfWeek}-${slot.displayDate || ''}`;
       

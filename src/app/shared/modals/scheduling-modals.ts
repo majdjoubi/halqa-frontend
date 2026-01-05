@@ -2,13 +2,9 @@
 
 // ============ Enums ============
 export enum BookingStatus {
-  Pending = 1,
   Confirmed = 2,
-  Cancelled = 3,
   Completed = 4,
   InProgress = 5,
-  CancelledByTeacher = 6,
-  TeacherNoShow = 7,
   StudentNoShow = 8
 }
 
@@ -19,8 +15,7 @@ export enum BookingType {
 
 export enum PaymentStatus {
   Held = 1,
-  ReleasedToTeacher = 2,
-  Refunded = 3
+  ReleasedToTeacher = 2
 }
 
 // ============ Request DTOs ============

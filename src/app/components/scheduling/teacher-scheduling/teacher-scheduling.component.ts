@@ -181,16 +181,13 @@ export class TeacherSchedulingComponent implements OnInit, OnDestroy {
     }));
   }
 
-  private mapStatus(status: string): 'available' | 'booked' | 'completed' | 'cancelled' {
+  private mapStatus(status: string): 'available' | 'booked' | 'completed' {
     switch (status.toLowerCase()) {
       case 'confirmed':
       case 'inprogress':
         return 'booked';
       case 'completed':
         return 'completed';
-      case 'cancelled':
-      case 'cancelledbyteacher':
-        return 'cancelled';
       default:
         return 'available';
     }

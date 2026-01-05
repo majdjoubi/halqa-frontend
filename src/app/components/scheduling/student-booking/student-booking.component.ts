@@ -367,9 +367,7 @@ export class StudentBookingComponent implements OnInit {
   getStatusClass(status: string): string {
     const statusMap: { [key: string]: string } = {
       'Confirmed': 'confirmed',
-      'Pending': 'pending',
       'Completed': 'completed',
-      'Cancelled': 'cancelled',
       'NoShow': 'no-show',
       'InProgress': 'inprogress'
     };
