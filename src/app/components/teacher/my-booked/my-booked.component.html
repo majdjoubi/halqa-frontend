@@ -28,38 +28,29 @@
   </div>
 
   <div class="all-lessons-content">
-    <!-- Action Buttons & Default Rate -->
-    <div class="action-header">
-      <div class="action-buttons">
-        <button class="btn btn-primary" (click)="openAddAvailabilityModal()">
-          <i class="fas fa-plus"></i>
-          {{ "my_booked_page.actions.add_availability" | translate }}
+    <!-- Header: Default Rate Editor + Timezone Hint (Compact) -->
+    <div class="action-header compact-header">
+      <div class="default-rate-compact">
+        <span class="rate-label-inline">{{ "my_booked_page.default_rate.label" | translate }}:</span>
+        <span class="currency-small">$</span>
+        <input 
+          type="number" 
+          class="rate-input-small" 
+          [(ngModel)]="defaultHourlyRate" 
+          min="0" 
+          step="0.5"
+          [disabled]="isSavingDefaultRate"
+        />
+        <button 
+          class="btn-save-small" 
+          (click)="saveDefaultHourlyRate()"
+          [disabled]="isSavingDefaultRate"
+        >
+          <i class="fas fa-check" *ngIf="!isSavingDefaultRate"></i>
+          <span *ngIf="isSavingDefaultRate" class="spinner-tiny"></span>
         </button>
       </div>
-      
-      <!-- Default Hourly Rate Editor -->
-      <div class="default-rate-section">
-        <label class="rate-label">{{ "my_booked_page.default_rate.label" | translate }}</label>
-        <div class="rate-input-group">
-          <span class="currency">$</span>
-          <input 
-            type="number" 
-            class="rate-input" 
-            [(ngModel)]="defaultHourlyRate" 
-            min="0" 
-            step="0.5"
-            [disabled]="isSavingDefaultRate"
-          />
-          <button 
-            class="btn btn-save-rate" 
-            (click)="saveDefaultHourlyRate()"
-            [disabled]="isSavingDefaultRate"
-          >
-            <span *ngIf="!isSavingDefaultRate">{{ "common.save" | translate }}</span>
-            <span *ngIf="isSavingDefaultRate" class="spinner-small"></span>
-          </button>
-        </div>
-      </div>
+      <span class="timezone-hint">{{ 'SCHEDULING.MECCA_TIME' | translate }} (GMT+3)</span>
     </div>
 
     <div class="filters">
@@ -115,41 +106,6 @@
           <option value="booked">{{ "my_booked_page.filters.booked_only" | translate }}</option>
         </select>
       </div>
-    </div>
-
-    <!-- Calendar Legend -->
-    <div *ngIf="view === 'calendar'" class="calendar-legend">
-      <div class="legend-item">
-        <span class="legend-color available"></span>
-        <span>{{ "my_booked_page.legend.available" | translate }}</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color booked"></span>
-        <span>{{ "my_booked_page.legend.booked" | translate }}</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color group"></span>
-        <span>{{ "my_booked_page.legend.group" | translate }}</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color completed"></span>
-        <span>{{ "my_booked_page.legend.completed" | translate }}</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color cancelled"></span>
-        <span>{{ "my_booked_page.legend.cancelled" | translate }}</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color past"></span>
-        <span>{{ "my_booked_page.legend.past" | translate }}</span>
-      </div>
-    </div>
-
-    <!-- Timezone Notice - Fixed to Mecca Time -->
-    <div class="timezone-notice mecca-time">
-      <i class="fas fa-kaaba"></i>
-      <span>{{ 'SCHEDULING.ALL_TIMES_MECCA' | translate }}</span>
-      <span class="mecca-badge">GMT+3</span>
     </div>
 
     <!-- Calendar View - Simplified -->
@@ -309,15 +265,6 @@
         <span class="spinner" aria-hidden="true"></span>
         <span class="loader-text">{{ "common.loading" | translate }}</span>
       </div>
-    </div>
-
-    <!-- Empty state -->
-    <div
-      *ngIf="hasLoaded && !isLoading && filteredBookings.length === 0"
-      class="empty-state"
-    >
-      <img src="/assets/images/emptyData.svg" alt="No bookings" />
-      <p>{{ emptyMessage | translate }}</p>
     </div>
 
     <div

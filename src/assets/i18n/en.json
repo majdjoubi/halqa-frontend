@@ -1,6 +1,9 @@
 {
   "WELCOME": "Welcome to Halqa",
   "GREETING": "Hello",
+  "maintenance": {
+    "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
+  },
   "HOME": "Home",
   "ABOUT_US": "About us",
   "BENEFITS": "Benefits",
