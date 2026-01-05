@@ -6,57 +6,58 @@
   </div>
 </div>
 
-<!-- Main page content -->
-<section *ngIf="!isLoading" class="my-booked Teacher-custom-marginTop">
+<!-- Main content -->
+<section *ngIf="!isLoading" class="my-calendar-page Teacher-custom-marginTop">
+  <!-- Header -->
   <div class="header">
     <div class="header-content">
       <div class="text-col">
-        <h1 class="title">
-          {{ "my_booked_page.header.title" | translate }}
-        </h1>
-        <p class="subtitle">
-          {{ "my_booked_page.header.subtitle" | translate }}
-        </p>
+        <h1 class="title">{{ "my_calendar_page.header.title" | translate }}</h1>
+        <p class="subtitle">{{ "my_calendar_page.header.subtitle" | translate }}</p>
       </div>
       <div class="image-col">
-        <img
-          src="/assets/images/lessons.webp"
-          [alt]="'my_booked_page.header.image_alt' | translate"
-        />
+        <img src="/assets/images/lessons.webp" alt="Calendar" />
       </div>
     </div>
   </div>
 
-  <div class="all-lessons-content">
-    <!-- Header with timezone hint -->
-    <div class="action-header compact-header">
-      <div class="default-rate-compact">
-        <span class="rate-label-inline">{{ "my_booked_page.default_rate.label" | translate }}:</span>
-        <span class="currency-small">$</span>
-        <input 
-          type="number" 
-          class="rate-input-small" 
-          [(ngModel)]="defaultHourlyRate" 
-          min="0" 
-          step="0.5"
-        />
+  <div class="calendar-content">
+    <!-- Next Lesson Countdown Card -->
+    <div *ngIf="nextUpcoming" class="countdown-card">
+      <div class="countdown-info">
+        <div class="countdown-label">{{ "my_calendar_page.next_lesson" | translate }}</div>
+        <div class="countdown-title">{{ nextUpcoming.lessonTitle }}</div>
+        <div class="countdown-student">
+          <i [class]="getBookingTypeIcon(nextUpcoming)"></i>
+          {{ nextUpcoming.studentName }}
+        </div>
+        <div class="countdown-datetime">
+          <i class="fas fa-clock"></i>
+          {{ formatDateTime(nextUpcoming.scheduledDateTime) }}
+        </div>
+      </div>
+      <div class="countdown-timer">
+        <div class="countdown-value">{{ countdownText }}</div>
+        <div class="countdown-hint">{{ "my_calendar_page.time_remaining" | translate }}</div>
         <button 
-          class="btn-save-small" 
-          (click)="saveHourlyRate()"
-          [disabled]="isSavingRate"
+          *ngIf="nextUpcoming.canStart"
+          class="btn-join"
+          (click)="startSession(nextUpcoming)"
         >
-          <i class="fas fa-check" *ngIf="!isSavingRate"></i>
-          <i class="fas fa-spinner fa-spin" *ngIf="isSavingRate"></i>
+          <i class="fas fa-video"></i>
+          {{ "my_calendar_page.join_now" | translate }}
         </button>
       </div>
-      <span class="current-rate-display">
-        {{ "my_booked_page.current_rate_info" | translate }}: <strong>${{ currentHourlyRate }}</strong>
-      </span>
-      <span class="timezone-hint">{{ 'SCHEDULING.MECCA_TIME' | translate }} (GMT+3)</span>
+    </div>
+
+    <!-- Timezone hint -->
+    <div class="timezone-hint">
+      <i class="fas fa-globe"></i>
+      {{ 'SCHEDULING.MECCA_TIME' | translate }} (GMT+3)
     </div>
 
     <!-- Tabs -->
-    <div class="filters">
+    <div class="tabs-container">
       <div class="tabs" role="tablist">
         <button
           class="tab"
@@ -66,113 +67,222 @@
           [attr.aria-selected]="view === 'calendar'"
         >
           <i class="fas fa-calendar-alt"></i>
-          {{ "my_booked_page.filters.calendar_title" | translate }}
+          {{ "my_calendar_page.tabs.calendar" | translate }}
         </button>
         <button
           class="tab"
-          [class.active]="view === 'availability'"
-          (click)="view = 'availability'"
+          [class.active]="view === 'booked'"
+          (click)="view = 'booked'"
           role="tab"
-          [attr.aria-selected]="view === 'availability'"
+          [attr.aria-selected]="view === 'booked'"
         >
-          <i class="fas fa-clock"></i>
-          {{ "my_booked_page.filters.availability_title" | translate }}
-          <span class="tab-count">({{ availabilityCount }})</span>
-        </button>
-        <button
-          class="tab"
-          [class.active]="view === 'individual'"
-          (click)="view = 'individual'"
-          role="tab"
-          [attr.aria-selected]="view === 'individual'"
-        >
-          {{ "my_booked_page.filters.individual_title" | translate }}
-          <span class="tab-count">({{ individualCount }})</span>
-        </button>
-        <button
-          class="tab"
-          [class.active]="view === 'group'"
-          (click)="view = 'group'"
-          role="tab"
-          [attr.aria-selected]="view === 'group'"
-        >
-          {{ "my_booked_page.filters.group_title" | translate }}
-          <span class="tab-count">({{ groupCount }})</span>
+          <i class="fas fa-book-open"></i>
+          {{ "my_calendar_page.tabs.booked_sessions" | translate }}
+          <span class="tab-count">({{ totalCount }})</span>
         </button>
       </div>
     </div>
 
     <!-- Calendar View -->
-    <div *ngIf="view === 'calendar'" class="calendar-view simplified-calendar">
+    <div *ngIf="view === 'calendar'" class="calendar-view">
       <div class="calendar-layout">
-        <!-- Left: Date Picker Placeholder -->
+        <!-- Date Picker -->
         <div class="date-picker-section">
-          <div class="date-picker-placeholder">
-            <i class="fas fa-calendar-alt"></i>
-            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
-          </div>
+          <app-simple-date-picker
+            [availableDates]="availableDates"
+            [selectedDate]="selectedCalendarDate"
+            [rtl]="isRtl"
+            [allowAllFutureDates]="true"
+            (dateSelected)="onCalendarDateSelected($event)"
+          ></app-simple-date-picker>
         </div>
 
-        <!-- Right: Hours Grid -->
+        <!-- Time Slots Grid -->
         <div class="time-slots-section">
-          <div class="select-date-prompt">
+          <div *ngIf="!selectedCalendarDate" class="select-date-prompt">
             <i class="fas fa-calendar-alt"></i>
-            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
+            <p>{{ 'my_calendar_page.calendar.select_date' | translate }}</p>
+          </div>
+
+          <div *ngIf="selectedCalendarDate" class="slots-container">
+            <div class="slots-header">
+              <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
+            </div>
+
+            <div class="hours-grid">
+              <div 
+                *ngFor="let slot of allTimeSlots"
+                class="hour-slot"
+                [class.available]="slot.isAvailable && !slot.isBooked"
+                [class.booked]="slot.isBooked"
+                [class.past]="slot.isPast"
+                [class.group-session]="slot.booking?.lessonType === 'Group'"
+              >
+                <span class="hour-time">{{ slot.time }}</span>
+                
+                <!-- Booked indicator -->
+                <i *ngIf="slot.isBooked && slot.booking?.lessonType !== 'Group'" 
+                   class="fas fa-user booked-icon"></i>
+                <i *ngIf="slot.isBooked && slot.booking?.lessonType === 'Group'" 
+                   class="fas fa-users group-icon"></i>
+
+                <!-- Booking info tooltip -->
+                <span *ngIf="slot.isBooked && slot.booking" class="booking-tooltip">
+                  {{ slot.booking.studentName }}<br>
+                  <small>{{ slot.booking.lessonTitle }}</small>
+                </span>
+
+                <!-- Join button for bookings -->
+                <button 
+                  *ngIf="slot.isBooked && slot.booking?.canStart"
+                  class="slot-join-btn"
+                  (click)="startSession(slot.booking!)"
+                  title="{{ 'my_calendar_page.join_now' | translate }}"
+                >
+                  <i class="fas fa-video"></i>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Availability View -->
-    <div *ngIf="view === 'availability'" class="availability-view">
-      <div class="empty-state">
-        <img src="/assets/images/emptyData.svg" alt="No availability" />
-        <p>{{ "my_booked_page.empty.availability" | translate }}</p>
-      </div>
-    </div>
+    <!-- Booked Sessions View -->
+    <div *ngIf="view === 'booked'" class="booked-view">
+      <!-- Upcoming Sessions -->
+      <div class="sessions-section">
+        <h3 class="section-title">
+          <i class="fas fa-clock"></i>
+          {{ "my_calendar_page.sessions.upcoming" | translate }}
+          <span class="count">({{ upcomingBookings.length }})</span>
+        </h3>
 
-    <!-- Individual Bookings View -->
-    <div *ngIf="view === 'individual'" class="bookings-view">
-      <div class="empty-state">
-        <img src="/assets/images/emptyData.svg" alt="No bookings" />
-        <p>{{ "my_booked_page.empty.individual" | translate }}</p>
-      </div>
-    </div>
+        <div *ngIf="upcomingBookings.length === 0" class="empty-state">
+          <img src="/assets/images/emptyData.svg" alt="No sessions" />
+          <p>{{ "my_calendar_page.sessions.no_upcoming" | translate }}</p>
+        </div>
 
-    <!-- Group Bookings View -->
-    <div *ngIf="view === 'group'" class="bookings-view">
-      <div class="empty-state">
-        <img src="/assets/images/emptyData.svg" alt="No group sessions" />
-        <p>{{ "my_booked_page.empty.group" | translate }}</p>
+        <div class="sessions-list">
+          <div 
+            *ngFor="let booking of upcomingBookings"
+            class="session-card"
+            [class]="getBookingTypeClass(booking)"
+          >
+            <div class="session-avatar">
+              <img 
+                *ngIf="booking.studentAvatar" 
+                [src]="booking.studentAvatar" 
+                alt="{{ booking.studentName }}"
+              />
+              <div *ngIf="!booking.studentAvatar" class="avatar-placeholder">
+                {{ booking.studentName.charAt(0) }}
+              </div>
+            </div>
+
+            <div class="session-info">
+              <div class="session-title">{{ booking.lessonTitle }}</div>
+              <div class="session-student">
+                <i [class]="getBookingTypeIcon(booking)"></i>
+                {{ booking.studentName }}
+              </div>
+              <div class="session-datetime">
+                <i class="fas fa-calendar"></i>
+                {{ formatDateTime(booking.scheduledDateTime) }}
+              </div>
+              <div class="session-duration">
+                <i class="fas fa-hourglass-half"></i>
+                {{ booking.duration }}h
+              </div>
+            </div>
+
+            <div class="session-actions">
+              <div class="session-amount">${{ booking.amountPaid }}</div>
+              <button 
+                *ngIf="booking.canStart"
+                class="btn-join"
+                (click)="startSession(booking)"
+              >
+                <i class="fas fa-video"></i>
+                {{ "my_calendar_page.join_now" | translate }}
+              </button>
+              <span *ngIf="!booking.canStart" class="status-badge confirmed">
+                {{ "my_calendar_page.sessions.confirmed" | translate }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Past Sessions -->
+      <div class="sessions-section past-section">
+        <h3 class="section-title">
+          <i class="fas fa-history"></i>
+          {{ "my_calendar_page.sessions.past" | translate }}
+          <span class="count">({{ pastBookings.length }})</span>
+        </h3>
+
+        <div *ngIf="pastBookings.length === 0" class="empty-state">
+          <p>{{ "my_calendar_page.sessions.no_past" | translate }}</p>
+        </div>
+
+        <div class="sessions-list">
+          <div 
+            *ngFor="let booking of pastBookings"
+            class="session-card past"
+            [class]="getBookingTypeClass(booking)"
+          >
+            <div class="session-avatar">
+              <img 
+                *ngIf="booking.studentAvatar" 
+                [src]="booking.studentAvatar" 
+                alt="{{ booking.studentName }}"
+              />
+              <div *ngIf="!booking.studentAvatar" class="avatar-placeholder">
+                {{ booking.studentName.charAt(0) }}
+              </div>
+            </div>
+
+            <div class="session-info">
+              <div class="session-title">{{ booking.lessonTitle }}</div>
+              <div class="session-student">
+                <i [class]="getBookingTypeIcon(booking)"></i>
+                {{ booking.studentName }}
+              </div>
+              <div class="session-datetime">
+                <i class="fas fa-calendar"></i>
+                {{ formatDateTime(booking.scheduledDateTime) }}
+              </div>
+            </div>
+
+            <div class="session-actions">
+              <div class="session-amount">${{ booking.amountPaid }}</div>
+              <span class="status-badge completed">
+                {{ "my_calendar_page.sessions.completed" | translate }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="pagination">
+        <button 
+          class="btn-page" 
+          [disabled]="currentPage === 1"
+          (click)="prevPage()"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <span class="page-info">{{ currentPage }} / {{ totalPages }}</span>
+        <button 
+          class="btn-page" 
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
     </div>
   </div>
 </section>
-
-<!-- Success Modal -->
-<div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
-  <div class="modal-content success-modal" (click)="$event.stopPropagation()">
-    <div class="modal-icon success">
-      <i class="fas fa-check-circle"></i>
-    </div>
-    <h3>{{ successTitle }}</h3>
-    <p>{{ successMessage }}</p>
-    <button class="btn btn-primary" (click)="closeSuccessModal()">
-      {{ "common.ok" | translate }}
-    </button>
-  </div>
-</div>
-
-<!-- Error Modal -->
-<div class="modal-overlay" *ngIf="showErrorModal" (click)="closeErrorModal()">
-  <div class="modal-content error-modal" (click)="$event.stopPropagation()">
-    <div class="modal-icon error">
-      <i class="fas fa-times-circle"></i>
-    </div>
-    <h3>{{ errorTitle }}</h3>
-    <p>{{ errorMessage }}</p>
-    <button class="btn btn-primary" (click)="closeErrorModal()">
-      {{ "common.ok" | translate }}
-    </button>
-  </div>
-</div>

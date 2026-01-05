@@ -1196,5 +1196,37 @@
     "student": "طالب",
     "teacher": "معلم",
     "admin": "مدير"
+  },
+  "my_calendar_page": {
+    "header": {
+      "title": "تقويم الحجوزات",
+      "subtitle": "عرض جميع الدروس المحجوزة وإدارة جلساتك"
+    },
+    "next_lesson": "الدرس القادم",
+    "time_remaining": "الوقت المتبقي",
+    "join_now": "انضم الآن",
+    "tabs": {
+      "calendar": "التقويم",
+      "booked_sessions": "الجلسات المحجوزة"
+    },
+    "calendar": {
+      "select_date": "اختر تاريخاً لعرض الجلسات",
+      "slots_for": "جلسات يوم"
+    },
+    "sessions": {
+      "upcoming": "الجلسات القادمة",
+      "past": "الجلسات السابقة",
+      "no_upcoming": "لا توجد جلسات قادمة",
+      "no_past": "لا توجد جلسات سابقة",
+      "individual": "جلسة فردية",
+      "group": "جلسة جماعية",
+      "minutes": "دقيقة",
+      "confirmed": "مؤكد",
+      "completed": "مكتمل"
+    },
+    "pagination": {
+      "page": "صفحة",
+      "of": "من"
+    }
   }
 }

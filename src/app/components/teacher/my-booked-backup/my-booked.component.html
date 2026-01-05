@@ -1,0 +1,904 @@
+<!-- Page-level loader: show while any bookings requests are in progress -->
+<div *ngIf="isLoading" class="page-loader-holder">
+  <div class="loader" role="status" aria-live="polite">
+    <span class="spinner" aria-hidden="true"></span>
+    <span class="loader-text">{{ "common.loading" | translate }}</span>
+  </div>
+</div>
+
+<!-- Main page content: render only after loading completes -->
+<section *ngIf="!isLoading" class="my-booked Teacher-custom-marginTop">
+  <div class="header">
+    <div class="header-content">
+      <div class="text-col">
+        <h1 class="title">
+          {{ "my_booked_page.header.title" | translate }}
+        </h1>
+        <p class="subtitle">
+          {{ "my_booked_page.header.subtitle" | translate }}
+        </p>
+      </div>
+      <div class="image-col">
+        <img
+          src="/assets/images/lessons.webp"
+          [alt]="'my_booked_page.header.image_alt' | translate"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="all-lessons-content">
+    <!-- Header: Default Rate Editor + Timezone Hint (Compact) -->
+    <div class="action-header compact-header">
+      <div class="default-rate-compact">
+        <span class="rate-label-inline">{{ "my_booked_page.default_rate.label" | translate }}:</span>
+        <span class="currency-small">$</span>
+        <input 
+          type="number" 
+          class="rate-input-small" 
+          [(ngModel)]="defaultHourlyRate" 
+          min="0" 
+          step="0.5"
+          [disabled]="isSavingDefaultRate"
+        />
+        <button 
+          class="btn-save-small" 
+          (click)="saveDefaultHourlyRate()"
+          [disabled]="isSavingDefaultRate"
+        >
+          <i class="fas fa-check" *ngIf="!isSavingDefaultRate"></i>
+          <span *ngIf="isSavingDefaultRate" class="spinner-tiny"></span>
+        </button>
+      </div>
+      <span class="timezone-hint">{{ 'SCHEDULING.MECCA_TIME' | translate }} (GMT+3)</span>
+    </div>
+
+    <div class="filters">
+      <div class="tabs" role="tablist">
+        <button
+          class="tab"
+          [class.active]="view === 'calendar'"
+          (click)="view = 'calendar'"
+          role="tab"
+          [attr.aria-selected]="view === 'calendar'"
+        >
+          <i class="fas fa-calendar-alt"></i>
+          {{ "my_booked_page.filters.calendar_title" | translate }}
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'availability'"
+          (click)="view = 'availability'"
+          role="tab"
+          [attr.aria-selected]="view === 'availability'"
+        >
+          <i class="fas fa-clock"></i>
+          {{ "my_booked_page.filters.availability_title" | translate }}
+          <span class="tab-count">({{ availabilityCount }})</span>
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'individual'"
+          (click)="view = 'individual'"
+          role="tab"
+          [attr.aria-selected]="view === 'individual'"
+        >
+          {{ "my_booked_page.filters.individual_title" | translate }}
+          <span class="tab-count">({{ individualCount }})</span>
+        </button>
+        <button
+          class="tab"
+          [class.active]="view === 'group'"
+          (click)="view = 'group'"
+          role="tab"
+          [attr.aria-selected]="view === 'group'"
+        >
+          {{ "my_booked_page.filters.group_title" | translate }}
+          <span class="tab-count">({{ groupCount }})</span>
+        </button>
+      </div>
+
+      <!-- Filter options for availability view -->
+      <div *ngIf="view === 'availability'" class="availability-filters">
+        <select [(ngModel)]="availabilityFilter" class="filter-select">
+          <option value="all">{{ "my_booked_page.filters.all" | translate }}</option>
+          <option value="available">{{ "my_booked_page.filters.available_only" | translate }}</option>
+          <option value="booked">{{ "my_booked_page.filters.booked_only" | translate }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Calendar View - Simplified -->
+    <div *ngIf="view === 'calendar'" class="calendar-view simplified-calendar">
+      <div class="calendar-layout">
+        <!-- Left: Date Picker -->
+        <div class="date-picker-section">
+          <app-simple-date-picker
+            [availableDates]="availableDates"
+            [selectedDate]="selectedCalendarDate"
+            [rtl]="isRtl"
+            [allowAllFutureDates]="true"
+            (dateSelected)="onCalendarDateSelected($event)"
+          ></app-simple-date-picker>
+        </div>
+
+        <!-- Right: Hours Grid -->
+        <div class="time-slots-section">
+          <div *ngIf="!selectedCalendarDate" class="select-date-prompt">
+            <i class="fas fa-calendar-alt"></i>
+            <p>{{ 'my_booked_page.select_date_prompt' | translate }}</p>
+          </div>
+
+          <div *ngIf="selectedCalendarDate" class="slots-container">
+            <div class="slots-header">
+              <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
+              <!-- Group Session Mode Toggle Button -->
+              <button 
+                class="group-mode-toggle"
+                [class.active]="isGroupSessionMode"
+                (click)="toggleGroupSessionMode()"
+                [title]="isGroupSessionMode ? ('my_booked_page.group_mode.deactivate' | translate) : ('my_booked_page.group_mode.activate' | translate)"
+              >
+                <i class="fas fa-users"></i>
+                <span>{{ 'my_booked_page.group_mode.label' | translate }}</span>
+              </button>
+            </div>
+
+            <div class="hours-grid" [class.group-mode]="isGroupSessionMode">
+              <div 
+                *ngFor="let slot of allTimeSlots"
+                class="hour-slot"
+                [class.available]="slot.isAvailable && !slot.isBooked && !slot.isGroupSession"
+                [class.booked]="slot.isBooked && !slot.isGroupSession"
+                [class.group-session]="slot.isGroupSession"
+                [class.past]="slot.isPast"
+                [class.saving]="slot.isSaving"
+                [title]="slot.isBooked ? slot.studentName : (slot.isGroupSession ? slot.groupSessionTitle : '')"
+                (click)="toggleSlot(slot)"
+              >
+                <span class="hour-time">{{ slot.time }}</span>
+                
+                <!-- Delete button for available (not booked) slots -->
+                <button 
+                  class="hour-delete"
+                  *ngIf="slot.isAvailable && !slot.isBooked && !slot.isGroupSession && !slot.isPast"
+                  (click)="removeSlot(slot); $event.stopPropagation()"
+                  [disabled]="slot.isSaving"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+
+                <!-- Booked indicator -->
+                <i *ngIf="slot.isBooked && !slot.isGroupSession" class="fas fa-user booked-icon"></i>
+
+                <!-- Group session indicator -->
+                <i *ngIf="slot.isGroupSession" class="fas fa-users group-icon"></i>
+
+                <!-- Student name tooltip on hover -->
+                <span *ngIf="slot.isBooked && !slot.isGroupSession" class="student-tooltip">{{ slot.studentName }}</span>
+
+                <!-- Group session tooltip on hover -->
+                <span *ngIf="slot.isGroupSession" class="group-tooltip">
+                  {{ slot.groupSessionTitle }}
+                  <br>
+                  <small>{{ slot.participantsCount }}/{{ slot.maxParticipants }}</small>
+                </span>
+
+                <!-- Saving spinner -->
+                <span *ngIf="slot.isSaving" class="hour-spinner"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Availability View -->
+    <div *ngIf="view === 'availability'" class="availability-view">
+      <div *ngIf="filteredAvailability.length === 0" class="empty-state">
+        <img src="/assets/images/emptyData.svg" alt="No availability" />
+        <p>{{ "my_booked_page.empty.availability" | translate }}</p>
+        <button class="btn btn-primary" (click)="openAddAvailabilityModal()">
+          <i class="fas fa-plus"></i>
+          {{ "my_booked_page.actions.add_first_slot" | translate }}
+        </button>
+      </div>
+
+      <div class="availability-grid" *ngIf="filteredAvailability.length > 0">
+        <div 
+          class="availability-card" 
+          *ngFor="let slot of filteredAvailability"
+          [class.booked]="slot.isBooked"
+          [class.group-session]="slot.type === 'group'"
+        >
+          <button 
+            class="quick-delete-btn" 
+            (click)="quickDeleteSlot(slot, $event)"
+            [title]="slot.isBooked ? ('my_booked_page.details_modal.delete_refund' | translate) : ('my_booked_page.details_modal.delete' | translate)"
+          >
+            <i class="fas fa-trash-alt"></i>
+          </button>
+          <div class="card-content" (click)="openSlotDetailsModal(slot)">
+            <!-- Group session badge -->
+            <div class="slot-type-badge" *ngIf="slot.type === 'group'">
+              <i class="fas fa-users"></i>
+              {{ "my_booked_page.filters.group_title" | translate }}
+            </div>
+            <!-- Title for group sessions -->
+            <div class="slot-title" *ngIf="slot.title">
+              <strong>{{ slot.title }}</strong>
+            </div>
+            <div class="slot-day">
+              <i class="fas fa-calendar-day"></i>
+              {{ getDayName(slot.dayOfWeek) }}
+            </div>
+            <div class="slot-time">
+              <i class="fas fa-clock"></i>
+              {{ slot.startTime }} - {{ slot.endTime }}
+            </div>
+            <div class="slot-price" *ngIf="slot.price">
+              <i class="fas fa-dollar-sign"></i>
+              ${{ slot.price }}
+            </div>
+            <!-- For group sessions, show participant count -->
+            <div class="slot-participants" *ngIf="slot.type === 'group'">
+              <i class="fas fa-user-friends"></i>
+              {{ slot.currentParticipants }}/{{ slot.maxParticipants }} {{ "my_booked_page.card.students" | translate }}
+            </div>
+            <!-- For individual slots, show status -->
+            <div class="slot-status" *ngIf="slot.type !== 'group'" [class.available]="!slot.isBooked" [class.booked]="slot.isBooked">
+              <i [class]="slot.isBooked ? 'fas fa-user-check' : 'fas fa-check-circle'"></i>
+              {{ slot.isBooked ? slot.studentName : ('my_booked_page.status.available' | translate) }}
+            </div>
+            <div class="slot-recurring" *ngIf="slot.isRecurring">
+              <i class="fas fa-redo"></i>
+              {{ "my_booked_page.recurring" | translate }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading state -->
+    <div *ngIf="isLoading" class="loader-holder">
+      <div class="loader" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <span class="loader-text">{{ "common.loading" | translate }}</span>
+      </div>
+    </div>
+
+    <div
+      class="lessons-cards teacher-bookings"
+      *ngIf="!isLoading && filteredBookings.length > 0"
+    >
+      <div class="card" *ngFor="let b of filteredBookings; trackBy: trackById">
+        <div class="card-body">
+          <div class="card-top d-flex">
+            <div class="teacher-info">
+              <div class="teacher-name">{{ b.name }}</div>
+              <div class="teacher-email">{{ b.email }}</div>
+            </div>
+          </div>
+
+          <div class="lesson-title">{{ b.title }}</div>
+
+          <div class="lesson-meta small">
+            <div class="meta-row">
+              <i class="icon-clock"></i> {{ b.datetime }}
+            </div>
+            <div class="meta-row">
+              <i class="icon-dollar"></i>
+              {{ "my_booked_page.card.amount_paid" | translate }} {{ b.amount }}
+            </div>
+            <div
+              class="meta-row"
+              *ngIf="
+                b.type === 'group' &&
+                (b.currentParticipants || b.maxParticipants)
+              "
+            >
+              <strong class="booking-label"
+                >{{ "my_booked_page.card.booking_label" | translate }}:</strong
+              >
+              <i class="icon-users"></i>
+              <span class="current-count">{{ b.currentParticipants }}</span>
+              <span class="of-text">of</span>
+              <span class="max-count">{{ b.maxParticipants }}</span>
+              <span
+                class="booked-note"
+                *ngIf="b.currentParticipants && b.currentParticipants > 0"
+              >
+                — {{ "my_booked_page.card.booked_someone" | translate }}</span
+              >
+            </div>
+          </div>
+
+          <div class="card-footer d-flex align-items-center">
+            <span class="status" [ngClass]="b.status">{{
+              b.status | titlecase
+            }}</span>
+            <!-- Note: Approve/Reject buttons hidden - bookings are now auto-confirmed -->
+            <!-- Legacy code kept for backwards compatibility with any existing pending bookings -->
+            <ng-container *ngIf="b.status === 'pending' && false">
+              <button class="btn-approve" (click)="approveBookingDirectly(b)" [disabled]="isProcessingAction">
+                <i class="fas fa-check"></i>
+                {{ "my_booked_page.card.btn_approve" | translate }}
+              </button>
+              <button class="btn-reject" (click)="openRejectModal(b)" [disabled]="isProcessingAction">
+                <i class="fas fa-times"></i>
+                {{ "my_booked_page.card.btn_reject" | translate }}
+              </button>
+            </ng-container>
+            <!-- Join button for confirmed bookings -->
+            <button class="btn-join" *ngIf="b.status === 'confirmed'" (click)="joinLesson(b)">
+              {{ "my_booked_page.card.btn_join" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pending Bookings Alert - Hidden since bookings are auto-confirmed -->
+<div class="pending-alert" *ngIf="pendingBookingsCount > 0 && false">
+  <div class="pending-alert-content">
+    <i class="fas fa-bell"></i>
+    <span>{{ "my_booked_page.pending_alert.message" | translate:{ count: pendingBookingsCount } }}</span>
+    <button class="btn-view-pending" (click)="view = 'individual'">
+      {{ "my_booked_page.pending_alert.view_button" | translate }}
+    </button>
+  </div>
+</div>
+
+<!-- Reject Modal (for entering rejection reason) - Hidden since bookings are auto-confirmed -->
+<div class="modal-overlay" *ngIf="showApproveRejectModal" (click)="closeApproveRejectModal()">
+  <div class="modal-container approve-reject-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.reject_modal.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeApproveRejectModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedBookingForAction">
+      <div class="booking-details">
+        <p><strong>{{ "my_booked_page.approve_modal.student" | translate }}:</strong> {{ selectedBookingForAction.name }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.lesson" | translate }}:</strong> {{ selectedBookingForAction.title }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.datetime" | translate }}:</strong> {{ selectedBookingForAction.datetime }}</p>
+        <p><strong>{{ "my_booked_page.approve_modal.amount" | translate }}:</strong> {{ selectedBookingForAction.amount }}</p>
+      </div>
+      
+      <div class="reject-reason-group">
+        <label>{{ "my_booked_page.approve_modal.reject_reason" | translate }}</label>
+        <textarea 
+          class="form-control" 
+          [(ngModel)]="rejectReason" 
+          rows="3"
+          [placeholder]="'my_booked_page.approve_modal.reject_reason_placeholder' | translate"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeApproveRejectModal()" [disabled]="isProcessingAction">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button class="btn btn-danger" (click)="rejectBooking()" [disabled]="isProcessingAction">
+        <span *ngIf="!isProcessingAction">{{ "my_booked_page.card.btn_reject" | translate }}</span>
+        <span *ngIf="isProcessingAction" class="spinner-small"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Availability Modal -->
+<div class="modal-overlay" *ngIf="showAddAvailabilityModal" (click)="closeAddAvailabilityModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.add_modal.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeAddAvailabilityModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <form [formGroup]="addAvailabilityForm">
+        <div class="form-group">
+          <label>{{ "my_booked_page.add_modal.date" | translate }}</label>
+          <input type="date" class="form-control" formControlName="date" [min]="minDate" />
+        </div>
+        <div class="time-range-group">
+          <div class="form-group">
+            <label>{{ "my_booked_page.add_modal.from_time" | translate }}</label>
+            <input type="time" class="form-control" formControlName="fromTime" />
+          </div>
+          <div class="form-group">
+            <label>{{ "my_booked_page.add_modal.to_time" | translate }}</label>
+            <input type="time" class="form-control" formControlName="toTime" />
+          </div>
+        </div>
+        <div class="form-group recurring-option">
+          <label class="checkbox-label">
+            <input type="checkbox" formControlName="isRecurring" />
+            <span>{{ "my_booked_page.add_modal.recurring" | translate }}</span>
+          </label>
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeAddAvailabilityModal()">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="saveNewAvailability()"
+        [disabled]="addAvailabilityForm.invalid || isSavingAvailability"
+      >
+        <span *ngIf="!isSavingAvailability">{{ "common.save" | translate }}</span>
+        <span *ngIf="isSavingAvailability">{{ "common.saving" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Weekly Pattern Modal -->
+<div class="modal-overlay" *ngIf="showWeeklyPatternModal" (click)="closeWeeklyPatternModal()">
+  <div class="modal-container weekly-pattern-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.weekly_modal.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeWeeklyPatternModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-description">{{ "my_booked_page.weekly_modal.description" | translate }}</p>
+      
+      <div class="weekly-days-container">
+        <div class="day-row" *ngFor="let day of weekDays; let i = index" [class.enabled]="day.enabled">
+          <div class="day-header">
+            <label class="checkbox-label">
+              <input type="checkbox" [(ngModel)]="day.enabled" (change)="onWeeklyDayToggle(i)" />
+              <span>{{ day.label | translate }}</span>
+            </label>
+          </div>
+          <div class="day-slots" *ngIf="day.enabled">
+            <div class="slot-row" *ngFor="let slot of day.slots; let j = index">
+              <input type="time" [(ngModel)]="slot.fromTime" class="form-control time-input" />
+              <span class="time-separator">-</span>
+              <input type="time" [(ngModel)]="slot.toTime" class="form-control time-input" />
+              <button 
+                type="button" 
+                class="btn-remove-slot" 
+                (click)="removeWeeklySlot(i, j)"
+                *ngIf="day.slots.length > 1"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <button 
+              type="button" 
+              class="btn-add-slot" 
+              (click)="addWeeklySlot(i)"
+              *ngIf="day.slots.length < 5"
+            >
+              <i class="fas fa-plus"></i>
+              {{ "my_booked_page.weekly_modal.add_time" | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button 
+        class="btn btn-danger" 
+        (click)="clearWeeklyPattern()"
+        [disabled]="isSavingPattern"
+      >
+        {{ "my_booked_page.weekly_modal.clear_pattern" | translate }}
+      </button>
+      <div class="footer-right">
+        <button class="btn btn-secondary" (click)="closeWeeklyPatternModal()">
+          {{ "common.cancel" | translate }}
+        </button>
+        <button 
+          class="btn btn-primary" 
+          (click)="saveWeeklyPattern()"
+          [disabled]="isSavingPattern"
+        >
+          <span *ngIf="!isSavingPattern">{{ "my_booked_page.weekly_modal.save" | translate }}</span>
+          <span *ngIf="isSavingPattern">{{ "common.saving" | translate }}...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Slot/Booking Details Modal -->
+<div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+  <div class="modal-container details-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.details_modal.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeDetailsModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body" *ngIf="selectedSlotDetails">
+      <!-- Availability Slot Details -->
+      <div *ngIf="selectedSlotDetails.type === 'availability'" class="slot-details">
+        <div class="status-badge" [class.available]="!selectedSlotDetails.isBooked" [class.booked]="selectedSlotDetails.isBooked">
+          <i [class]="selectedSlotDetails.isBooked ? 'fas fa-user-check' : 'fas fa-check-circle'"></i>
+          {{ selectedSlotDetails.isBooked ? ('my_booked_page.status.booked' | translate) : ('my_booked_page.status.available' | translate) }}
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-calendar-day"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.day" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.dayName }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-clock"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.time" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.time }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="selectedSlotDetails.isBooked">
+          <i class="fas fa-user"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.student" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.studentName }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="selectedSlotDetails.price">
+          <i class="fas fa-dollar-sign"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.price" | translate }}</span>
+            <span class="detail-value">${{ selectedSlotDetails.price }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item" *ngIf="selectedSlotDetails.isRecurring">
+          <i class="fas fa-redo"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.recurring" | translate }}</span>
+            <span class="detail-value">{{ "my_booked_page.recurring" | translate }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Booking Details -->
+      <div *ngIf="selectedSlotDetails.type === 'booking'" class="booking-details">
+        <div class="status-badge" [ngClass]="selectedSlotDetails.status">
+          {{ selectedSlotDetails.status | titlecase }}
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-book"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.lesson" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.title }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-calendar-alt"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.datetime" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.datetime }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-user"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.student" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.studentName }}</span>
+          </div>
+        </div>
+
+        <div class="detail-item">
+          <i class="fas fa-dollar-sign"></i>
+          <div class="detail-content">
+            <span class="detail-label">{{ "my_booked_page.details_modal.amount" | translate }}</span>
+            <span class="detail-value">{{ selectedSlotDetails.amount }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <!-- Actions for availability slot -->
+      <ng-container *ngIf="selectedSlotDetails?.type === 'availability'">
+        <button 
+          class="btn btn-danger" 
+          (click)="deleteSlotWithRefund()"
+          [disabled]="isDeletingSlot"
+        >
+          <i class="fas fa-trash"></i>
+          <span *ngIf="!isDeletingSlot">
+            {{ selectedSlotDetails.isBooked ? ('my_booked_page.details_modal.delete_refund' | translate) : ('my_booked_page.details_modal.delete' | translate) }}
+          </span>
+          <span *ngIf="isDeletingSlot">{{ "common.deleting" | translate }}...</span>
+        </button>
+      </ng-container>
+
+      <!-- Actions for booking -->
+      <ng-container *ngIf="selectedSlotDetails?.type === 'booking'">
+        <button class="btn btn-primary" (click)="joinLessonFromDetails()">
+          <i class="fas fa-video"></i>
+          {{ "my_booked_page.card.btn_join" | translate }}
+        </button>
+        
+        <button 
+          class="btn btn-danger" 
+          (click)="deleteBookingFromDetails()"
+          [disabled]="isDeletingSlot"
+        >
+          <i class="fas fa-trash"></i>
+          <span *ngIf="!isDeletingSlot">{{ "my_booked_page.details_modal.delete" | translate }}</span>
+          <span *ngIf="isDeletingSlot">{{ "common.deleting" | translate }}...</span>
+        </button>
+      </ng-container>
+
+      <button class="btn btn-secondary" (click)="closeDetailsModal()">
+        {{ "common.close" | translate }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirmModal" (click)="closeDeleteConfirmModal()">
+  <div class="modal-container confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.delete_confirm.title" | translate }}</h3>
+      <button class="close-btn" (click)="closeDeleteConfirmModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-icon" [class.warning]="slotToDelete?.isBooked">
+        <i [class]="slotToDelete?.isBooked ? 'fas fa-exclamation-triangle' : 'fas fa-trash-alt'"></i>
+      </div>
+      
+      <div class="confirm-content">
+        <p class="confirm-message" *ngIf="!slotToDelete?.isBooked && !slotToDelete?.isRecurring">
+          {{ "my_booked_page.delete_confirm.message_available" | translate }}
+        </p>
+        <p class="confirm-message warning" *ngIf="slotToDelete?.isBooked">
+          {{ "my_booked_page.delete_confirm.message_booked" | translate }}
+        </p>
+
+        <div class="slot-info-summary">
+          <div class="info-row">
+            <i class="fas fa-calendar-day"></i>
+            <span>{{ getDayName(slotToDelete?.dayOfWeek || 0) }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-clock"></i>
+            <span>{{ slotToDelete?.startTime }} - {{ slotToDelete?.endTime }}</span>
+          </div>
+          <div class="info-row recurring-indicator" *ngIf="slotToDelete?.isRecurring">
+            <i class="fas fa-redo"></i>
+            <span>{{ "my_booked_page.recurring" | translate }}</span>
+          </div>
+          <div class="info-row" *ngIf="slotToDelete?.isBooked">
+            <i class="fas fa-user"></i>
+            <span>{{ slotToDelete?.studentName }}</span>
+          </div>
+          <div class="info-row refund-notice" *ngIf="slotToDelete?.isBooked && slotToDelete?.price">
+            <i class="fas fa-undo"></i>
+            <span>{{ "my_booked_page.delete_confirm.refund_amount" | translate }}: ${{ slotToDelete?.price }}</span>
+          </div>
+        </div>
+
+        <!-- Recurring Delete Options -->
+        <div class="recurring-delete-options" *ngIf="slotToDelete?.isRecurring">
+          <p class="options-label">{{ "my_booked_page.delete_confirm.recurring_question" | translate }}</p>
+          <div class="delete-option" [class.selected]="deleteMode === 'single'" (click)="setDeleteMode('single')">
+            <div class="option-radio">
+              <i [class]="deleteMode === 'single' ? 'fas fa-dot-circle' : 'far fa-circle'"></i>
+            </div>
+            <div class="option-content">
+              <span class="option-title">{{ "my_booked_page.delete_confirm.delete_single" | translate }}</span>
+              <span class="option-desc">{{ "my_booked_page.delete_confirm.delete_single_desc" | translate }}</span>
+            </div>
+          </div>
+          <div class="delete-option" [class.selected]="deleteMode === 'all-recurring'" (click)="setDeleteMode('all-recurring')">
+            <div class="option-radio">
+              <i [class]="deleteMode === 'all-recurring' ? 'fas fa-dot-circle' : 'far fa-circle'"></i>
+            </div>
+            <div class="option-content">
+              <span class="option-title">{{ "my_booked_page.delete_confirm.delete_all_recurring" | translate }}</span>
+              <span class="option-desc">{{ "my_booked_page.delete_confirm.delete_all_recurring_desc" | translate }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeDeleteConfirmModal()">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button 
+        class="btn btn-danger" 
+        (click)="confirmDeleteSlot()"
+        [disabled]="isDeletingSlot"
+      >
+        <i class="fas fa-trash"></i>
+        <span *ngIf="!isDeletingSlot">
+          {{ slotToDelete?.isBooked ? ('my_booked_page.delete_confirm.btn_delete_refund' | translate) : ('my_booked_page.delete_confirm.btn_delete' | translate) }}
+        </span>
+        <span *ngIf="isDeletingSlot">{{ "common.deleting" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Recurring Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showRecurringConfirmModal" (click)="cancelRecurringConfirm()">
+  <div class="modal-container confirm-modal recurring-confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ "my_booked_page.recurring_confirm.title" | translate }}</h3>
+      <button class="close-btn" (click)="cancelRecurringConfirm()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-icon recurring">
+        <i class="fas fa-redo"></i>
+      </div>
+      
+      <div class="confirm-content">
+        <p class="confirm-message">
+          {{ "my_booked_page.recurring_confirm.message" | translate }}
+        </p>
+
+        <div class="slot-info-summary">
+          <div class="info-row">
+            <i class="fas fa-calendar-day"></i>
+            <span>{{ getDayName(pendingRecurringSlot?.dayOfWeek || 0) }}</span>
+          </div>
+          <div class="info-row">
+            <i class="fas fa-clock"></i>
+            <span>{{ pendingRecurringSlot?.startTime }} - {{ pendingRecurringSlot?.endTime }}</span>
+          </div>
+          <div class="info-row highlight">
+            <i class="fas fa-infinity"></i>
+            <span>{{ "my_booked_page.recurring_confirm.every_week" | translate }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="cancelRecurringConfirm()">
+        {{ "common.cancel" | translate }}
+      </button>
+      <button 
+        class="btn btn-primary" 
+        (click)="confirmRecurringSlot()"
+        [disabled]="isSavingAvailability"
+      >
+        <i class="fas fa-check"></i>
+        <span *ngIf="!isSavingAvailability">{{ "my_booked_page.recurring_confirm.confirm" | translate }}</span>
+        <span *ngIf="isSavingAvailability">{{ "common.saving" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Response Modal -->
+<div class="modal-overlay response-modal-overlay" *ngIf="showResponseModal" (click)="closeResponseModal()">
+  <div class="response-modal" [class.success]="responseModalData?.type === 'success'" [class.error]="responseModalData?.type === 'error'" (click)="$event.stopPropagation()">
+    <div class="modal-icon">
+      <i [class]="responseModalData?.type === 'success' ? 'fas fa-check-circle' : 'fas fa-exclamation-circle'"></i>
+    </div>
+    <h4 class="modal-title">{{ responseModalData?.title }}</h4>
+    <p class="modal-message">{{ responseModalData?.message }}</p>
+    <button class="btn btn-primary" (click)="closeResponseModal()">
+      {{ "common.ok" | translate }}
+    </button>
+  </div>
+</div>
+
+<!-- Group Session Modal -->
+<div class="modal-overlay group-session-modal-overlay" *ngIf="showGroupSessionModal" (click)="closeGroupSessionModal()">
+  <div class="modal-content group-session-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <i class="fas fa-users"></i>
+        {{ 'my_booked_page.group_session.title' | translate }}
+      </h3>
+      <button class="close-btn" (click)="closeGroupSessionModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="session-time-info">
+        <i class="fas fa-clock"></i>
+        <span>{{ selectedCalendarDate }} - {{ selectedGroupSessionTime }}</span>
+      </div>
+
+      <form [formGroup]="groupSessionForm" (ngSubmit)="createGroupSession()">
+        <!-- Title -->
+        <div class="form-group">
+          <label for="gsTitle">
+            {{ 'my_booked_page.group_session.session_title' | translate }} *
+          </label>
+          <input 
+            type="text" 
+            id="gsTitle" 
+            formControlName="title"
+            [placeholder]="'my_booked_page.group_session.title_placeholder' | translate"
+            class="form-control"
+          >
+          <div class="error-text" *ngIf="groupSessionForm.get('title')?.touched && groupSessionForm.get('title')?.errors?.['required']">
+            {{ 'my_booked_page.group_session.title_required' | translate }}
+          </div>
+        </div>
+
+        <!-- Price per Student -->
+        <div class="form-group">
+          <label for="gsPrice">
+            {{ 'my_booked_page.group_session.price_per_student' | translate }} ($)
+          </label>
+          <input 
+            type="number" 
+            id="gsPrice" 
+            formControlName="price"
+            min="0"
+            max="10000"
+            class="form-control"
+          >
+        </div>
+
+        <!-- Max Participants -->
+        <div class="form-group">
+          <label for="gsMaxParticipants">
+            {{ 'my_booked_page.group_session.max_participants' | translate }}
+          </label>
+          <input 
+            type="number" 
+            id="gsMaxParticipants" 
+            formControlName="maxParticipants"
+            min="2"
+            max="50"
+            class="form-control"
+          >
+        </div>
+
+        <!-- Description (optional) -->
+        <div class="form-group">
+          <label for="gsDescription">
+            {{ 'my_booked_page.group_session.description' | translate }}
+          </label>
+          <textarea 
+            id="gsDescription" 
+            formControlName="description"
+            rows="3"
+            [placeholder]="'my_booked_page.group_session.description_placeholder' | translate"
+            class="form-control"
+          ></textarea>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeGroupSessionModal()" [disabled]="isSavingGroupSession">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button 
+        class="btn btn-primary btn-purple" 
+        (click)="createGroupSession()"
+        [disabled]="groupSessionForm.invalid || isSavingGroupSession"
+      >
+        <i class="fas fa-plus" *ngIf="!isSavingGroupSession"></i>
+        <span *ngIf="!isSavingGroupSession">{{ 'my_booked_page.group_session.create' | translate }}</span>
+        <span *ngIf="isSavingGroupSession">{{ 'common.saving' | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>

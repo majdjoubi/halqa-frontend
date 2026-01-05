@@ -348,6 +348,33 @@ export class RepoService {
     return this.http.put<any>(`${this.base_url}/api/lesson/${lessonId}`, data);
   }
 
+  // ===== NEW TEACHER BOOKINGS APIs =====
+
+  /**
+   * Get teacher bookings with pagination (for calendar/my-bookings page)
+   */
+  getTeacherBookingsPaginated(options?: {
+    page?: number;
+    pageSize?: number;
+    upcomingOnly?: boolean;
+  }): Observable<any> {
+    let params = new HttpParams();
+    if (options?.page) params = params.set('page', String(options.page));
+    if (options?.pageSize) params = params.set('pageSize', String(options.pageSize));
+    if (options?.upcomingOnly !== undefined) params = params.set('upcomingOnly', String(options.upcomingOnly));
+    
+    return this.http.get<any>(`${this.base_url}/api/teacher/bookings`, { params });
+  }
+
+  /**
+   * Start a session and get the meeting room URL
+   */
+  startTeacherSession(bookingId: number | string): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/teacher/bookings/${bookingId}/start`, {});
+  }
+
+  // ===== LEGACY Booking APIs (may not work - kept for reference) =====
+
   // Booking APIs for teacher MY-Booked component
   getTeacherBookings(): Observable<any[]> {
     return this.http.get<any[]>(`${this.base_url}/api/booking/teacher`);

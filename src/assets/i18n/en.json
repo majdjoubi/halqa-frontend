@@ -1197,5 +1197,37 @@
     "student": "Student",
     "teacher": "Teacher",
     "admin": "Admin"
+  },
+  "my_calendar_page": {
+    "header": {
+      "title": "Bookings Calendar",
+      "subtitle": "View all booked lessons and manage your sessions"
+    },
+    "next_lesson": "Next Lesson",
+    "time_remaining": "Time Remaining",
+    "join_now": "Join Now",
+    "tabs": {
+      "calendar": "Calendar",
+      "booked_sessions": "Booked Sessions"
+    },
+    "calendar": {
+      "select_date": "Select a date to view sessions",
+      "slots_for": "Sessions for"
+    },
+    "sessions": {
+      "upcoming": "Upcoming Sessions",
+      "past": "Past Sessions",
+      "no_upcoming": "No upcoming sessions",
+      "no_past": "No past sessions",
+      "individual": "Individual Session",
+      "group": "Group Session",
+      "minutes": "minutes",
+      "confirmed": "Confirmed",
+      "completed": "Completed"
+    },
+    "pagination": {
+      "page": "Page",
+      "of": "of"
+    }
   }
 }
