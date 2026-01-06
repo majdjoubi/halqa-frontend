@@ -574,9 +574,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     const pad = (n: number) => (n < 10 ? '0' + n : '' + n);
 
-    // No offset conversion needed - times are already in Mecca timezone
+    // Format time in 12-hour AM/PM format
     const formatTime = (date: Date) => {
-      return `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`;
+      let hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12; // 0 should be 12
+      return `${hours}:${pad(minutes)} ${ampm}`;
     };
 
     // Helper to try parse common keys
