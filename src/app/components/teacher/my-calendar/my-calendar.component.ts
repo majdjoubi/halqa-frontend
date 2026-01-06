@@ -285,19 +285,23 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
     // Generate 24 hourly slots
     for (let hour = 0; hour < 24; hour++) {
-      const startTime = `${String(hour).padStart(2, '0')}:00`;
-      const endTime = `${String((hour + 1) % 24).padStart(2, '0')}:00`;
+      const startTime24 = `${String(hour).padStart(2, '0')}:00`;
+      const endTime24 = `${String((hour + 1) % 24).padStart(2, '0')}:00`;
+      
+      // Convert to 12-hour format for display
+      const startTime = this.formatTo12Hour(hour);
+      const endTime = this.formatTo12Hour((hour + 1) % 24);
 
       // Check if booked
       const booking = bookingsForDate.find(b => {
         const meccaTime = this.luxonDate.fromServerTimeToMecca(b.scheduledDateTime);
-        return meccaTime.isValid && meccaTime.toFormat('HH:mm') === startTime;
+        return meccaTime.isValid && meccaTime.toFormat('HH:mm') === startTime24;
       });
 
       // Check if available
       const isAvailable = availabilityForDate.some(s => {
         const slotTime = s.displayStartTime || s.startTime;
-        return slotTime?.substring(0, 5) === startTime;
+        return slotTime?.substring(0, 5) === startTime24;
       });
 
       const isPast = isPastDate || (isToday && hour <= currentHour);
@@ -313,6 +317,13 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     }
 
     this.allTimeSlots = slots;
+  }
+
+  // Helper function to convert 24-hour to 12-hour format
+  formatTo12Hour(hour: number): string {
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    return `${hour12}:00 ${period}`;
   }
 
   getSelectedDayName(): string {
