@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RepoService } from '../../../Repositories/repo.service';
 import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
+import { TimezoneService } from '../../../services/scheduling/timezone.service';
 import { Subscription, interval } from 'rxjs';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
 
@@ -92,17 +93,26 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   // ===== SUBSCRIPTIONS =====
   private langSubscription?: Subscription;
 
+  // ===== TIMEZONE =====
+  userIanaTimezone: string = 'UTC';
+  userTimezoneDisplay: string = '';
+
   constructor(
     private repo: RepoService,
     private luxonDate: LuxonDateService,
     private languageService: LanguageService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private timezoneService: TimezoneService
   ) {
     // Initialize alert audio
     this.alertAudio = new Audio('/assets/sounds/lesson-alert.mp3');
   }
 
   ngOnInit(): void {
+    // Initialize timezone - auto-detect user's IANA timezone
+    this.userIanaTimezone = this.timezoneService.detectClientTimezone();
+    this.userTimezoneDisplay = this.formatTimezoneDisplay(this.userIanaTimezone);
+
     // Check RTL
     this.langSubscription = this.languageService.currentLanguage$.subscribe(lang => {
       this.isRtl = lang.code === 'ar';
@@ -113,6 +123,24 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
     // Start countdown timer
     this.startCountdown();
+  }
+
+  /**
+   * Format IANA timezone to display string
+   */
+  private formatTimezoneDisplay(ianaZone: string): string {
+    try {
+      const now = this.luxonDate.fromObject({}).setZone(ianaZone);
+      const offset = now.offset;
+      const hours = Math.floor(Math.abs(offset) / 60);
+      const minutes = Math.abs(offset) % 60;
+      const sign = offset >= 0 ? '+' : '-';
+      const offsetStr = minutes === 0 ? `GMT${sign}${hours}` : `GMT${sign}${hours}:${minutes.toString().padStart(2, '0')}`;
+      const cityName = ianaZone.split('/').pop()?.replace(/_/g, ' ') || ianaZone;
+      return `${cityName} (${offsetStr})`;
+    } catch {
+      return ianaZone;
+    }
   }
 
   ngOnDestroy(): void {
@@ -164,17 +192,25 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         
         if (profile?.availability) {
           this.availabilitySlots = profile.availability.map((slot: any) => {
-            // Display times in UTC (GMT +0)
+            // Display times in user's local timezone
             let dateStr: string | undefined;
             let displayStartTime: string | undefined;
             let displayHour: number | undefined;
 
             if (slot.startDateTime) {
-              const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
-              if (meccaStart.isValid) {
-                dateStr = meccaStart.toFormat('yyyy-MM-dd');
-                displayStartTime = meccaStart.toFormat('HH:mm');
-                displayHour = meccaStart.hour;
+              try {
+                const localStart = this.timezoneService.utcToLocal(slot.startDateTime, this.userIanaTimezone);
+                dateStr = localStart.toFormat('yyyy-MM-dd');
+                displayStartTime = localStart.toFormat('HH:mm');
+                displayHour = localStart.hour;
+              } catch {
+                // Fallback to legacy method
+                const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
+                if (meccaStart.isValid) {
+                  dateStr = meccaStart.toFormat('yyyy-MM-dd');
+                  displayStartTime = meccaStart.toFormat('HH:mm');
+                  displayHour = meccaStart.hour;
+                }
               }
             }
 
@@ -198,9 +234,15 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     // Add dates from bookings
     this.bookings.forEach(b => {
       if (b.scheduledDateTime) {
-        const meccaTime = this.luxonDate.fromServerTimeToMecca(b.scheduledDateTime);
-        if (meccaTime.isValid) {
-          dates.add(meccaTime.toFormat('yyyy-MM-dd'));
+        try {
+          const localTime = this.timezoneService.utcToLocal(b.scheduledDateTime, this.userIanaTimezone);
+          dates.add(localTime.toFormat('yyyy-MM-dd'));
+        } catch {
+          // Fallback
+          const meccaTime = this.luxonDate.fromServerTimeToMecca(b.scheduledDateTime);
+          if (meccaTime.isValid) {
+            dates.add(meccaTime.toFormat('yyyy-MM-dd'));
+          }
         }
       }
     });
@@ -285,18 +327,22 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   generateTimeSlotsForDate(dateStr: string): void {
     const slots: TimeSlot[] = [];
     
-    // Use UTC time (GMT +0)
-    const nowMecca = this.luxonDate.nowMecca();
-    const todayStr = nowMecca.toFormat('yyyy-MM-dd');
-    const currentHour = nowMecca.hour;
+    // Use user's local timezone
+    const nowLocal = this.timezoneService.nowUtc().setZone(this.userIanaTimezone);
+    const todayStr = nowLocal.toFormat('yyyy-MM-dd');
+    const currentHour = nowLocal.hour;
     const isToday = dateStr === todayStr;
     const isPastDate = dateStr < todayStr;
 
     // Get bookings for this date
     const bookingsForDate = this.bookings.filter(b => {
       if (!b.scheduledDateTime) return false;
-      const meccaTime = this.luxonDate.fromServerTimeToMecca(b.scheduledDateTime);
-      return meccaTime.isValid && meccaTime.toFormat('yyyy-MM-dd') === dateStr;
+      try {
+        const localTime = this.timezoneService.utcToLocal(b.scheduledDateTime, this.userIanaTimezone);
+        return localTime.toFormat('yyyy-MM-dd') === dateStr;
+      } catch {
+        return false;
+      }
     });
 
     // Get availability for this date
@@ -307,14 +353,20 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
       const startTime24 = `${String(hour).padStart(2, '0')}:00`;
       const endTime24 = `${String((hour + 1) % 24).padStart(2, '0')}:00`;
       
-      // Convert to 12-hour format for display
-      const startTime = this.formatTo12Hour(hour);
-      const endTime = this.formatTo12Hour((hour + 1) % 24);
+      // Convert to 12-hour format for display using TimezoneService
+      const { hour12: startHour12, period: startPeriod } = this.timezoneService.formatHour24ToAmPm(hour);
+      const { hour12: endHour12, period: endPeriod } = this.timezoneService.formatHour24ToAmPm((hour + 1) % 24);
+      const startTime = `${startHour12}:00 ${startPeriod}`;
+      const endTime = `${endHour12}:00 ${endPeriod}`;
 
       // Check if booked
       const booking = bookingsForDate.find(b => {
-        const meccaTime = this.luxonDate.fromServerTimeToMecca(b.scheduledDateTime);
-        return meccaTime.isValid && meccaTime.toFormat('HH:mm') === startTime24;
+        try {
+          const localTime = this.timezoneService.utcToLocal(b.scheduledDateTime, this.userIanaTimezone);
+          return localTime.toFormat('HH:mm') === startTime24;
+        } catch {
+          return false;
+        }
       });
 
       // Check if available and get availabilityId
@@ -341,10 +393,9 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     this.allTimeSlots = slots;
   }
 
-  // Helper function to convert 24-hour to 12-hour format
+  // Helper function to convert 24-hour to 12-hour format using TimezoneService
   formatTo12Hour(hour: number): string {
-    const period = hour >= 12 ? 'PM' : 'AM';
-    const hour12 = hour === 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    const { hour12, period } = this.timezoneService.formatHour24ToAmPm(hour);
     return `${hour12}:00 ${period}`;
   }
 
@@ -385,20 +436,23 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     
     this.isSavingSlot = true;
     
-    // Build the start and end datetime in Mecca timezone, then convert to UTC
+    // Build the start and end datetime in user's local timezone, then convert to UTC
     const dateStr = this.selectedCalendarDate;
     const startHour = slot.hour;
     const endHour = (slot.hour + 1) % 24;
     
-    // Create Mecca datetime and convert to UTC for server
-    const startMecca = this.luxonDate.createMeccaDateTime(dateStr, startHour, 0);
-    const endMecca = this.luxonDate.createMeccaDateTime(dateStr, endHour, 0);
+    // Parse date components
+    const [year, month, day] = dateStr.split('-').map(Number);
     
-    const date = new Date(dateStr + 'T00:00:00');
-    const dayOfWeek = date.getDay();
+    // Create local datetime and convert to UTC for server using TimezoneService
+    const startLocal = this.timezoneService.createLocalDateTime(year, month, day, startHour, 0, this.userIanaTimezone);
+    const endLocal = this.timezoneService.createLocalDateTime(year, month, day, endHour, 0, this.userIanaTimezone);
     
-    const startISO = startMecca.toUTC().toISO();
-    const endISO = endMecca.toUTC().toISO();
+    const jsDate = new Date(dateStr + 'T00:00:00');
+    const dayOfWeek = jsDate.getDay();
+    
+    const startISO = this.timezoneService.localToUtc(startLocal);
+    const endISO = this.timezoneService.localToUtc(endLocal);
     
     const data = {
       dayOfWeek: dayOfWeek,
@@ -408,7 +462,8 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
       date: dateStr,
       startDateTime: startISO || undefined,
       endDateTime: endISO || undefined,
-      isAvailable: true
+      isAvailable: true,
+      teacherIanaTimezone: this.userIanaTimezone // Send teacher's timezone to backend
     };
     
     this.repo.createAvailability(data).subscribe({
@@ -524,18 +579,31 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   }
 
   formatTime(dateTimeStr: string): string {
-    const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
-    return meccaTime.isValid ? meccaTime.toFormat('HH:mm') : '';
+    try {
+      return this.timezoneService.formatUtcAs12Hour(dateTimeStr, this.userIanaTimezone);
+    } catch {
+      const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
+      return meccaTime.isValid ? meccaTime.toFormat('h:mm a') : '';
+    }
   }
 
   formatDate(dateTimeStr: string): string {
-    const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
-    return meccaTime.isValid ? meccaTime.toFormat('yyyy-MM-dd') : '';
+    try {
+      const local = this.timezoneService.utcToLocal(dateTimeStr, this.userIanaTimezone);
+      return local.toFormat('yyyy-MM-dd');
+    } catch {
+      const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
+      return meccaTime.isValid ? meccaTime.toFormat('yyyy-MM-dd') : '';
+    }
   }
 
   formatDateTime(dateTimeStr: string): string {
-    const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
-    return meccaTime.isValid ? meccaTime.toFormat('yyyy-MM-dd HH:mm') : '';
+    try {
+      return this.timezoneService.formatUtcAs12Hour(dateTimeStr, this.userIanaTimezone, true);
+    } catch {
+      const meccaTime = this.luxonDate.fromServerTimeToMecca(dateTimeStr);
+      return meccaTime.isValid ? meccaTime.toFormat('yyyy-MM-dd h:mm a') : '';
+    }
   }
 
   // ===== PAGINATION =====
