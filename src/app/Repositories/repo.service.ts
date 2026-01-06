@@ -545,6 +545,11 @@ export class RepoService {
     );
   }
 
+  // get student wallet balance and transactions
+  getStudentWallet(): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/api/student/wallet`);
+  }
+
   // make withdraw request for teacher
   makeWithdrawRequest(data: any): Observable<any> {
     return this.http.post<any>(

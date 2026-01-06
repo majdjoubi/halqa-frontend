@@ -949,6 +949,33 @@
   z-index: 10;
   margin-top: auto;
   
+  .wallet-balance-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    
+    .wallet-label {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+    
+    .wallet-amount {
+      font-size: 16px;
+      font-weight: 700;
+      color: $primary-color;
+      
+      &.low-balance {
+        color: #dc2626;
+      }
+    }
+  }
+  
   .booking-actions {
     display: flex;
     justify-content: center;

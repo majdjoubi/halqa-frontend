@@ -1067,6 +1067,11 @@
     "CLOSE": "Close",
     "OPTIONAL": "Optional"
   },
+  "wallet": {
+    "your_balance": "Your Balance",
+    "current_balance": "Current Balance",
+    "top_up": "Top Up"
+  },
   "wallet_topup": {
     "title": "Top Up Wallet",
     "amount_label": "Amount (USD)",

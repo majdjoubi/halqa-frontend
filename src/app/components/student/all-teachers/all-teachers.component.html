@@ -554,6 +554,13 @@
   </ng-template>
 
   <div slot="footer" class="booking-footer">
+    <!-- Wallet Balance Display -->
+    <div class="wallet-balance-info" *ngIf="!walletLoading && groupedAvailability.length > 0">
+      <span class="wallet-label">{{ 'wallet.your_balance' | translate }}:</span>
+      <span class="wallet-amount" [class.low-balance]="selectedSlotIndex !== null && bookingTeacher?.availability && bookingTeacher.availability[selectedSlotIndex]?.price > walletBalance">
+        ${{ walletBalance | number:'1.2-2' }}
+      </span>
+    </div>
     <div class="booking-actions" *ngIf="groupedAvailability.length > 0">
       <button
         class="btn btn-primary btn-book-now"

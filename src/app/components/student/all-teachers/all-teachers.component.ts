@@ -63,6 +63,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Store student's existing bookings for conflict checking
   studentExistingBookings: any[] = [];
   
+  // Student wallet balance
+  walletBalance: number = 0;
+  walletLoading: boolean = false;
+  
   // Group session modal controls
   showGroupSessionModal = false;
   selectedGroupSession: any = null;
@@ -108,6 +112,26 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.loadSpecializations();
     // load student's existing bookings for conflict detection
     this.loadStudentExistingBookings();
+    // load student wallet balance
+    this.loadWalletBalance();
+  }
+
+  /**
+   * Load student wallet balance
+   */
+  private loadWalletBalance(): void {
+    this.walletLoading = true;
+    this._repo.getStudentWallet().subscribe({
+      next: (wallet) => {
+        this.walletBalance = wallet?.currentBalance || 0;
+        this.walletLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading wallet balance:', err);
+        this.walletBalance = 0;
+        this.walletLoading = false;
+      }
+    });
   }
 
   /**
@@ -811,6 +835,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     // Get the price from the slot (set by teacher when creating availability)
     const slotPrice = slot.price || slot.hourlyRate || slot.rate || 0;
+
+    // Frontend wallet balance check before calling API
+    if (slotPrice > this.walletBalance) {
+      this.payProcessing = false;
+      this.isInsufficientBalance = true;
+      this.showModal = true;
+      this.modalType = 'error';
+      this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
+      return;
+    }
     
     // Get the availability ID to link the booking to the specific slot
     const availabilityId = slot.id || slot._id || slot.availabilityId;
