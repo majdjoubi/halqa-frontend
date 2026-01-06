@@ -409,51 +409,36 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // show spinner on the clicked Book button
     this.loadingBookId = teacherId;
 
-    // Fetch both individual availability AND group sessions in parallel
-    forkJoin({
-      individual: this._repo.getIndividualBookingsByStudent(teacherId).pipe(
-        catchError(err => {
-          console.error('Failed to load individual availability', err);
-          return of([]);
-        })
-      ),
-      groupSessions: this._repo.getGroupSessionsByTeacherId(teacherId).pipe(
-        catchError(err => {
-          console.error('Failed to load group sessions', err);
-          return of({ sessions: [] });
-        })
-      )
-    }).subscribe({
-      next: ({ individual, groupSessions }) => {
-        console.log('🔍 [DEBUG] Raw API individual availability:', individual);
-        console.log('🔍 [DEBUG] Raw API group sessions:', groupSessions);
+    // Fetch individual availability only (group sessions disabled for now)
+    this._repo.getIndividualBookingsByStudent(teacherId).pipe(
+      catchError(err => {
+        console.error('Failed to load individual availability', err);
+        return of({ slots: [], teacherId: '', teacherName: '', hourlyRate: 0 });
+      })
+    ).subscribe({
+      next: (response: any) => {
+        console.log('🔍 [DEBUG] Raw API individual availability:', response);
         
         try {
-          // Process individual slots
-          let individualSlots = Array.isArray(individual)
-            ? individual.map((s: any) => ({ ...this._mapUtcSlotToLocal(s), slotType: 'individual' }))
+          // Process individual slots from the API response
+          const slotsData = response?.slots || response || [];
+          let individualSlots = Array.isArray(slotsData)
+            ? slotsData.map((s: any) => ({ ...this._mapUtcSlotToLocal(s), slotType: 'individual' }))
             : [];
-          
-          // Process group sessions
-          const sessionsArray = groupSessions?.sessions || groupSessions || [];
-          let groupSlots = Array.isArray(sessionsArray)
-            ? sessionsArray.map((gs: any) => this._mapGroupSessionToSlot(gs))
-            : [];
-          
-          // Combine all slots
-          const allSlots = [...individualSlots, ...groupSlots];
           
           // Mark past slots as unavailable
-          const processedSlots = this._processAvailability(allSlots);
+          const processedSlots = this._processAvailability(individualSlots);
           
           const teacherObj: any = {
             id: teacherId,
-            firstName: '',
-            availability: processedSlots,
-            groupSessions: sessionsArray // Keep original group sessions for modal
+            teacherId: response?.teacherId || teacherId,
+            firstName: response?.teacherName?.split(' ')[0] || '',
+            lastName: response?.teacherName?.split(' ').slice(1).join(' ') || '',
+            hourlyRate: response?.hourlyRate || 0,
+            availability: processedSlots
           };
 
-          console.log('🔍 [DEBUG] Combined availability:', teacherObj.availability);
+          console.log('🔍 [DEBUG] Processed availability:', teacherObj.availability);
 
           this.bookingTeacher = teacherObj;
           this.bookingSidebarOpen = true;
@@ -461,7 +446,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           this.selectedCalendarDate = null;
         } catch (e) {
           console.error('Failed to process availability response', e);
-          this.bookingTeacher = { id: teacherId, availability: [], groupSessions: [] };
+          this.bookingTeacher = { id: teacherId, availability: [] };
           this.bookingSidebarOpen = true;
           this.selectedSlotIndex = null;
           this.selectedCalendarDate = null;
