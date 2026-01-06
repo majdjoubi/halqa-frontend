@@ -4,6 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environment/environment';
 import { StorageService } from '../storage.service';
+import { TimezoneService } from '../scheduling/timezone.service';
 
 export interface LoginRequest {
   email: string;
@@ -82,7 +83,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private storageService: StorageService
+    private storageService: StorageService,
+    private timezoneService: TimezoneService
   ) {}
 
   /**
@@ -138,6 +140,7 @@ export class AuthService {
   logout(): void {
     this.storageService.removeItem('authToken');
     this.storageService.removeItem('userData');
+    this.timezoneService.clearTimezoneCache();
   }
 
   /**

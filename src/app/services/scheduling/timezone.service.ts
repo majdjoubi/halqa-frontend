@@ -1,5 +1,9 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { DateTime, IANAZone } from 'luxon';
+import { Observable, of, catchError, tap, map } from 'rxjs';
+import { environment } from '../../environment/environment';
 
 /**
  * Timezone-Safe Scheduling Service for Angular
@@ -18,7 +22,13 @@ import { DateTime, IANAZone } from 'luxon';
 })
 export class TimezoneService {
 
-  constructor() {}
+  private readonly TIMEZONE_CACHE_KEY = 'halqa_iana_timezone';
+  private readonly TIMEZONE_SYNC_KEY = 'halqa_timezone_synced';
+
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object
+  ) {}
 
   /**
    * Parse 12-hour AM/PM time to 24-hour format.
@@ -236,5 +246,104 @@ export class TimezoneService {
       return `${hours} hr${hours > 1 ? 's' : ''}`;
     }
     return `${hours} hr${hours > 1 ? 's' : ''} ${remainingMinutes} min`;
+  }
+
+  // ===== TIMEZONE SYNC API METHODS =====
+
+  /**
+   * Sync the detected timezone to the backend.
+   * Call this after login to ensure the backend has the correct timezone.
+   * 
+   * @returns Observable that completes when sync is done (or skipped if already synced)
+   */
+  syncTimezoneToBackend(): Observable<boolean> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return of(false);
+    }
+
+    const detectedTz = this.detectClientTimezone();
+    const cachedTz = this.getCachedTimezone();
+    const alreadySynced = localStorage.getItem(this.TIMEZONE_SYNC_KEY);
+
+    // Skip if already synced with same timezone this session
+    if (alreadySynced === detectedTz && cachedTz === detectedTz) {
+      console.log('[TimezoneService] Timezone already synced:', detectedTz);
+      return of(true);
+    }
+
+    console.log('[TimezoneService] Syncing timezone to backend:', detectedTz);
+    
+    return this.http.put<{ message: string; ianaTimezone: string }>(
+      `${environment.apiUrl}/users/me/timezone`,
+      { ianaTimezone: detectedTz }
+    ).pipe(
+      tap(response => {
+        console.log('[TimezoneService] Timezone synced successfully:', response.ianaTimezone);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem(this.TIMEZONE_CACHE_KEY, response.ianaTimezone);
+          localStorage.setItem(this.TIMEZONE_SYNC_KEY, response.ianaTimezone);
+        }
+      }),
+      map(() => true),
+      catchError(err => {
+        console.error('[TimezoneService] Failed to sync timezone:', err);
+        return of(false);
+      })
+    );
+  }
+
+  /**
+   * Get the user's timezone from the backend.
+   * Returns the detected timezone if API call fails.
+   */
+  getBackendTimezone(): Observable<{ ianaTimezone: string; needsUpdate: boolean }> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return of({ ianaTimezone: 'UTC', needsUpdate: false });
+    }
+
+    return this.http.get<{ ianaTimezone: string; isValid: boolean; needsUpdate: boolean }>(
+      `${environment.apiUrl}/users/me/timezone`
+    ).pipe(
+      catchError(err => {
+        console.error('[TimezoneService] Failed to get backend timezone:', err);
+        return of({ ianaTimezone: this.detectClientTimezone(), needsUpdate: true, isValid: true });
+      })
+    );
+  }
+
+  /**
+   * Get cached timezone from localStorage or detect it.
+   */
+  getCachedTimezone(): string {
+    if (isPlatformBrowser(this.platformId)) {
+      const cached = localStorage.getItem(this.TIMEZONE_CACHE_KEY);
+      if (cached && this.validateIanaZone(cached)) {
+        return cached;
+      }
+    }
+    return this.detectClientTimezone();
+  }
+
+  /**
+   * Clear timezone cache (call on logout).
+   */
+  clearTimezoneCache(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(this.TIMEZONE_CACHE_KEY);
+      localStorage.removeItem(this.TIMEZONE_SYNC_KEY);
+    }
+  }
+
+  /**
+   * Check if timezone needs to be synced to backend.
+   * Returns true if detected timezone differs from cached/synced timezone.
+   */
+  needsSync(): boolean {
+    if (!isPlatformBrowser(this.platformId)) {
+      return false;
+    }
+    const detected = this.detectClientTimezone();
+    const synced = localStorage.getItem(this.TIMEZONE_SYNC_KEY);
+    return synced !== detected;
   }
 }

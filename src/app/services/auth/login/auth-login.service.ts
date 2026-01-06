@@ -6,7 +6,8 @@ import {
   LoginRequest,
   StudentRegisterRequest,
 } from '../../../shared/modals/auth-modals';
-import { BehaviorSubject, catchError, map, Observable, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, map, Observable, throwError, switchMap, of } from 'rxjs';
+import { TimezoneService } from '../../scheduling/timezone.service';
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +18,7 @@ export class AuthLoginService {
 
   constructor(
     private _repo: RepoService,
+    private timezoneService: TimezoneService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
@@ -42,6 +44,12 @@ export class AuthLoginService {
         }
         this.loggedIn.next(true);
         return res;
+      }),
+      // After successful login, sync timezone to backend
+      switchMap((res) => {
+        return this.timezoneService.syncTimezoneToBackend().pipe(
+          map(() => res) // Return original login response
+        );
       }),
       catchError(this.handleError)
     );
