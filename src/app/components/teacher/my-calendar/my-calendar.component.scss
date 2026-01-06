@@ -53,11 +53,11 @@ $bg-white: #ffffff;
 
 // ===== HEADER =====
 .header {
-  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  background: transparent;
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 1.5rem;
-  color: white;
+  color: $text-color;
 
   .header-content {
     display: flex;
@@ -69,16 +69,18 @@ $bg-white: #ffffff;
         font-size: 1.75rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
+        color: $primary-color;
       }
 
       .subtitle {
-        opacity: 0.9;
+        opacity: 0.8;
         font-size: 1rem;
+        color: $text-muted;
       }
     }
 
     .image-col img {
-      width: 120px;
+      width: 200px;
       height: auto;
     }
   }
