@@ -67,7 +67,7 @@ export class TeacherCreateProfileComponent implements OnInit {
   selectedSpecializations: string[] = [];
   // Default avatar shown when user has no profile picture
   defaultAvatar: string =
-    '/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
+  'assets/images/default-avatar.svg';
 
   // Available Languages
   availableLanguages: Language[] = [

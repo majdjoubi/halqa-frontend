@@ -47,8 +47,7 @@ export class TeacherRegisterComponent {
   uploadError: string | null = null;
 
   // Default avatar to use when user doesn't provide one
-  defaultAvatar: string =
-    '/uploads/documents/20250927181822247-dd1a5cd8d8fd426d86e000010e6a9271-blank-avatar.webp';
+  defaultAvatar: string = 'assets/images/default-avatar.svg';
 
   ageOptions: number[] = [];
   yearOptions: number[] = [];
