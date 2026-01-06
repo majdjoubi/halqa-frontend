@@ -164,7 +164,7 @@ export class RepoService {
   // get all specializations for dropdown
   getAllSpecializations(): Observable<string[]> {
     return this.http.get<string[]>(
-      `${this.base_url}/api/Public/specializations`
+      `${this.base_url}/api/public/specializations`
     );
   }
 
