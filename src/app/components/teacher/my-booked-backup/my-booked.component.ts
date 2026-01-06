@@ -200,11 +200,11 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   isSavingGroupSession: boolean = false;
 
 
-  // Timezone - Fixed to Mecca time (GMT+3)
-  userTimezoneDisplay: string = 'GMT+3';
-  selectedGmtOffset: number = 180; // Fixed to GMT+3 (Mecca time)
+  // Timezone - Fixed to GMT +0 (UTC)
+  userTimezoneDisplay: string = 'GMT +0';
+  selectedGmtOffset: number = 0; // Fixed to GMT +0 (UTC)
   gmtOptions: { label: string; value: number }[] = [
-    { label: 'GMT+3 (توقيت مكة)', value: 180 },
+    { label: 'GMT +0 (التوقيت العالمي)', value: 0 },
   ];
 
   constructor(
@@ -619,27 +619,14 @@ export class MyBookedComponent implements OnInit, OnDestroy {
 
     const [hours] = slot.time.split(':').map(Number);
     
-    // Subtract 3 hours for Mecca timezone (GMT+3) conversion to UTC
-    let utcStartHour = hours - 3;
-    let utcEndHour = (hours + 1) - 3;
+    // Since display is now in UTC (GMT +0), no conversion needed
+    let utcStartHour = hours;
+    let utcEndHour = hours + 1;
     let startDate = this.selectedCalendarDate;
     let endDate = this.selectedCalendarDate;
     
-    // Handle day rollback for start time
-    if (utcStartHour < 0) {
-      utcStartHour += 24;
-      const dateParts = this.selectedCalendarDate.split('-');
-      const prevDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) - 1);
-      startDate = `${prevDay.getFullYear()}-${String(prevDay.getMonth() + 1).padStart(2, '0')}-${String(prevDay.getDate()).padStart(2, '0')}`;
-    }
-    
-    // Handle day rollback for end time
-    if (utcEndHour < 0) {
-      utcEndHour += 24;
-      const dateParts = this.selectedCalendarDate.split('-');
-      const prevDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) - 1);
-      endDate = `${prevDay.getFullYear()}-${String(prevDay.getMonth() + 1).padStart(2, '0')}-${String(prevDay.getDate()).padStart(2, '0')}`;
-    } else if (utcEndHour >= 24) {
+    // Handle day overflow for end time
+    if (utcEndHour >= 24) {
       utcEndHour -= 24;
       const dateParts = this.selectedCalendarDate.split('-');
       const nextDay = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]) + 1);

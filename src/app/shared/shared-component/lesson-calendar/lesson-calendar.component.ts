@@ -46,8 +46,8 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   @Input() isLoading = false;
   
   // Input: GMT offset in minutes (e.g., 60 for GMT+1, -300 for GMT-5)
-  // Fixed to Mecca time (GMT+3 = 180 minutes)
-  @Input() gmtOffset: number = 180;
+  // Fixed to GMT +0 (UTC) = 0 minutes
+  @Input() gmtOffset: number = 0;
   
   // Output: when user clicks on an event
   @Output() eventClick = new EventEmitter<LessonEvent>();

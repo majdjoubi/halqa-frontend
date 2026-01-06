@@ -50,6 +50,7 @@ export class DateLocaleService {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+      timeZone: 'UTC',
     });
   }
 
@@ -65,6 +66,7 @@ export class DateLocaleService {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
+      timeZone: 'UTC',
     });
   }
 
@@ -80,6 +82,7 @@ export class DateLocaleService {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
+      timeZone: 'UTC',
     });
   }
 
@@ -94,33 +97,35 @@ export class DateLocaleService {
     return d.toLocaleDateString(this.currentLocale, {
       month: 'short',
       day: 'numeric',
+      timeZone: 'UTC',
     });
   }
 
   /**
-   * Format date as DD/MM (day/month numeric)
+   * Format date as DD/MM (day/month numeric) in UTC
    * Example: "27/12"
    */
   formatDayMonth(date: Date | string | null | undefined): string {
     const d = this.parseDate(date);
     if (!d) return '';
 
-    const day = d.getDate().toString().padStart(2, '0');
-    const month = (d.getMonth() + 1).toString().padStart(2, '0');
+    const day = d.getUTCDate().toString().padStart(2, '0');
+    const month = (d.getUTCMonth() + 1).toString().padStart(2, '0');
     return `${day}/${month}`;
   }
 
   /**
-   * Format relative date (today, tomorrow, etc.)
+   * Format relative date (today, tomorrow, etc.) based on UTC
    */
   formatRelativeDate(date: Date | string | null | undefined): string {
     const d = this.parseDate(date);
     if (!d) return '';
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const targetDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-    const diffDays = Math.round((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    // Use UTC for comparison
+    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const targetDate = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+    const diffDays = Math.round((targetDate - today) / (1000 * 60 * 60 * 24));
 
     const isArabic = this.languageService.currentLanguage.code === 'ar';
 
@@ -132,7 +137,7 @@ export class DateLocaleService {
       return isArabic ? 'أمس' : 'Yesterday';
     } else if (diffDays > 1 && diffDays <= 7) {
       // Return day name for next 7 days
-      return d.toLocaleDateString(this.currentLocale, { weekday: 'long' });
+      return d.toLocaleDateString(this.currentLocale, { weekday: 'long', timeZone: 'UTC' });
     } else {
       return this.formatShortDate(d);
     }

@@ -164,7 +164,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         
         if (profile?.availability) {
           this.availabilitySlots = profile.availability.map((slot: any) => {
-            // Convert UTC to Mecca time for display
+            // Display times in UTC (GMT +0)
             let dateStr: string | undefined;
             let displayStartTime: string | undefined;
             let displayHour: number | undefined;
@@ -285,7 +285,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   generateTimeSlotsForDate(dateStr: string): void {
     const slots: TimeSlot[] = [];
     
-    // Use Mecca time instead of local browser time
+    // Use UTC time (GMT +0)
     const nowMecca = this.luxonDate.nowMecca();
     const todayStr = nowMecca.toFormat('yyyy-MM-dd');
     const currentHour = nowMecca.hour;

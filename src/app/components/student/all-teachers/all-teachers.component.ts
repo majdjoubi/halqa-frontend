@@ -85,11 +85,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Language subscription
   private langSubscription?: Subscription;
 
-  // Timezone - Fixed to Mecca time (GMT+3)
-  selectedGmtOffset: number = 180; // Fixed to GMT+3 (Mecca time)
-  userTimezoneDisplay: string = 'GMT+3';
+  // Timezone - Fixed to GMT +0 (UTC)
+  selectedGmtOffset: number = 0; // Fixed to GMT +0 (UTC)
+  userTimezoneDisplay: string = 'GMT +0';
   gmtOptions: { label: string; value: number }[] = [
-    { label: 'GMT+3 (توقيت مكة)', value: 180 },
+    { label: 'GMT +0 (التوقيت العالمي)', value: 0 },
   ];
 
   constructor(
@@ -503,8 +503,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Mark slots in the past as unavailable or filter them out.
   // For non-recurring slots with specific dates, check if the date has passed.
   private _processAvailability(slots: any[]) {
-    // We treat all displayed times as "Mecca wall-clock" (GMT+3) regardless of the viewer's local timezone.
-    // To compare fairly, compute "now" as Mecca wall-clock represented in a UTC timeline.
+    // We treat all displayed times as UTC (GMT +0).
+    // To compare fairly, compute "now" in UTC.
     const nowMeccaWall = DateTime.utc().plus({ minutes: this.selectedGmtOffset });
 
     const normalizeTimeForIso = (t: string): string => {

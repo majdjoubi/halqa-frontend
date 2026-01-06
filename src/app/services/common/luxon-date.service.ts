@@ -16,8 +16,8 @@ import { DateTime, Duration, Settings } from 'luxon';
 })
 export class LuxonDateService {
   
-  // Mecca timezone (GMT+3)
-  private readonly MECCA_TIMEZONE = 'Asia/Riyadh';
+  // GMT +0 timezone (UTC)
+  private readonly GMT_TIMEZONE = 'UTC';
   
   constructor() {
     // Set default locale based on browser
@@ -48,24 +48,38 @@ export class LuxonDateService {
   }
 
   /**
-   * Parse server UTC ISO string to Mecca timezone DateTime
+   * Parse server UTC ISO string to GMT +0 DateTime (no conversion)
    * @param isoString UTC ISO string from server
-   * @returns DateTime in Mecca timezone (GMT+3)
+   * @returns DateTime in UTC (GMT +0)
    */
-  fromServerTimeToMecca(isoString: string): DateTime {
+  fromServerTimeToGMT(isoString: string): DateTime {
     if (!isoString) {
       return DateTime.invalid('empty string');
     }
-    return DateTime.fromISO(isoString, { zone: 'utc' }).setZone(this.MECCA_TIMEZONE);
+    return DateTime.fromISO(isoString, { zone: 'utc' });
   }
 
   /**
-   * Convert local DateTime to Mecca timezone
+   * @deprecated Use fromServerTimeToGMT instead
+   */
+  fromServerTimeToMecca(isoString: string): DateTime {
+    return this.fromServerTimeToGMT(isoString);
+  }
+
+  /**
+   * Convert DateTime to GMT +0 (UTC)
    * @param dateTime DateTime in any timezone
-   * @returns DateTime in Mecca timezone
+   * @returns DateTime in UTC (GMT +0)
+   */
+  toGMTTime(dateTime: DateTime): DateTime {
+    return dateTime.toUTC();
+  }
+
+  /**
+   * @deprecated Use toGMTTime instead
    */
   toMeccaTime(dateTime: DateTime): DateTime {
-    return dateTime.setZone(this.MECCA_TIMEZONE);
+    return this.toGMTTime(dateTime);
   }
 
   /**
@@ -87,10 +101,17 @@ export class LuxonDateService {
   }
 
   /**
-   * Get current DateTime in Mecca timezone
+   * Get current DateTime in GMT +0 (UTC)
+   */
+  nowGMT(): DateTime {
+    return DateTime.utc();
+  }
+
+  /**
+   * @deprecated Use nowGMT instead
    */
   nowMecca(): DateTime {
-    return DateTime.now().setZone(this.MECCA_TIMEZONE);
+    return this.nowGMT();
   }
 
   /**
@@ -149,21 +170,28 @@ export class LuxonDateService {
   }
 
   /**
-   * Create DateTime in Mecca timezone from date string and hour
+   * Create DateTime in GMT +0 (UTC) from date string and hour
    * @param dateStr Date string in "yyyy-MM-dd" format
    * @param hour Hour (0-23)
    * @param minute Minute (0-59)
-   * @returns DateTime in Mecca timezone
+   * @returns DateTime in UTC (GMT +0)
    */
-  createMeccaDateTime(dateStr: string, hour: number, minute: number = 0): DateTime {
+  createGMTDateTime(dateStr: string, hour: number, minute: number = 0): DateTime {
     // Parse the date parts
     const [year, month, day] = dateStr.split('-').map(Number);
     
-    // Create DateTime directly in Mecca timezone
+    // Create DateTime directly in UTC
     return DateTime.fromObject(
       { year, month, day, hour, minute, second: 0, millisecond: 0 },
-      { zone: this.MECCA_TIMEZONE }
+      { zone: 'UTC' }
     );
+  }
+
+  /**
+   * @deprecated Use createGMTDateTime instead
+   */
+  createMeccaDateTime(dateStr: string, hour: number, minute: number = 0): DateTime {
+    return this.createGMTDateTime(dateStr, hour, minute);
   }
 
   // ========== DATE MATH (DST-Safe) ==========
@@ -355,10 +383,17 @@ export class LuxonDateService {
   }
 
   /**
-   * Get timezone offset in minutes for Mecca
+   * Get timezone offset in minutes for GMT +0
+   */
+  getGMTOffsetMinutes(): number {
+    return 0; // GMT +0 = 0 minutes
+  }
+
+  /**
+   * @deprecated Use getGMTOffsetMinutes instead
    */
   getMeccaOffsetMinutes(): number {
-    return 180; // GMT+3 = 180 minutes
+    return this.getGMTOffsetMinutes();
   }
 
   /**
