@@ -265,9 +265,11 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   generateTimeSlotsForDate(dateStr: string): void {
     const slots: TimeSlot[] = [];
-    const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
-    const currentHour = now.getHours();
+    
+    // Use Mecca time instead of local browser time
+    const nowMecca = this.luxonDate.nowMecca();
+    const todayStr = nowMecca.toFormat('yyyy-MM-dd');
+    const currentHour = nowMecca.hour;
     const isToday = dateStr === todayStr;
     const isPastDate = dateStr < todayStr;
 
