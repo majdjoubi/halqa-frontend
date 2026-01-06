@@ -348,6 +348,45 @@ export class RepoService {
     return this.http.put<any>(`${this.base_url}/api/lesson/${lessonId}`, data);
   }
 
+  // ===== TEACHER AVAILABILITY APIs =====
+
+  /**
+   * Get teacher availability slots
+   */
+  getTeacherAvailability(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base_url}/api/teacher/availability`);
+  }
+
+  /**
+   * Create a new availability slot (individual lesson available for booking)
+   */
+  createAvailability(data: {
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    isRecurring: boolean;
+    date?: string;
+    startDateTime?: string;
+    endDateTime?: string;
+    isAvailable: boolean;
+  }): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/teacher/availability`, data);
+  }
+
+  /**
+   * Delete an availability slot
+   */
+  deleteAvailability(availabilityId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/api/teacher/availability/${availabilityId}`);
+  }
+
+  /**
+   * Update teacher hourly rate via profile update
+   */
+  updateTeacherHourlyRate(hourlyRate: number): Observable<any> {
+    return this.http.put<any>(`${this.base_url}/api/teacher/profile`, { hourlyRate });
+  }
+
   // ===== NEW TEACHER BOOKINGS APIs =====
 
   /**

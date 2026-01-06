@@ -1206,13 +1206,21 @@
     "next_lesson": "Next Lesson",
     "time_remaining": "Time Remaining",
     "join_now": "Join Now",
+    "hourly_rate": "Hourly Rate",
+    "per_hour": "hour",
+    "edit_rate": "Edit",
+    "edit_hourly_rate": "Edit Hourly Rate",
+    "new_hourly_rate": "New Hourly Rate",
+    "rate_hint": "Set 0 for free lessons",
+    "delete_availability": "Delete this availability",
     "tabs": {
       "calendar": "Calendar",
       "booked_sessions": "Booked Sessions"
     },
     "calendar": {
       "select_date": "Select a date to view sessions",
-      "slots_for": "Sessions for"
+      "slots_for": "Sessions for",
+      "click_to_add": "Click on an empty slot to make it available for booking"
     },
     "sessions": {
       "upcoming": "Upcoming Sessions",
@@ -1228,6 +1236,11 @@
     "pagination": {
       "page": "Page",
       "of": "of"
+    },
+    "errors": {
+      "create_availability": "Failed to create availability",
+      "delete_availability": "Failed to delete availability",
+      "update_rate": "Failed to update hourly rate"
     }
   }
 }

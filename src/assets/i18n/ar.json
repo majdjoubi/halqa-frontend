@@ -1205,13 +1205,21 @@
     "next_lesson": "الدرس القادم",
     "time_remaining": "الوقت المتبقي",
     "join_now": "انضم الآن",
+    "hourly_rate": "سعر الساعة",
+    "per_hour": "ساعة",
+    "edit_rate": "تعديل",
+    "edit_hourly_rate": "تعديل سعر الساعة",
+    "new_hourly_rate": "سعر الساعة الجديد",
+    "rate_hint": "اكتب 0 للدروس المجانية",
+    "delete_availability": "حذف هذا الموعد",
     "tabs": {
       "calendar": "التقويم",
       "booked_sessions": "الجلسات المحجوزة"
     },
     "calendar": {
       "select_date": "اختر تاريخاً لعرض الجلسات",
-      "slots_for": "جلسات يوم"
+      "slots_for": "جلسات يوم",
+      "click_to_add": "اضغط على خانة فارغة لجعلها متاحة للحجز"
     },
     "sessions": {
       "upcoming": "الجلسات القادمة",
@@ -1227,6 +1235,11 @@
     "pagination": {
       "page": "صفحة",
       "of": "من"
+    },
+    "errors": {
+      "create_availability": "فشل في إنشاء الموعد",
+      "delete_availability": "فشل في حذف الموعد",
+      "update_rate": "فشل في تحديث سعر الساعة"
     }
   }
 }

@@ -39,10 +39,12 @@ interface BookingsResponse {
 interface TimeSlot {
   time: string;
   endTime: string;
+  hour: number; // 0-23 for creating availability
   isAvailable: boolean;
   isBooked: boolean;
   isPast: boolean;
   booking?: BookingItem;
+  availabilityId?: number; // For deleting availability
 }
 
 @Component({
@@ -79,6 +81,13 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   // ===== AVAILABILITY DATA =====
   availabilitySlots: any[] = [];
+
+  // ===== HOURLY RATE =====
+  hourlyRate: number = 0;
+  showRateModal: boolean = false;
+  newHourlyRate: number = 0;
+  isSavingRate: boolean = false;
+  isSavingSlot: boolean = false;
 
   // ===== SUBSCRIPTIONS =====
   private langSubscription?: Subscription;
@@ -146,24 +155,34 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     this.repo.getTeacherProfile().subscribe({
       next: (response: any) => {
         const profile = response?.profile || response;
+        
+        // Load hourly rate
+        if (profile?.hourlyRate !== undefined) {
+          this.hourlyRate = profile.hourlyRate;
+          this.newHourlyRate = profile.hourlyRate;
+        }
+        
         if (profile?.availability) {
           this.availabilitySlots = profile.availability.map((slot: any) => {
             // Convert UTC to Mecca time for display
             let dateStr: string | undefined;
             let displayStartTime: string | undefined;
+            let displayHour: number | undefined;
 
             if (slot.startDateTime) {
               const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
               if (meccaStart.isValid) {
                 dateStr = meccaStart.toFormat('yyyy-MM-dd');
                 displayStartTime = meccaStart.toFormat('HH:mm');
+                displayHour = meccaStart.hour;
               }
             }
 
             return {
               ...slot,
               date: dateStr || slot.date,
-              displayStartTime: displayStartTime || slot.startTime
+              displayStartTime: displayStartTime || slot.startTime,
+              displayHour: displayHour
             };
           });
         }
@@ -298,21 +317,24 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         return meccaTime.isValid && meccaTime.toFormat('HH:mm') === startTime24;
       });
 
-      // Check if available
-      const isAvailable = availabilityForDate.some(s => {
+      // Check if available and get availabilityId
+      const availabilitySlot = availabilityForDate.find(s => {
         const slotTime = s.displayStartTime || s.startTime;
         return slotTime?.substring(0, 5) === startTime24;
       });
+      const isAvailable = !!availabilitySlot;
 
       const isPast = isPastDate || (isToday && hour <= currentHour);
 
       slots.push({
         time: startTime,
         endTime: endTime,
+        hour: hour,
         isAvailable: isAvailable && !booking,
         isBooked: !!booking,
         isPast: isPast,
-        booking: booking
+        booking: booking,
+        availabilityId: availabilitySlot?.id
       });
     }
 
@@ -331,6 +353,146 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     const date = new Date(this.selectedCalendarDate + 'T00:00:00');
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return dayNames[date.getDay()];
+  }
+
+  // ===== AVAILABILITY ACTIONS =====
+
+  /**
+   * Handle click on a time slot
+   * - If empty slot (not booked, not available): create availability
+   * - If available slot: handled by delete button (x)
+   * - If booked: do nothing (just show info)
+   */
+  onSlotClick(slot: TimeSlot): void {
+    // Don't allow actions on past slots
+    if (slot.isPast) return;
+    
+    // Don't allow actions on booked slots
+    if (slot.isBooked) return;
+    
+    // If slot is already available, don't do anything (use delete button)
+    if (slot.isAvailable) return;
+    
+    // Create availability for this empty slot
+    this.createAvailability(slot);
+  }
+
+  /**
+   * Create availability for a time slot
+   */
+  createAvailability(slot: TimeSlot): void {
+    if (this.isSavingSlot || !this.selectedCalendarDate) return;
+    
+    this.isSavingSlot = true;
+    
+    // Build the start and end datetime in Mecca timezone, then convert to UTC
+    const dateStr = this.selectedCalendarDate;
+    const startHour = slot.hour;
+    const endHour = (slot.hour + 1) % 24;
+    
+    // Create Mecca datetime and convert to UTC for server
+    const startMecca = this.luxonDate.createMeccaDateTime(dateStr, startHour, 0);
+    const endMecca = this.luxonDate.createMeccaDateTime(dateStr, endHour, 0);
+    
+    const date = new Date(dateStr + 'T00:00:00');
+    const dayOfWeek = date.getDay();
+    
+    const startISO = startMecca.toUTC().toISO();
+    const endISO = endMecca.toUTC().toISO();
+    
+    const data = {
+      dayOfWeek: dayOfWeek,
+      startTime: `${String(startHour).padStart(2, '0')}:00:00`,
+      endTime: `${String(endHour).padStart(2, '0')}:00:00`,
+      isRecurring: false,
+      date: dateStr,
+      startDateTime: startISO || undefined,
+      endDateTime: endISO || undefined,
+      isAvailable: true
+    };
+    
+    this.repo.createAvailability(data).subscribe({
+      next: (response: any) => {
+        // Update local state immediately
+        this.availabilitySlots.push({
+          id: response.id || response.availabilityId,
+          date: dateStr,
+          displayStartTime: `${String(startHour).padStart(2, '0')}:00`,
+          displayHour: startHour,
+          ...response
+        });
+        
+        // Regenerate time slots for current date
+        this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        this.buildAvailableDates();
+        
+        this.isSavingSlot = false;
+      },
+      error: (err) => {
+        console.error('Error creating availability:', err);
+        this.isSavingSlot = false;
+        alert(this.translate.instant('my_calendar_page.errors.create_availability') || 'Failed to create availability');
+      }
+    });
+  }
+
+  /**
+   * Delete availability for a time slot
+   */
+  deleteAvailability(slot: TimeSlot, event: Event): void {
+    event.stopPropagation(); // Prevent slot click
+    
+    if (!slot.availabilityId || this.isSavingSlot) return;
+    
+    this.isSavingSlot = true;
+    
+    this.repo.deleteAvailability(slot.availabilityId).subscribe({
+      next: () => {
+        // Remove from local state
+        this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== slot.availabilityId);
+        
+        // Regenerate time slots for current date
+        this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        this.buildAvailableDates();
+        
+        this.isSavingSlot = false;
+      },
+      error: (err) => {
+        console.error('Error deleting availability:', err);
+        this.isSavingSlot = false;
+        alert(this.translate.instant('my_calendar_page.errors.delete_availability') || 'Failed to delete availability');
+      }
+    });
+  }
+
+  // ===== HOURLY RATE ACTIONS =====
+
+  openRateModal(): void {
+    this.newHourlyRate = this.hourlyRate;
+    this.showRateModal = true;
+  }
+
+  closeRateModal(): void {
+    this.showRateModal = false;
+  }
+
+  saveHourlyRate(): void {
+    if (this.isSavingRate || this.newHourlyRate < 0) return;
+    
+    this.isSavingRate = true;
+    
+    this.repo.updateTeacherHourlyRate(this.newHourlyRate).subscribe({
+      next: () => {
+        this.hourlyRate = this.newHourlyRate;
+        this.showRateModal = false;
+        this.isSavingRate = false;
+      },
+      error: (err) => {
+        console.error('Error updating hourly rate:', err);
+        this.isSavingRate = false;
+        alert(this.translate.instant('my_calendar_page.errors.update_rate') || 'Failed to update hourly rate');
+      }
+    });
   }
 
   // ===== BOOKING ACTIONS =====

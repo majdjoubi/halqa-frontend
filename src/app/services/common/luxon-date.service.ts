@@ -148,6 +148,24 @@ export class LuxonDateService {
     return zone ? dt.setZone(zone) : dt;
   }
 
+  /**
+   * Create DateTime in Mecca timezone from date string and hour
+   * @param dateStr Date string in "yyyy-MM-dd" format
+   * @param hour Hour (0-23)
+   * @param minute Minute (0-59)
+   * @returns DateTime in Mecca timezone
+   */
+  createMeccaDateTime(dateStr: string, hour: number, minute: number = 0): DateTime {
+    // Parse the date parts
+    const [year, month, day] = dateStr.split('-').map(Number);
+    
+    // Create DateTime directly in Mecca timezone
+    return DateTime.fromObject(
+      { year, month, day, hour, minute, second: 0, millisecond: 0 },
+      { zone: this.MECCA_TIMEZONE }
+    );
+  }
+
   // ========== DATE MATH (DST-Safe) ==========
 
   /**

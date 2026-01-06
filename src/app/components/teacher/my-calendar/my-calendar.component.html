@@ -21,6 +21,19 @@
     </div>
   </div>
 
+  <!-- Hourly Rate Card -->
+  <div class="hourly-rate-card">
+    <div class="rate-info">
+      <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
+      <span class="rate-value">${{ hourlyRate }}</span>
+      <span class="rate-per-hour">/ {{ 'my_calendar_page.per_hour' | translate }}</span>
+    </div>
+    <button class="btn-edit-rate" (click)="openRateModal()">
+      <i class="fas fa-edit"></i>
+      {{ 'my_calendar_page.edit_rate' | translate }}
+    </button>
+  </div>
+
   <div class="calendar-content">
     <!-- Next Lesson Countdown Card -->
     <div *ngIf="nextUpcoming" class="countdown-card">
@@ -107,6 +120,14 @@
           <div *ngIf="selectedCalendarDate" class="slots-container">
             <div class="slots-header">
               <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
+              <p class="slots-hint" *ngIf="!isSavingSlot">
+                <i class="fas fa-info-circle"></i>
+                {{ 'my_calendar_page.calendar.click_to_add' | translate }}
+              </p>
+              <p class="slots-hint saving" *ngIf="isSavingSlot">
+                <i class="fas fa-spinner fa-spin"></i>
+                {{ 'common.saving' | translate }}
+              </p>
             </div>
 
             <div class="hours-grid">
@@ -117,16 +138,31 @@
                 [class.booked]="slot.isBooked"
                 [class.past]="slot.isPast"
                 [class.group-session]="slot.booking?.lessonType === 'Group'"
+                [class.clickable]="!slot.isPast && !slot.isBooked && !slot.isAvailable"
+                (click)="onSlotClick(slot)"
               >
                 <span class="hour-time">{{ slot.time }}</span>
                 
-                <!-- Booked indicator -->
-                <i *ngIf="slot.isBooked && slot.booking?.lessonType !== 'Group'" 
-                   class="fas fa-user booked-icon"></i>
-                <i *ngIf="slot.isBooked && slot.booking?.lessonType === 'Group'" 
-                   class="fas fa-users group-icon"></i>
+                <!-- Available slot: show delete button -->
+                <button 
+                  *ngIf="slot.isAvailable && !slot.isBooked && !slot.isPast"
+                  class="slot-delete-btn"
+                  (click)="deleteAvailability(slot, $event)"
+                  title="{{ 'my_calendar_page.delete_availability' | translate }}"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
 
-                <!-- Booking info tooltip -->
+                <!-- Available slot indicator (checkmark) -->
+                <i *ngIf="slot.isAvailable && !slot.isBooked" 
+                   class="fas fa-check available-icon"></i>
+                
+                <!-- Booked: show student name -->
+                <div *ngIf="slot.isBooked && slot.booking" class="slot-student-name">
+                  {{ slot.booking.studentName }}
+                </div>
+
+                <!-- Booking info tooltip (on hover) -->
                 <span *ngIf="slot.isBooked && slot.booking" class="booking-tooltip">
                   {{ slot.booking.studentName }}<br>
                   <small>{{ slot.booking.lessonTitle }}</small>
@@ -136,7 +172,7 @@
                 <button 
                   *ngIf="slot.isBooked && slot.booking?.canStart"
                   class="slot-join-btn"
-                  (click)="startSession(slot.booking!)"
+                  (click)="startSession(slot.booking!); $event.stopPropagation()"
                   title="{{ 'my_calendar_page.join_now' | translate }}"
                 >
                   <i class="fas fa-video"></i>
@@ -286,3 +322,44 @@
     </div>
   </div>
 </section>
+
+<!-- Hourly Rate Modal -->
+<div *ngIf="showRateModal" class="modal-overlay" (click)="closeRateModal()">
+  <div class="modal-content rate-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ 'my_calendar_page.edit_hourly_rate' | translate }}</h3>
+      <button class="modal-close" (click)="closeRateModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="rate-input-group">
+        <label>{{ 'my_calendar_page.new_hourly_rate' | translate }}</label>
+        <div class="rate-input-wrapper">
+          <span class="currency-symbol">$</span>
+          <input 
+            type="number" 
+            [(ngModel)]="newHourlyRate" 
+            min="0" 
+            step="0.5"
+            [placeholder]="'0.00'"
+          />
+        </div>
+        <small class="rate-hint">{{ 'my_calendar_page.rate_hint' | translate }}</small>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeRateModal()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button 
+        class="btn-save" 
+        (click)="saveHourlyRate()" 
+        [disabled]="isSavingRate || newHourlyRate < 0"
+      >
+        <i *ngIf="isSavingRate" class="fas fa-spinner fa-spin"></i>
+        <span *ngIf="!isSavingRate">{{ 'common.save' | translate }}</span>
+      </button>
+    </div>
+  </div>
+</div>
