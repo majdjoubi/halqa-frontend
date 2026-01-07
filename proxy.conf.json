@@ -5,6 +5,15 @@
     "changeOrigin": true,
     "logLevel": "debug"
   },
+  "/v1": {
+    "target": "http://localhost:5000",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": {
+      "^/v1": "/v1"
+    }
+  },
   "/uploads": {
     "target": "https://halqa-api-k60w.onrender.com",
     "secure": true,

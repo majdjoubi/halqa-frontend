@@ -6,6 +6,7 @@ import { RepoService } from '../../../Repositories/repo.service';
 import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
+import { SlotsService } from '../../../services/scheduling/slots.service';
 import { Subscription, interval } from 'rxjs';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
 
@@ -102,7 +103,8 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private translate: TranslateService,
-    private timezoneService: TimezoneService
+    private timezoneService: TimezoneService,
+    private slotsService: SlotsService
   ) {
     // Initialize alert audio
     this.alertAudio = new Audio('/assets/sounds/lesson-alert.mp3');
@@ -153,15 +155,15 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   loadBookings(): void {
     this.isLoading = true;
 
-    this.repo.getTeacherBookingsPaginated({
+    this.slotsService.getTeacherBookings({
       page: this.currentPage,
       pageSize: this.pageSize,
       upcomingOnly: false
     }).subscribe({
-      next: (response: BookingsResponse) => {
+      next: (response: any) => {
         this.bookings = response.bookings || [];
         this.totalCount = response.totalCount;
-        this.totalPages = response.totalPages;
+        this.totalPages = response.totalPages || Math.ceil(response.totalCount / this.pageSize);
         this.nextUpcoming = response.nextUpcoming || null;
 
         // Build available dates for calendar
@@ -483,7 +485,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         
         this.isSavingSlot = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error creating availability:', err);
         this.isSavingSlot = false;
         alert(this.translate.instant('my_calendar_page.errors.create_availability') || 'Failed to create availability');
@@ -512,7 +514,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         
         this.isSavingSlot = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error deleting availability:', err);
         this.isSavingSlot = false;
         alert(this.translate.instant('my_calendar_page.errors.delete_availability') || 'Failed to delete availability');
@@ -555,10 +557,10 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   startSession(booking: BookingItem): void {
     if (!booking.canStart) return;
 
-    this.repo.startTeacherSession(booking.id).subscribe({
+    this.slotsService.startTeacherSession(booking.id).subscribe({
       next: (response: any) => {
-        if (response.meetingRoomUrl) {
-          window.open(response.meetingRoomUrl, '_blank');
+        if (response.meetingUrl || response.meetingRoomUrl) {
+          window.open(response.meetingUrl || response.meetingRoomUrl, '_blank');
         }
       },
       error: (err) => {

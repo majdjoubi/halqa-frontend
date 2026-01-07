@@ -21,7 +21,7 @@ export interface SlotDto {
 }
 
 /**
- * Response from GET /api/slots/teachers/{teacherId}
+ * Response from GET /v1/teacher/availability
  */
 export interface TeacherSlotsResponse {
   teacherId: string;
@@ -35,45 +35,58 @@ export interface TeacherSlotsResponse {
 }
 
 /**
- * Request body for POST /api/slots/book
+ * Request body for POST /v1/bookings
  */
 export interface BookSlotRequest {
-  teacherId: string;
   slotId: string;
-  studentIanaTimezone: string;
-  clientContext?: {
-    uiClock?: '12H' | '24H';
-    uiLocale?: string;
-    source?: string;
-  };
+  studentNote?: string;
 }
 
 /**
- * Response from POST /api/slots/book
+ * Response from POST /v1/bookings
  */
 export interface SlotBookingResponse {
-  bookingId: number;
-  teacherId: string;
+  id: string;
+  slotId: string;
   studentId: string;
+  teacherId: string;
+  status: string;
   scheduledAtUtc: string;
-  durationMin: number;
-  anchorDateTeacher: string;
+  durationMinutes: number;
   teacherIanaTimezone: string;
   studentIanaTimezone: string;
-  display: {
-    teacherLocal12h: string;
-    teacherLocalDate: string;
-    studentLocal12h: string;
-    studentLocalDate: string;
-  };
-  meeting?: {
-    provider: string;
-    roomId?: string;
-    joinWindow?: {
-      opensAtUtc: string;
-      closesAtUtc: string;
-    };
-  };
+  startTimeLocal: string;
+  endTimeLocal: string;
+  createdAtUtc: string;
+  studentNote?: string;
+}
+
+/**
+ * Response from GET /v1/bookings/{id}
+ */
+export interface BookingDetailResponse extends SlotBookingResponse {
+  cancelledAtUtc?: string;
+  cancellationReason?: string;
+}
+
+/**
+ * Response from POST /v1/bookings/{id}/cancel
+ */
+export interface CancelBookingResponse {
+  bookingId: string;
+  status: string;
+  cancelledAt: string;
+  refundAmount?: number;
+}
+
+/**
+ * Response from POST /v1/bookings/{id}/meeting-token
+ */
+export interface MeetingTokenResponse {
+  token: string;
+  roomName: string;
+  expiresAt: string;
+  joinUrl?: string;
 }
 
 /**
@@ -97,12 +110,21 @@ export interface EnrichedSlot extends SlotDto {
  * - Fetches available slots from backend (already converted to UTC)
  * - Enriches slots with display times in viewer's timezone
  * - Books slots using secure HMAC-signed slot IDs
+ * 
+ * API ENDPOINTS (v1 - scheduling-service):
+ * - GET  /v1/teacher/availability - Get teacher's available slots
+ * - POST /v1/bookings - Create a booking
+ * - GET  /v1/bookings/{id} - Get booking details
+ * - POST /v1/bookings/{id}/cancel - Cancel a booking
+ * - POST /v1/bookings/{id}/meeting-token - Get meeting token
  */
 @Injectable({
   providedIn: 'root'
 })
 export class SlotsService {
   private baseUrl = environment.apiUrl;
+  // Use v1 prefix for scheduling-service endpoints
+  private schedulingApiPrefix = '/v1';
 
   constructor(
     private http: HttpClient,
@@ -114,23 +136,27 @@ export class SlotsService {
    * Slots are returned in UTC with HMAC-signed IDs for secure booking.
    * 
    * @param teacherId Teacher ID to get slots for
-   * @param fromAnchorDate Start date (YYYY-MM-DD in teacher's timezone)
-   * @param toAnchorDate End date (YYYY-MM-DD in teacher's timezone)
-   * @param durationMinutes Slot duration (30 or 60)
+   * @param fromDate Start date (UTC DateTime)
+   * @param toDate End date (UTC DateTime)
+   * @param displayTimeZone Optional timezone for displaying local times
    */
   getTeacherSlots(
     teacherId: string,
-    fromAnchorDate: string,
-    toAnchorDate: string,
-    durationMinutes: number = 60
+    fromDate: string,
+    toDate: string,
+    displayTimeZone?: string
   ): Observable<TeacherSlotsResponse> {
-    const params = new HttpParams()
-      .set('fromAnchorDate', fromAnchorDate)
-      .set('toAnchorDate', toAnchorDate)
-      .set('durationMinutes', durationMinutes.toString());
+    let params = new HttpParams()
+      .set('teacherId', teacherId)
+      .set('fromUtc', fromDate)
+      .set('toUtc', toDate);
+    
+    if (displayTimeZone) {
+      params = params.set('displayTimeZone', displayTimeZone);
+    }
 
     return this.http.get<TeacherSlotsResponse>(
-      `${this.baseUrl}/api/slots/teachers/${teacherId}`,
+      `${this.baseUrl}${this.schedulingApiPrefix}/teacher/availability`,
       { params }
     );
   }
@@ -142,7 +168,7 @@ export class SlotsService {
    * @param teacherId Teacher ID to get slots for
    * @param fromAnchorDate Start date (YYYY-MM-DD in teacher's timezone)
    * @param toAnchorDate End date (YYYY-MM-DD in teacher's timezone)
-   * @param durationMinutes Slot duration (30 or 60)
+   * @param durationMinutes Slot duration (30 or 60) - now handled by backend
    * @param viewerIanaTimezone Viewer's IANA timezone for display
    */
   getEnrichedSlots(
@@ -154,7 +180,11 @@ export class SlotsService {
   ): Observable<{ response: TeacherSlotsResponse; slots: EnrichedSlot[] }> {
     const viewerTz = viewerIanaTimezone || this.timezoneService.detectClientTimezone();
 
-    return this.getTeacherSlots(teacherId, fromAnchorDate, toAnchorDate, durationMinutes).pipe(
+    // Convert anchor dates to UTC range for the new API
+    const fromUtc = `${fromAnchorDate}T00:00:00Z`;
+    const toUtc = `${toAnchorDate}T23:59:59Z`;
+
+    return this.getTeacherSlots(teacherId, fromUtc, toUtc, viewerTz).pipe(
       map(response => ({
         response,
         slots: this.enrichSlots(response.slots, viewerTz)
@@ -166,33 +196,54 @@ export class SlotsService {
    * Book a slot using its HMAC-signed slot ID.
    * The slot ID contains the encoded schedule information and cannot be tampered with.
    * 
-   * @param teacherId Teacher ID (must match the slot's teacher)
+   * @param teacherId Teacher ID (for validation, not sent to new API)
    * @param slotId HMAC-signed slot ID from getTeacherSlots
+   * @param studentNote Optional note from student
    */
-  bookSlot(teacherId: string, slotId: string): Observable<SlotBookingResponse> {
+  bookSlot(teacherId: string, slotId: string, studentNote?: string): Observable<SlotBookingResponse> {
     const request: BookSlotRequest = {
-      teacherId,
       slotId,
-      studentIanaTimezone: this.timezoneService.detectClientTimezone(),
-      clientContext: {
-        uiClock: '12H',
-        uiLocale: navigator.language || 'en',
-        source: 'web'
-      }
+      studentNote
     };
 
     return this.http.post<SlotBookingResponse>(
-      `${this.baseUrl}/api/slots/book`,
+      `${this.baseUrl}${this.schedulingApiPrefix}/bookings`,
       request
     );
   }
 
   /**
-   * Get meeting token for a booking (only available 15 min before session).
+   * Get booking details by ID.
+   * 
+   * @param bookingId The booking ID (GUID)
    */
-  getMeetingToken(bookingId: number): Observable<{ canJoin: boolean; role: string; scheduledAtUtc: string }> {
-    return this.http.post<{ canJoin: boolean; role: string; scheduledAtUtc: string }>(
-      `${this.baseUrl}/api/slots/${bookingId}/meeting/token`,
+  getBooking(bookingId: string): Observable<BookingDetailResponse> {
+    return this.http.get<BookingDetailResponse>(
+      `${this.baseUrl}${this.schedulingApiPrefix}/bookings/${bookingId}`
+    );
+  }
+
+  /**
+   * Cancel a booking.
+   * 
+   * @param bookingId The booking ID (GUID)
+   * @param reason Cancellation reason
+   */
+  cancelBooking(bookingId: string, reason: string): Observable<CancelBookingResponse> {
+    return this.http.post<CancelBookingResponse>(
+      `${this.baseUrl}${this.schedulingApiPrefix}/bookings/${bookingId}/cancel`,
+      { cancellationReason: reason }
+    );
+  }
+
+  /**
+   * Get meeting token for a booking (only available 15 min before session).
+   * 
+   * @param bookingId The booking ID (GUID)
+   */
+  getMeetingToken(bookingId: string | number): Observable<MeetingTokenResponse> {
+    return this.http.post<MeetingTokenResponse>(
+      `${this.baseUrl}${this.schedulingApiPrefix}/bookings/${bookingId}/meeting-token`,
       {}
     );
   }
@@ -250,5 +301,99 @@ export class SlotsService {
    */
   filterAvailableSlots(slots: EnrichedSlot[]): EnrichedSlot[] {
     return slots.filter(slot => slot.isBookable);
+  }
+
+  // ============================================
+  // STUDENT BOOKING MANAGEMENT METHODS
+  // ============================================
+
+  /**
+   * Get all individual bookings for the current student.
+   * Uses the legacy API endpoint until fully migrated.
+   */
+  getStudentBookings(): Observable<BookingDetailResponse[]> {
+    return this.http.get<BookingDetailResponse[]>(
+      `${this.baseUrl}/api/booking/student`
+    );
+  }
+
+  /**
+   * Get meeting URL for a student's individual session.
+   * 
+   * @param bookingId The booking ID
+   */
+  getStudentMeetingUrl(bookingId: string): Observable<{ meetingUrl: string; canJoin: boolean }> {
+    return this.http.get<{ meetingUrl: string; canJoin: boolean }>(
+      `${this.baseUrl}/api/booking/student/${bookingId}/meeting-url`
+    );
+  }
+
+  // ============================================
+  // TEACHER BOOKING MANAGEMENT METHODS
+  // ============================================
+
+  /**
+   * Get all bookings for the current teacher.
+   */
+  getTeacherBookings(options?: {
+    page?: number;
+    pageSize?: number;
+    upcomingOnly?: boolean;
+  }): Observable<{ bookings: BookingDetailResponse[]; totalCount: number }> {
+    let params = new HttpParams();
+    if (options?.page) params = params.set('page', String(options.page));
+    if (options?.pageSize) params = params.set('pageSize', String(options.pageSize));
+    if (options?.upcomingOnly !== undefined) params = params.set('upcomingOnly', String(options.upcomingOnly));
+
+    return this.http.get<{ bookings: BookingDetailResponse[]; totalCount: number }>(
+      `${this.baseUrl}/api/teacher/bookings`,
+      { params }
+    );
+  }
+
+  /**
+   * Start a session and get meeting URL (for teacher).
+   * 
+   * @param bookingId The booking ID
+   */
+  startTeacherSession(bookingId: string | number): Observable<{ meetingUrl: string; roomId: string }> {
+    return this.http.post<{ meetingUrl: string; roomId: string }>(
+      `${this.baseUrl}/api/teacher/bookings/${bookingId}/start`,
+      {}
+    );
+  }
+
+  /**
+   * Teacher cancels a booking (processes refund to student).
+   * 
+   * @param bookingId The booking ID
+   * @param reason Optional cancellation reason
+   */
+  cancelBookingByTeacher(bookingId: string | number, reason?: string): Observable<CancelBookingResponse> {
+    return this.http.post<CancelBookingResponse>(
+      `${this.baseUrl}/api/booking/teacher/${bookingId}/cancel`,
+      { reason }
+    );
+  }
+
+  // ============================================
+  // TEACHER AVAILABILITY MANAGEMENT METHODS
+  // ============================================
+
+  /**
+   * Create availability slots for a teacher.
+   * 
+   * @param request The slot creation request
+   */
+  createTeacherSlots(request: {
+    localDate: string;
+    timeZone: string;
+    timeRanges: Array<{ startTime: string; endTime: string }>;
+    slotDurationMinutes: number;
+  }): Observable<{ slotsCreated: number; slots: SlotDto[] }> {
+    return this.http.post<{ slotsCreated: number; slots: SlotDto[] }>(
+      `${this.baseUrl}${this.schedulingApiPrefix}/teacher/slots`,
+      request
+    );
   }
 }

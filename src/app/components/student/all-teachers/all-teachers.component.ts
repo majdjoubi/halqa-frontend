@@ -15,6 +15,7 @@ import { DateLocaleService } from '../../../services/common/date-locale.service'
 import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
+import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -63,11 +64,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   pageSizeOptions = [5, 10, 20, 50];
   // Store student's existing bookings for conflict checking
   studentExistingBookings: any[] = [];
-  
+
   // Student wallet balance
   walletBalance: number = 0;
   walletLoading: boolean = false;
-  
+
   // Group session modal controls
   showGroupSessionModal = false;
   selectedGroupSession: any = null;
@@ -98,14 +99,15 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private router: Router,
-    private timezoneService: TimezoneService
-  ) {}
+    private timezoneService: TimezoneService,
+    private slotsService: SlotsService
+  ) { }
 
   ngOnInit() {
     // Initialize timezone - auto-detect user's IANA timezone
     this.userIanaTimezone = this.timezoneService.detectClientTimezone();
     this.userTimezoneDisplay = this.formatTimezoneDisplayIana(this.userIanaTimezone);
-    
+
     // Fetch all teachers on component initialization
     this.loadPage(this.currentpage);
     // load specializations once on init
@@ -153,58 +155,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Refresh availability times based on user's IANA timezone
-   */
-  private refreshAvailabilityTimes(): void {
-    if (!this.bookingTeacher?.availability) return;
-    
-    // Re-calculate times for each slot based on stored UTC ISO strings
-    this.bookingTeacher.availability = this.bookingTeacher.availability.map((slot: any) => {
-      if (!slot._originalStartIso) return slot;
-      
-      try {
-        // Convert UTC to user's local timezone using TimezoneService
-        const localStart = this.timezoneService.utcToLocal(slot._originalStartIso, this.userIanaTimezone);
-        
-        // Format as 12-hour AM/PM
-        slot.startTime = localStart.toFormat('h:mm a');
-        slot.displayDate = localStart.toFormat('MMM d');
-        slot.dayOfWeek = localStart.weekday % 7; // Luxon uses 1-7 (Mon-Sun), convert to 0-6
-        slot.adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
-        
-        if (slot._originalEndIso) {
-          const localEnd = this.timezoneService.utcToLocal(slot._originalEndIso, this.userIanaTimezone);
-          slot.endTime = localEnd.toFormat('h:mm a');
-        }
-      } catch (e) {
-        console.warn('Failed to convert slot time:', e);
-      }
-      
-      return slot;
-    });
-  }
 
-  // Load student's existing bookings to check for time conflicts
-
-  /**
-   * Format time from date object as HH:MM
-   */
-  private formatTimeFromDate(date: Date): string {
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-  }
 
   // Load student's existing bookings to check for time conflicts
   private loadStudentExistingBookings(): void {
-    this._repo.getAllIndividualSession().subscribe({
+    this.slotsService.getStudentBookings().subscribe({
       next: (resp: any) => {
         const dataArray: any[] | null = Array.isArray(resp)
           ? resp
           : resp && Array.isArray((resp as any).data)
-          ? (resp as any).data
-          : null;
+            ? (resp as any).data
+            : null;
         if (dataArray) {
           this.studentExistingBookings = dataArray;
         }
@@ -404,56 +365,74 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // show spinner on the clicked Book button
     this.loadingBookId = teacherId;
 
-    // Fetch individual availability only (group sessions disabled for now)
-    this._repo.getIndividualBookingsByStudent(teacherId).pipe(
-      catchError(err => {
-        console.error('Failed to load individual availability', err);
-        return of({ slots: [], teacherId: '', teacherName: '', hourlyRate: 0 });
-      })
-    ).subscribe({
-      next: (response: any) => {
-        console.log('🔍 [DEBUG] Raw API individual availability:', response);
-        
-        try {
-          // Process individual slots from the API response
-          const slotsData = response?.slots || response || [];
-          let individualSlots = Array.isArray(slotsData)
-            ? slotsData.map((s: any) => ({ ...this._mapUtcSlotToLocal(s), slotType: 'individual' }))
-            : [];
-          
-          // Mark past slots as unavailable
-          const processedSlots = this._processAvailability(individualSlots);
-          
-          const teacherObj: any = {
-            id: teacherId,
-            teacherId: response?.teacherId || teacherId,
-            firstName: response?.teacherName?.split(' ')[0] || '',
-            lastName: response?.teacherName?.split(' ').slice(1).join(' ') || '',
-            hourlyRate: response?.hourlyRate || 0,
-            availability: processedSlots
-          };
+    // 1. Fetch teacher details first
+    this._getTeacher.getTeacherById(teacherId).subscribe({
+      next: (teacher) => {
+        // 2. Fetch enriched slots for the next 30 days
+        // Calculate date range in teacher's timezone (simplification: use UTC/Local for request)
+        // ideally we should use teacher's timezone, but for now we'll request a range based on local today
+        const now = DateTime.now().setZone(this.userIanaTimezone);
+        const fromDate = now.toFormat('yyyy-MM-dd');
+        const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
 
-          console.log('🔍 [DEBUG] Processed availability:', teacherObj.availability);
+        this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
+          .pipe(
+            catchError(err => {
+              console.error('Failed to load slots', err);
+              return of({ response: null, slots: [] });
+            })
+          )
+          .subscribe((result: any) => {
+            const enrichedSlots = result.slots || [];
 
-          this.bookingTeacher = teacherObj;
-          this.bookingSidebarOpen = true;
-          this.selectedSlotIndex = null;
-          this.selectedCalendarDate = null;
-        } catch (e) {
-          console.error('Failed to process availability response', e);
-          this.bookingTeacher = { id: teacherId, availability: [] };
-          this.bookingSidebarOpen = true;
-          this.selectedSlotIndex = null;
-          this.selectedCalendarDate = null;
-        }
+            // Map enriched slots to the format expected by the template
+            const mappedSlots = enrichedSlots.map((slot: EnrichedSlot) => ({
+              ...slot,
+              // Map properties for template compatibility
+              startTime: slot.viewerLocal12h,
+              endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
+              price: teacher.hourlyRate, // Use teacher's hourly rate
+              isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
 
-        this.loadingBookId = null;
+              // Date handling
+              date: slot.viewerLocalDate,
+              displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
+              adjustedDateKey: slot.viewerLocalDate,
+
+              // Calculate day of week (0-6) from date
+              dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+
+              // Preserve original slotId for booking
+              id: slot.slotId, // Ensure ID is mapped correctly
+              startIsoUtc: slot.startAtUtc
+            }));
+
+            this.bookingTeacher = {
+              ...teacher,
+              availability: mappedSlots
+            };
+
+            this.bookingSidebarOpen = true;
+            this.selectedSlotIndex = null;
+            this.selectedCalendarDate = null;
+            this.loadingBookId = null;
+          });
       },
       error: (err) => {
-        console.error('Failed to load teacher data', err);
+        console.error('Failed to load teacher details', err);
         this.loadingBookId = null;
       }
     });
+  }
+
+  private _calculateEndTime(startTime12h: string, durationMin: number): string {
+    try {
+      // Parse "3:00 PM"
+      const dt = DateTime.fromFormat(startTime12h, 'h:mm a');
+      return dt.plus({ minutes: durationMin }).toFormat('h:mm a');
+    } catch {
+      return '';
+    }
   }
 
   // Map group session to slot format for display in the calendar
@@ -463,7 +442,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       const localStart = this.timezoneService.utcToLocal(gs.scheduledDateTime, this.userIanaTimezone);
       const durationHours = gs.duration || 1;
       const localEnd = localStart.plus({ hours: durationHours });
-      
+
       return {
         slotType: 'group',
         isGroupSession: true,
@@ -505,218 +484,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Mark slots in the past as unavailable or filter them out.
-  // For non-recurring slots with specific dates, check if the date has passed.
-  private _processAvailability(slots: any[]) {
-    // Use user's local timezone for comparison
-    const nowLocal = DateTime.now().setZone(this.userIanaTimezone);
 
-    const getSlotStartLocal = (slot: any): DateTime | null => {
-      // Prefer the preserved ISO timestamp
-      const iso = slot._originalStartIso || slot.startIsoUtc || slot.startDateTime || slot.start;
-      if (typeof iso === 'string' && iso.length > 0 && (iso.includes('T') || iso.includes('Z'))) {
-        try {
-          return this.timezoneService.utcToLocal(iso, this.userIanaTimezone);
-        } catch {
-          return null;
-        }
-      }
-      return null;
-    };
-
-    // Clone first so any isAvailable edits persist.
-    return (slots || [])
-      .map((s) => ({ ...s, isAvailable: typeof s?.isAvailable === 'undefined' ? true : s.isAvailable }))
-      .filter((slot) => {
-        // Only apply past filtering when we can compute an exact slot start.
-        const slotStartLocal = getSlotStartLocal(slot);
-        if (!slotStartLocal) return true;
-
-        if (slotStartLocal <= nowLocal) {
-          // Non-recurring slots in the past should disappear.
-          if (!slot.isRecurring) return false;
-          // Recurring slots can remain but should be disabled.
-          slot.isAvailable = false;
-        }
-
-        return true;
-      });
-  }
-
-  // Convert slot data to normalized display format
-  // Uses TimezoneService to convert UTC to user's local timezone
-  private _mapUtcSlotToLocal(s: any) {
-    const slot: any = { ...s };
-
-    // Helper to try parse common keys
-    const isoCandidates = [
-      slot.startDateTime,
-      slot.startTime,
-      slot.startDate,
-      slot.start,
-    ];
-
-    const isIsoString = (v: any) => typeof v === 'string' && /T|Z/.test(v);
-    
-    // Find any ISO string in the slot data
-    const foundIso = isoCandidates.find((c) => isIsoString(c));
-    
-    if (foundIso) {
-      try {
-        // Store original UTC for booking
-        slot.startIsoUtc = foundIso;
-        slot._originalStartIso = foundIso;
-        
-        // Convert to user's local timezone using TimezoneService
-        const localStart = this.timezoneService.utcToLocal(foundIso, this.userIanaTimezone);
-        
-        // Format for display in 12-hour AM/PM
-        slot.startTime = localStart.toFormat('h:mm a');
-        slot.displayDate = localStart.toFormat('MMM d');
-        slot.dayOfWeek = localStart.weekday % 7; // Luxon uses 1-7 (Mon-Sun), convert to 0-6
-        slot.adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
-        
-        // Handle end time
-        const endIso = slot.endTime || slot.endDate || slot.endDateTime || slot.end;
-        if (isIsoString(endIso)) {
-          slot._originalEndIso = endIso;
-          slot.endIsoUtc = endIso;
-          const localEnd = this.timezoneService.utcToLocal(endIso, this.userIanaTimezone);
-          slot.endTime = localEnd.toFormat('h:mm a');
-        } else if (slot.durationMinutes) {
-          const localEnd = localStart.plus({ minutes: Number(slot.durationMinutes) });
-          slot.endTime = localEnd.toFormat('h:mm a');
-          slot.endIsoUtc = this.timezoneService.localToUtc(localEnd);
-          slot._originalEndIso = slot.endIsoUtc;
-        }
-        
-        return slot;
-      } catch (e) {
-        console.warn('Failed to convert slot time:', e);
-        // fallthrough to other handlers
-      }
-    }
-    
-    // Check if slot has a specific date (non-recurring) with plain time strings
-    if (slot.date && slot.isRecurring === false) {
-      try {
-        const dateStr = slot.date;
-        const timeStr = slot.startTime || '00:00';
-        const endTimeStr = slot.endTime || '01:00';
-        
-        // Parse time strings (HH:mm format)
-        const timeParts = timeStr.split(':').map(Number);
-        const hours = timeParts[0] || 0;
-        const minutes = timeParts[1] || 0;
-        
-        const endTimeParts = endTimeStr.split(':').map(Number);
-        const endHours = endTimeParts[0] || 0;
-        const endMinutes = endTimeParts[1] || 0;
-        
-        // Parse date
-        const [year, month, day] = dateStr.split('-').map(Number);
-        
-        // Create UTC DateTime (assuming times are in UTC)
-        const startUtc = DateTime.fromObject(
-          { year, month, day, hour: hours, minute: minutes },
-          { zone: 'UTC' }
-        );
-        const endUtc = DateTime.fromObject(
-          { year, month, day, hour: endHours, minute: endMinutes },
-          { zone: 'UTC' }
-        );
-        
-        // Store for booking
-        slot.startIsoUtc = startUtc.toISO();
-        slot.endIsoUtc = endUtc.toISO();
-        slot._originalStartIso = slot.startIsoUtc;
-        slot._originalEndIso = slot.endIsoUtc;
-        
-        // Convert to user's local timezone for display
-        const localStart = startUtc.setZone(this.userIanaTimezone);
-        const localEnd = endUtc.setZone(this.userIanaTimezone);
-        
-        slot.startTime = localStart.toFormat('h:mm a');
-        slot.endTime = localEnd.toFormat('h:mm a');
-        slot.displayDate = localStart.toFormat('MMM d');
-        slot.dayOfWeek = localStart.weekday % 7;
-        slot.adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
-        slot.specificDate = localStart.toJSDate();
-        
-        return slot;
-      } catch (e) {
-        console.warn('Failed to parse slot date/time:', e);
-        // fallthrough to other handlers
-      }
-    }
-
-    // If startTime is a plain HH:mm string and we have dayOfWeek (recurring slots),
-    // construct a DateTime for the next occurrence
-    if (
-      typeof slot.startTime === 'string' &&
-      slot.startTime.split(':').length >= 2 &&
-      !slot.startTime.includes('AM') &&
-      !slot.startTime.includes('PM') &&
-      typeof slot.dayOfWeek !== 'undefined'
-    ) {
-      try {
-        const parts = slot.startTime.split(':').map((p: string) => Number(p));
-        const sh = parts[0] || 0;
-        const sm = parts[1] || 0;
-
-        const now = DateTime.now().setZone(this.userIanaTimezone);
-        const today = now.weekday % 7; // Convert to 0-6 (Sun-Sat)
-        let targetDay = Number(slot.dayOfWeek);
-        if (isNaN(targetDay)) targetDay = today;
-
-        // Calculate days until next occurrence
-        let daysUntil = (targetDay - today + 7) % 7;
-        if (daysUntil === 0) {
-          // Check if time has passed today
-          const candidateToday = now.set({ hour: sh, minute: sm, second: 0, millisecond: 0 });
-          if (candidateToday <= now) {
-            daysUntil = 7; // Move to next week
-          }
-        }
-
-        const localStart = now.plus({ days: daysUntil }).set({ hour: sh, minute: sm, second: 0, millisecond: 0 });
-        const utcStart = localStart.toUTC();
-        
-        slot.startIsoUtc = utcStart.toISO();
-        slot._originalStartIso = slot.startIsoUtc;
-        slot.startTime = localStart.toFormat('h:mm a');
-        slot.displayDate = localStart.toFormat('MMM d');
-        slot.dayOfWeek = localStart.weekday % 7;
-        slot.adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
-        
-        // Handle end time
-        if (slot.durationMinutes) {
-          const localEnd = localStart.plus({ minutes: Number(slot.durationMinutes) });
-          slot.endTime = localEnd.toFormat('h:mm a');
-          slot.endIsoUtc = localEnd.toUTC().toISO();
-          slot._originalEndIso = slot.endIsoUtc;
-        } else if (slot.endTime && typeof slot.endTime === 'string' && !slot.endTime.includes('AM') && !slot.endTime.includes('PM')) {
-          const ep = slot.endTime.split(':').map((p: string) => Number(p));
-          const localEnd = localStart.set({ hour: ep[0] || 0, minute: ep[1] || 0 });
-          slot.endTime = localEnd.toFormat('h:mm a');
-          slot.endIsoUtc = localEnd.toUTC().toISO();
-          slot._originalEndIso = slot.endIsoUtc;
-        }
-
-        return slot;
-      } catch (e) {
-        console.warn('Failed to process recurring slot:', e);
-      }
-    }
-
-    // Default: leave slot mostly unchanged
-    if (typeof slot.dayOfWeek === 'string') {
-      const n = parseInt(slot.dayOfWeek, 10);
-      if (!isNaN(n)) slot.dayOfWeek = n;
-    }
-
-    return slot;
-  }
 
   // Select an availability slot by index. If the slot is not available, ignore.
   // For group sessions, open the group session modal instead of selecting.
@@ -745,29 +513,19 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const slot = this.bookingTeacher.availability[this.selectedSlotIndex];
     this.payProcessing = true;
 
-    // Compute scheduled datetime for the selected slot (next occurrence)
-    const scheduledDate = this._computeScheduledDateForSlot(slot);
+    // Use the secure bookSlot method from SlotsService
+    // We just need teacherId and the secure slotId
+    const teacherId = this.bookingTeacher.id;
+    const slotId = slot.slotId || slot.id; // Map from our mapped object
 
-    // If the slot originally included an exact UTC ISO, prefer sending it
-    const scheduledDateIso = slot.startIsoUtc
-      ? slot.startIsoUtc
-      : scheduledDate
-      ? scheduledDate.toISOString()
-      : null;
-
-    // Check for time conflict with existing bookings
-    if (scheduledDate && this.hasTimeConflict(scheduledDate)) {
+    if (!slotId) {
+      console.error('Missing slot ID for booking');
       this.payProcessing = false;
-      this.showModal = true;
-      this.modalType = 'error';
-      this.modalMessage = this.translate.instant('booking.errors.time_conflict');
       return;
     }
 
-    // Get the price from the slot (set by teacher when creating availability)
-    const slotPrice = slot.price || slot.hourlyRate || slot.rate || 0;
-
-    // Frontend wallet balance check before calling API
+    // Frontend wallet balance check
+    const slotPrice = slot.price || this.bookingTeacher.hourlyRate || 0;
     if (slotPrice > this.walletBalance) {
       this.payProcessing = false;
       this.isInsufficientBalance = true;
@@ -776,99 +534,40 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
       return;
     }
-    
-    // Get the availability ID to link the booking to the specific slot
-    const availabilityId = slot.id || slot._id || slot.availabilityId;
 
-    const payload: any = {
-      teacherId:
-        this.bookingTeacher.id ||
-        this.bookingTeacher.teacherId ||
-        this.bookingTeacher._id,
-      scheduledDateTime: scheduledDateIso,
-      notes: 'individual booking',
-      price: slotPrice,
-    };
-    
-    // Include availabilityId if present
-    if (availabilityId) {
-      payload.availabilityId = availabilityId;
-    }
-
-    // Debug logging for booking payload
-    console.log('🔍 [DEBUG] Booking payload:', JSON.stringify(payload, null, 2));
-    console.log('🔍 [DEBUG] Selected slot:', JSON.stringify(slot, null, 2));
-    console.log('🔍 [DEBUG] slot.startIsoUtc:', slot.startIsoUtc);
-    console.log('🔍 [DEBUG] scheduledDateIso being sent:', scheduledDateIso);
-
-    // Use the Booking function (which now returns an observable) so we can
-    // subscribe and update UI based on success/failure.
-    this.Booking(payload).subscribe({
+    this.slotsService.bookSlot(teacherId, slotId).subscribe({
       next: (res) => {
-        console.log('Booking/payment created successfully', res);
+        console.log('Booking created successfully via SlotsService', res);
         this.payProcessing = false;
-        // close booking sidebar after successful payment/booking
         this.bookingSidebarOpen = false;
-        // Refresh student bookings after successful booking
+
+        // Convert response to compatible format if needed for displaying confirmation
+        // (The backend response for bookSlot matches what we need for confirmation)
+
         this.loadStudentExistingBookings();
-        // show success modal with pending message (booking needs teacher approval)
         this.showModal = true;
         this.modalType = 'success';
         this.modalMessage = this.translate.instant('booking.request_sent_message');
       },
       error: (err) => {
-        // Show backend error in a modal to the user
         const msg =
           (err && err.error && (err.error.message || err.error.msg)) ||
-          err.message ||
-          (typeof err === 'string' ? err : JSON.stringify(err));
-        
-        // Check if it's an insufficient balance error
+          err.message || "Booking failed";
+
         const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
         this.isInsufficientBalance = isBalanceError;
-        
+
         this.showModal = true;
         this.modalType = 'error';
-        this.modalMessage = isBalanceError 
+        this.modalMessage = isBalanceError
           ? this.translate.instant('booking.errors.insufficient_balance')
           : msg;
         this.payProcessing = false;
-      },
+      }
     });
   }
 
-  // Check if the new booking time conflicts with existing bookings
-  private hasTimeConflict(newBookingDate: Date): boolean {
-    if (!this.studentExistingBookings || this.studentExistingBookings.length === 0) {
-      return false;
-    }
 
-    const newBookingTime = newBookingDate.getTime();
-    // Assume lesson duration is 1 hour (60 minutes)
-    const lessonDuration = 60 * 60 * 1000; // in milliseconds
-
-    for (const booking of this.studentExistingBookings) {
-      // Parse existing booking datetime
-      const existingDateStr = booking.scheduledDateTime || booking.date || booking.startTime;
-      if (!existingDateStr) continue;
-
-      const existingDate = new Date(existingDateStr);
-      if (isNaN(existingDate.getTime())) continue;
-
-      const existingTime = existingDate.getTime();
-
-      // Check if time slots overlap
-      // New booking starts during existing booking OR existing booking starts during new booking
-      if (
-        (newBookingTime >= existingTime && newBookingTime < existingTime + lessonDuration) ||
-        (existingTime >= newBookingTime && existingTime < newBookingTime + lessonDuration)
-      ) {
-        return true;
-      }
-    }
-
-    return false;
-  }
 
   // Reusable modal state & helpers (success/error)
   showModal = false;
@@ -898,9 +597,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Book group session
   bookGroupSession() {
     if (!this.selectedGroupSession) return;
-    
+
     this.groupBookingProcessing = true;
-    
+
     const payload = {
       groupSessionId: this.selectedGroupSession.id
     };
@@ -911,10 +610,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         this.groupBookingProcessing = false;
         this.closeGroupSessionModal();
         this.bookingSidebarOpen = false;
-        
+
         // Refresh student bookings
         this.loadStudentExistingBookings();
-        
+
         // Show success modal
         this.showModal = true;
         this.modalType = 'success';
@@ -926,16 +625,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           (err && err.error && (err.error.message || err.error.msg)) ||
           err.message ||
           (typeof err === 'string' ? err : JSON.stringify(err));
-        
+
         const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
         this.isInsufficientBalance = isBalanceError;
-        
+
         this.groupBookingProcessing = false;
         this.closeGroupSessionModal();
-        
+
         this.showModal = true;
         this.modalType = 'error';
-        this.modalMessage = isBalanceError 
+        this.modalMessage = isBalanceError
           ? this.translate.instant('booking.errors.insufficient_balance')
           : msg;
       }
@@ -972,60 +671,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.router.navigate(['/wallet/topup']);
   }
 
-  // Compute the next Date instance for a slot object that contains
-  // dayOfWeek (0=Sunday..6=Saturday) and startTime ("HH:mm" or "HH:mm:ss").
-  private _computeScheduledDateForSlot(slot: any): Date | null {
-    if (!slot) return null;
-    // If the slot includes an original UTC ISO timestamp, use it directly
-    if (slot.startIsoUtc) {
-      try {
-        return new Date(slot.startIsoUtc);
-      } catch (e) {
-        // fallthrough to compute based on dayOfWeek/startTime
-      }
-    }
-    const now = new Date();
-    const todayDay = now.getDay();
-    let targetDay =
-      typeof slot.dayOfWeek === 'number'
-        ? slot.dayOfWeek
-        : parseInt(slot.dayOfWeek, 10);
-    if (isNaN(targetDay)) targetDay = todayDay;
 
-    // parse time
-    const parts = (slot.startTime || '00:00')
-      .split(':')
-      .map((p: string) => Number(p));
-    const sh = parts[0] || 0;
-    const sm = parts[1] || 0;
-    const ss = parts[2] || 0;
-
-    let daysUntil = (targetDay - todayDay + 7) % 7;
-    // If it's today but the time is earlier or equal to now, schedule for next week
-    if (daysUntil === 0) {
-      const candidate = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        sh,
-        sm,
-        ss
-      );
-      if (candidate.getTime() <= now.getTime()) {
-        daysUntil = 7;
-      }
-    }
-
-    const scheduled = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate() + daysUntil,
-      sh,
-      sm,
-      ss
-    );
-    return scheduled;
-  }
 
   // helper to map dayOfWeek number to label (short)
   getDayLabel(day: number) {
@@ -1077,12 +723,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  // create individual handlers for filter changes
-  // Return observable so callers can subscribe and handle UI state
-  Booking(data: any) {
-    // Use the repo method that books an individual session
-    return this._repo.bookIndividualSession(data);
-  }
+
 
   onSearchChange() {
     // debounce search input so we don't call API on every keystroke
@@ -1153,17 +794,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    */
   get availableDates(): string[] {
     if (!this.bookingTeacher?.availability) return [];
-    
+
     const datesSet = new Set<string>();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     for (const slot of this.bookingTeacher.availability) {
       if (!slot.isAvailable) continue;
-      
+
       // Try to get date from various slot formats
       let dateKey = '';
-      
+
       // First priority: use adjustedDateKey (calculated during slot processing)
       if (slot.adjustedDateKey) {
         const [year, month, day] = slot.adjustedDateKey.split('-').map(Number);
@@ -1184,12 +825,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           dateKey = slot.date;
         }
       }
-      
+
       if (dateKey) {
         datesSet.add(dateKey);
       }
     }
-    
+
     return Array.from(datesSet);
   }
 
@@ -1223,7 +864,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Now filters by selectedCalendarDate if set
   get groupedAvailability(): { day: string; date: string; slots: any[] }[] {
     if (!this.bookingTeacher?.availability) return [];
-    
+
     // Filter slots by selected calendar date if set
     let slotsToGroup = this.bookingTeacher.availability;
     if (this.selectedCalendarDate) {
@@ -1232,26 +873,26 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         if (slot.adjustedDateKey) {
           return slot.adjustedDateKey === this.selectedCalendarDate;
         }
-        
+
         // Fallback: Match against slot.date
         if (slot.date === this.selectedCalendarDate) return true;
-        
+
         // Fallback: Match against specificDate
         if (slot.specificDate) {
           const d = new Date(slot.specificDate);
           return this.formatDateKey(d) === this.selectedCalendarDate;
         }
-        
+
         return false;
       });
     }
-    
+
     const groups: { [key: string]: { day: string; date: string; dayOfWeek: number; slots: any[] } } = {};
-    
+
     for (const slot of slotsToGroup) {
       // Create a unique key based on dayOfWeek and displayDate
       const dayKey = `${slot.dayOfWeek}-${slot.displayDate || ''}`;
-      
+
       if (!groups[dayKey]) {
         groups[dayKey] = {
           day: this.getDayLabel(slot.dayOfWeek),
@@ -1260,10 +901,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           slots: []
         };
       }
-      
+
       groups[dayKey].slots.push(slot);
     }
-    
+
     // Sort groups by dayOfWeek (starting from today)
     const today = new Date().getDay();
     const sortedGroups = Object.values(groups).sort((a, b) => {
@@ -1272,7 +913,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       const bDays = (b.dayOfWeek - today + 7) % 7;
       return aDays - bDays;
     });
-    
+
     // Sort slots within each group by startTime
     for (const group of sortedGroups) {
       group.slots.sort((a, b) => {
@@ -1281,7 +922,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         return aTime.localeCompare(bTime);
       });
     }
-    
+
     return sortedGroups;
   }
 

@@ -21,7 +21,7 @@ import { environment } from '../environment/environment';
 export class RepoService {
   private base_url = (environment.apiUrl || '').replace(/\/$/, '');
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(data: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(
@@ -155,8 +155,8 @@ export class RepoService {
   }
 
   // get teacher by id for student to view teacher profile
-  getTeacherById(teacherId: string): Observable<TeacherResponse> {
-    return this.http.get<TeacherResponse>(
+  getTeacherById(teacherId: string): Observable<any> {
+    return this.http.get<any>(
       `${this.base_url}/api/public/teachers/${teacherId}`
     );
   }
@@ -348,38 +348,6 @@ export class RepoService {
     return this.http.put<any>(`${this.base_url}/api/lesson/${lessonId}`, data);
   }
 
-  // ===== TEACHER AVAILABILITY APIs =====
-
-  /**
-   * Get teacher availability slots
-   */
-  getTeacherAvailability(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.base_url}/api/teacher/availability`);
-  }
-
-  /**
-   * Create a new availability slot (individual lesson available for booking)
-   */
-  createAvailability(data: {
-    dayOfWeek: number;
-    startTime: string;
-    endTime: string;
-    isRecurring: boolean;
-    date?: string;
-    startDateTime?: string;
-    endDateTime?: string;
-    isAvailable: boolean;
-  }): Observable<any> {
-    return this.http.post<any>(`${this.base_url}/api/teacher/availability`, data);
-  }
-
-  /**
-   * Delete an availability slot
-   */
-  deleteAvailability(availabilityId: number): Observable<any> {
-    return this.http.delete<any>(`${this.base_url}/api/teacher/availability/${availabilityId}`);
-  }
-
   /**
    * Update teacher hourly rate via profile update
    */
@@ -387,10 +355,29 @@ export class RepoService {
     return this.http.put<any>(`${this.base_url}/api/teacher/profile`, { hourlyRate });
   }
 
-  // ===== NEW TEACHER BOOKINGS APIs =====
+  // ===== TEACHER AVAILABILITY APIs =====
+
+  /**
+   * Create availability slot for teacher
+   */
+  createAvailability(data: any): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/teacher/availability`, data);
+  }
+
+  /**
+   * Delete availability slot for teacher
+   */
+  deleteAvailability(availabilityId: number): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/api/teacher/availability/${availabilityId}`);
+  }
+
+  // ===== TEACHER BOOKINGS APIs =====
+  // NOTE: These methods are being migrated to SlotsService for unified scheduling.
+  // Use SlotsService for new booking-related features.
 
   /**
    * Get teacher bookings with pagination (for calendar/my-bookings page)
+   * @deprecated Use SlotsService.getTeacherBookings() instead
    */
   getTeacherBookingsPaginated(options?: {
     page?: number;
@@ -401,38 +388,19 @@ export class RepoService {
     if (options?.page) params = params.set('page', String(options.page));
     if (options?.pageSize) params = params.set('pageSize', String(options.pageSize));
     if (options?.upcomingOnly !== undefined) params = params.set('upcomingOnly', String(options.upcomingOnly));
-    
+
     return this.http.get<any>(`${this.base_url}/api/teacher/bookings`, { params });
   }
 
   /**
    * Start a session and get the meeting room URL
+   * @deprecated Use SlotsService.startTeacherSession() instead
    */
   startTeacherSession(bookingId: number | string): Observable<any> {
     return this.http.post<any>(`${this.base_url}/api/teacher/bookings/${bookingId}/start`, {});
   }
 
-  // ===== LEGACY Booking APIs (may not work - kept for reference) =====
 
-  // Booking APIs for teacher MY-Booked component
-  getTeacherBookings(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.base_url}/api/booking/teacher`);
-  }
-
-  // Approve a pending booking (teacher)
-  approveBooking(bookingId: number | string): Observable<any> {
-    return this.http.post<any>(`${this.base_url}/api/booking/teacher/${bookingId}/approve`, {});
-  }
-
-  // Reject a pending booking (teacher)
-  rejectBooking(bookingId: number | string, reason?: string): Observable<any> {
-    return this.http.post<any>(`${this.base_url}/api/booking/teacher/${bookingId}/reject`, { reason });
-  }
-
-  // Booking APIs for student MY-Bookings component
-  CreateIndividualBooking(data: any): Observable<any> {
-    return this.http.post<any>(`${this.base_url}/api/booking/individual`, data);
-  }
 
   // Create Group session
   CreateGroupSession(data: any): Observable<any> {
@@ -489,12 +457,22 @@ export class RepoService {
     );
   }
 
-  // get all individual bookings for a teacher
+  // ===== INDIVIDUAL BOOKINGS APIs =====
+  // NOTE: These methods are being migrated to SlotsService.
+  // Use SlotsService for new booking-related features.
+
+  /**
+   * Get all individual bookings for a teacher
+   * @deprecated Use SlotsService.getTeacherBookings() instead
+   */
   getIndividualBookingsByTeacher(): Observable<any[]> {
     return this.http.get<any[]>(`${this.base_url}/api/booking/teacher`);
   }
-  // get the individual session url for teacher
 
+  /**
+   * Get the individual session url for teacher
+   * @deprecated Use SlotsService.startTeacherSession() instead
+   */
   getSessionUrl(bookingId: string): Observable<any> {
     return this.http.post<any>(
       `${this.base_url}/api/booking/teacher/${bookingId}/start-session`,
@@ -502,18 +480,8 @@ export class RepoService {
     );
   }
 
-  // get all individual bookings for a student
-  getIndividualBookingsByStudent(teacherId: string): Observable<any[]> {
-    return this.http.get<any[]>(
-      `${this.base_url}/api/booking/public/availability/${teacherId}/hourly`
-    );
-  }
-  // book individual session
-  bookIndividualSession(data: any): Observable<any> {
-    return this.http.post<any>(`${this.base_url}/api/booking/individual`, data);
-  }
+  // ===== STUDENT BOOKING APIs =====
 
-  // student apis
   // get all booked teachers for a student (groupe sessions)
   getBookedTeachersByStudent(): Observable<any[]> {
     return this.http.get<any[]>(
@@ -526,19 +494,29 @@ export class RepoService {
       `${this.base_url}/api/groupsession/student/booking/${bookingId}/meeting-url`
     );
   }
-  // get the individual session url for student
+
+  /**
+   * Get the individual session url for student
+   * @deprecated Use SlotsService.getStudentMeetingUrl() instead
+   */
   getIndividualSessionUrl(bookingId: string): Observable<any> {
     return this.http.get<any>(
       `${this.base_url}/api/booking/student/${bookingId}/meeting-url`
     );
   }
 
-  // get all booked individual sessions for student
+  /**
+   * Get all booked individual sessions for student
+   * @deprecated Use SlotsService.getStudentBookings() instead
+   */
   getAllIndividualSession(): Observable<any[]> {
     return this.http.get<any[]>(`${this.base_url}/api/booking/student`);
   }
 
-  // get all individual bookings for a student
+  /**
+   * Get all individual bookings for a student
+   * @deprecated Use SlotsService.getStudentBookings() instead
+   */
   getStudentBookings(): Observable<any[]> {
     return this.http.get<any[]>(
       `${this.base_url}/api/student/bookings/individual`
@@ -618,8 +596,12 @@ export class RepoService {
   }
 
   // ============ REFUND APIs ============
-  
-  // Teacher cancels individual booking - process full refund to student wallet
+  // NOTE: Cancellation and refund methods are being migrated to SlotsService.
+
+  /**
+   * Teacher cancels individual booking - process full refund to student wallet
+   * @deprecated Use SlotsService.cancelBookingByTeacher() instead
+   */
   cancelIndividualBookingByTeacher(bookingId: string | number): Observable<any> {
     return this.http.post<any>(
       `${this.base_url}/api/booking/teacher/${bookingId}/cancel`,

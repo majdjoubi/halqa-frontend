@@ -154,14 +154,6 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'scheduling-test',
-    canActivate: [AdminGuard],
-    loadComponent: () =>
-      import('./components/admin/scheduling-test/scheduling-test.component').then(
-        (m) => m.SchedulingTestComponent
-      ),
-  },
-  {
     path: 'wallet/topup',
     canActivate: [StudentGuard],
     loadComponent: () =>
