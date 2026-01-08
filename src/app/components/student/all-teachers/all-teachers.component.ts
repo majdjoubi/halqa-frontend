@@ -368,61 +368,140 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // 1. Fetch teacher details first
     this._getTeacher.getTeacherById(teacherId).subscribe({
       next: (teacher) => {
-        // 2. Fetch enriched slots for the next 30 days
-        // Calculate date range in teacher's timezone (simplification: use UTC/Local for request)
-        // ideally we should use teacher's timezone, but for now we'll request a range based on local today
-        const now = DateTime.now().setZone(this.userIanaTimezone);
-        const fromDate = now.toFormat('yyyy-MM-dd');
-        const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
-
-        this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
-          .pipe(
-            catchError(err => {
-              console.error('Failed to load slots', err);
-              return of({ response: null, slots: [] });
-            })
-          )
-          .subscribe((result: any) => {
-            const enrichedSlots = result.slots || [];
-
-            // Map enriched slots to the format expected by the template
-            const mappedSlots = enrichedSlots.map((slot: EnrichedSlot) => ({
-              ...slot,
-              // Map properties for template compatibility
-              startTime: slot.viewerLocal12h,
-              endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
-              price: teacher.hourlyRate, // Use teacher's hourly rate
-              isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
-
-              // Date handling
-              date: slot.viewerLocalDate,
-              displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-              adjustedDateKey: slot.viewerLocalDate,
-
-              // Calculate day of week (0-6) from date
-              dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
-
-              // Preserve original slotId for booking
-              id: slot.slotId, // Ensure ID is mapped correctly
-              startIsoUtc: slot.startAtUtc
-            }));
-
-            this.bookingTeacher = {
-              ...teacher,
-              availability: mappedSlots
-            };
-
-            this.bookingSidebarOpen = true;
-            this.selectedSlotIndex = null;
-            this.selectedCalendarDate = null;
-            this.loadingBookId = null;
-          });
+        // 2. Try V1 API first, fallback to legacy if not available
+        this.loadTeacherSlotsWithFallback(teacherId, teacher);
       },
       error: (err) => {
         console.error('Failed to load teacher details', err);
         this.loadingBookId = null;
       }
     });
+  }
+
+  /**
+   * Load teacher slots using V1 API with fallback to legacy API
+   */
+  private loadTeacherSlotsWithFallback(teacherId: string, teacher: any): void {
+    const now = DateTime.now().setZone(this.userIanaTimezone);
+    const fromDate = now.toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
+
+    this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
+      .pipe(
+        catchError(err => {
+          console.warn('V1 API not available, falling back to legacy:', err);
+          // Return null to trigger fallback
+          return of(null);
+        })
+      )
+      .subscribe((result: any) => {
+        if (result && result.slots && result.slots.length > 0) {
+          // V1 API succeeded with slots
+          this.processEnrichedSlots(result.slots, teacher);
+        } else {
+          // Fallback to legacy API - use availability from teacher profile
+          this.loadLegacyAvailability(teacher);
+        }
+      });
+  }
+
+  /**
+   * Process enriched slots from V1 API
+   */
+  private processEnrichedSlots(enrichedSlots: EnrichedSlot[], teacher: any): void {
+    // Map enriched slots to the format expected by the template
+    const mappedSlots = enrichedSlots.map((slot: EnrichedSlot) => ({
+      ...slot,
+      // Map properties for template compatibility
+      startTime: slot.viewerLocal12h,
+      endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
+      price: teacher.hourlyRate, // Use teacher's hourly rate
+      isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
+
+      // Date handling
+      date: slot.viewerLocalDate,
+      displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
+      adjustedDateKey: slot.viewerLocalDate,
+
+      // Calculate day of week (0-6) from date
+      dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+
+      // Preserve original slotId for booking
+      id: slot.slotId, // Ensure ID is mapped correctly
+      startIsoUtc: slot.startAtUtc
+    }));
+
+    this.bookingTeacher = {
+      ...teacher,
+      availability: mappedSlots
+    };
+
+    this.bookingSidebarOpen = true;
+    this.selectedSlotIndex = null;
+    this.selectedCalendarDate = null;
+    this.loadingBookId = null;
+  }
+
+  /**
+   * Fallback: Load availability from legacy teacher profile API
+   */
+  private loadLegacyAvailability(teacher: any): void {
+    const legacySlots = teacher.availability || [];
+    
+    // Map legacy slots to the expected format
+    const mappedSlots = legacySlots.map((slot: any) => {
+      let displayDate = '';
+      let adjustedDateKey = '';
+      let dayOfWeek = slot.dayOfWeek || 0;
+      let startTime12h = '';
+      let endTime12h = '';
+
+      if (slot.startDateTime) {
+        try {
+          const localStart = this.timezoneService.utcToLocal(slot.startDateTime, this.userIanaTimezone);
+          displayDate = localStart.toFormat('MMM d');
+          adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
+          dayOfWeek = localStart.weekday % 7;
+          startTime12h = localStart.toFormat('h:mm a');
+          
+          const localEnd = slot.endDateTime 
+            ? this.timezoneService.utcToLocal(slot.endDateTime, this.userIanaTimezone)
+            : localStart.plus({ hours: 1 });
+          endTime12h = localEnd.toFormat('h:mm a');
+        } catch {
+          // Use raw values if conversion fails
+          startTime12h = slot.startTime || '';
+          endTime12h = slot.endTime || '';
+        }
+      } else {
+        // Legacy format without datetime
+        startTime12h = slot.startTime || '';
+        endTime12h = slot.endTime || '';
+      }
+
+      return {
+        ...slot,
+        startTime: startTime12h,
+        endTime: endTime12h,
+        price: teacher.hourlyRate,
+        isAvailable: slot.isAvailable !== false && !slot.isBooked,
+        displayDate: displayDate,
+        adjustedDateKey: adjustedDateKey,
+        dayOfWeek: dayOfWeek,
+        id: slot.id || slot.availabilityId,
+        startIsoUtc: slot.startDateTime
+      };
+    });
+
+    this.bookingTeacher = {
+      ...teacher,
+      availability: mappedSlots
+    };
+
+    this.bookingSidebarOpen = true;
+    this.selectedSlotIndex = null;
+    this.selectedCalendarDate = null;
+    this.loadingBookId = null;
   }
 
   private _calculateEndTime(startTime12h: string, durationMin: number): string {
