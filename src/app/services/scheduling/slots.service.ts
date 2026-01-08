@@ -382,18 +382,30 @@ export class SlotsService {
 
   /**
    * Create availability slots for a teacher.
+   * Matches backend DTO: CreateAvailabilitySlotsRequest
    * 
    * @param request The slot creation request
    */
   createTeacherSlots(request: {
-    localDate: string;
-    timeZone: string;
-    timeRanges: Array<{ startTime: string; endTime: string }>;
+    date: string;  // Format: YYYY-MM-DD (DateOnly on backend)
+    timeRanges: Array<{ startTime: string; endTime: string }>;  // Format: HH:mm:ss (TimeOnly on backend)
     slotDurationMinutes: number;
-  }): Observable<{ slotsCreated: number; slots: SlotDto[] }> {
-    return this.http.post<{ slotsCreated: number; slots: SlotDto[] }>(
+  }): Observable<{ createdSlots: SlotDto[]; totalCreated: number }> {
+    return this.http.post<{ createdSlots: SlotDto[]; totalCreated: number }>(
       `${this.baseUrl}${this.schedulingApiPrefix}/teacher/slots`,
       request
+    );
+  }
+
+  /**
+   * Delete an availability slot.
+   * Only available (non-booked) slots can be deleted.
+   * 
+   * @param slotId The slot ID (GUID)
+   */
+  deleteSlot(slotId: string): Observable<{ slotId: string; deleted: boolean }> {
+    return this.http.delete<{ slotId: string; deleted: boolean }>(
+      `${this.baseUrl}${this.schedulingApiPrefix}/teacher/slots/${slotId}`
     );
   }
 }

@@ -182,6 +182,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   }
 
   loadAvailability(): void {
+    // Load teacher profile for hourly rate (legacy API)
     this.repo.getTeacherProfile().subscribe({
       next: (response: any) => {
         const profile = response?.profile || response;
@@ -191,43 +192,99 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
           this.hourlyRate = profile.hourlyRate;
           this.newHourlyRate = profile.hourlyRate;
         }
+      },
+      error: (err) => console.error('Error loading teacher profile:', err)
+    });
+
+    // Load availability from V1 API
+    this.loadAvailabilityFromV1();
+  }
+
+  /**
+   * Load availability slots from V1 API
+   */
+  private loadAvailabilityFromV1(): void {
+    // Get teacher ID from current user context (assuming it's available)
+    // For now, use the legacy API to get teacher ID, then fetch V1 slots
+    this.repo.getTeacherProfile().subscribe({
+      next: (response: any) => {
+        const profile = response?.profile || response;
+        const teacherId = profile?.teacherId || profile?.id;
         
-        if (profile?.availability) {
-          this.availabilitySlots = profile.availability.map((slot: any) => {
-            // Display times in user's local timezone
-            let dateStr: string | undefined;
-            let displayStartTime: string | undefined;
-            let displayHour: number | undefined;
-
-            if (slot.startDateTime) {
-              try {
-                const localStart = this.timezoneService.utcToLocal(slot.startDateTime, this.userIanaTimezone);
-                dateStr = localStart.toFormat('yyyy-MM-dd');
-                displayStartTime = localStart.toFormat('HH:mm');
-                displayHour = localStart.hour;
-              } catch {
-                // Fallback to legacy method
-                const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
-                if (meccaStart.isValid) {
-                  dateStr = meccaStart.toFormat('yyyy-MM-dd');
-                  displayStartTime = meccaStart.toFormat('HH:mm');
-                  displayHour = meccaStart.hour;
-                }
-              }
-            }
-
-            return {
-              ...slot,
-              date: dateStr || slot.date,
-              displayStartTime: displayStartTime || slot.startTime,
-              displayHour: displayHour
-            };
-          });
+        if (!teacherId) {
+          console.warn('No teacher ID found, falling back to legacy availability');
+          this.loadLegacyAvailability(profile);
+          return;
         }
-        this.buildAvailableDates();
+
+        // Calculate date range (next 30 days)
+        const now = new Date();
+        const fromDate = now.toISOString();
+        const toDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+        this.slotsService.getTeacherSlots(teacherId, fromDate, toDate, this.userIanaTimezone).subscribe({
+          next: (slotsResponse) => {
+            this.availabilitySlots = slotsResponse.slots.map(slot => {
+              const localStart = this.timezoneService.utcToLocal(slot.startAtUtc, this.userIanaTimezone);
+              return {
+                id: slot.slotId,
+                date: localStart.toFormat('yyyy-MM-dd'),
+                displayStartTime: localStart.toFormat('HH:mm'),
+                displayHour: localStart.hour,
+                startTimeUtc: slot.startAtUtc,
+                endTimeUtc: slot.endAtUtc,
+                status: slot.status
+              };
+            });
+            this.buildAvailableDates();
+          },
+          error: (err) => {
+            console.warn('V1 API not available, falling back to legacy:', err);
+            this.loadLegacyAvailability(profile);
+          }
+        });
       },
       error: (err) => console.error('Error loading availability:', err)
     });
+  }
+
+  /**
+   * Fallback to load availability from legacy profile API
+   */
+  private loadLegacyAvailability(profile: any): void {
+    if (profile?.availability) {
+      this.availabilitySlots = profile.availability.map((slot: any) => {
+        // Display times in user's local timezone
+        let dateStr: string | undefined;
+        let displayStartTime: string | undefined;
+        let displayHour: number | undefined;
+
+        if (slot.startDateTime) {
+          try {
+            const localStart = this.timezoneService.utcToLocal(slot.startDateTime, this.userIanaTimezone);
+            dateStr = localStart.toFormat('yyyy-MM-dd');
+            displayStartTime = localStart.toFormat('HH:mm');
+            displayHour = localStart.hour;
+          } catch {
+            // Fallback to legacy method
+            const meccaStart = this.luxonDate.fromServerTimeToMecca(slot.startDateTime);
+            if (meccaStart.isValid) {
+              dateStr = meccaStart.toFormat('yyyy-MM-dd');
+              displayStartTime = meccaStart.toFormat('HH:mm');
+              displayHour = meccaStart.hour;
+            }
+          }
+        }
+
+        return {
+          ...slot,
+          date: dateStr || slot.date,
+          displayStartTime: displayStartTime || slot.startTime,
+          displayHour: displayHour
+        };
+      });
+    }
+    this.buildAvailableDates();
   }
 
   buildAvailableDates(): void {
@@ -432,52 +489,41 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   /**
    * Create availability for a time slot
+   * Uses V1 API: POST /v1/teacher/slots
    */
   createAvailability(slot: TimeSlot): void {
     if (this.isSavingSlot || !this.selectedCalendarDate) return;
     
     this.isSavingSlot = true;
     
-    // Build the start and end datetime in user's local timezone, then convert to UTC
     const dateStr = this.selectedCalendarDate;
     const startHour = slot.hour;
     const endHour = (slot.hour + 1) % 24;
     
-    // Parse date components
-    const [year, month, day] = dateStr.split('-').map(Number);
-    
-    // Create local datetime and convert to UTC for server using TimezoneService
-    const startLocal = this.timezoneService.createLocalDateTime(year, month, day, startHour, 0, this.userIanaTimezone);
-    const endLocal = this.timezoneService.createLocalDateTime(year, month, day, endHour, 0, this.userIanaTimezone);
-    
-    const jsDate = new Date(dateStr + 'T00:00:00');
-    const dayOfWeek = jsDate.getDay();
-    
-    const startISO = this.timezoneService.localToUtc(startLocal);
-    const endISO = this.timezoneService.localToUtc(endLocal);
-    
-    const data = {
-      dayOfWeek: dayOfWeek,
-      startTime: `${String(startHour).padStart(2, '0')}:00:00`,
-      endTime: `${String(endHour).padStart(2, '0')}:00:00`,
-      isRecurring: false,
-      date: dateStr,
-      startDateTime: startISO || undefined,
-      endDateTime: endISO || undefined,
-      isAvailable: true,
-      teacherIanaTimezone: this.userIanaTimezone // Send teacher's timezone to backend
+    // Build the request matching backend CreateAvailabilitySlotsRequest
+    const request = {
+      date: dateStr,  // Format: YYYY-MM-DD (DateOnly on backend)
+      timeRanges: [{
+        startTime: `${String(startHour).padStart(2, '0')}:00:00`,  // Format: HH:mm:ss
+        endTime: `${String(endHour).padStart(2, '0')}:00:00`
+      }],
+      slotDurationMinutes: 60  // 1-hour slots
     };
     
-    this.repo.createAvailability(data).subscribe({
-      next: (response: any) => {
-        // Update local state immediately
-        this.availabilitySlots.push({
-          id: response.id || response.availabilityId,
-          date: dateStr,
-          displayStartTime: `${String(startHour).padStart(2, '0')}:00`,
-          displayHour: startHour,
-          ...response
-        });
+    this.slotsService.createTeacherSlots(request).subscribe({
+      next: (response) => {
+        // Update local state with created slots
+        if (response.createdSlots && response.createdSlots.length > 0) {
+          const createdSlot = response.createdSlots[0];
+          this.availabilitySlots.push({
+            id: createdSlot.slotId,
+            date: dateStr,
+            displayStartTime: `${String(startHour).padStart(2, '0')}:00`,
+            displayHour: startHour,
+            startTimeUtc: createdSlot.startAtUtc,
+            endTimeUtc: createdSlot.endAtUtc
+          });
+        }
         
         // Regenerate time slots for current date
         this.generateTimeSlotsForDate(this.selectedCalendarDate);
@@ -495,6 +541,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   /**
    * Delete availability for a time slot
+   * Uses V1 API: DELETE /v1/teacher/slots/{id}
    */
   deleteAvailability(slot: TimeSlot, event: Event): void {
     event.stopPropagation(); // Prevent slot click
@@ -503,14 +550,16 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     
     this.isSavingSlot = true;
     
-    this.repo.deleteAvailability(slot.availabilityId).subscribe({
-      next: () => {
-        // Remove from local state
-        this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== slot.availabilityId);
-        
-        // Regenerate time slots for current date
-        this.generateTimeSlotsForDate(this.selectedCalendarDate);
-        this.buildAvailableDates();
+    this.slotsService.deleteSlot(String(slot.availabilityId)).subscribe({
+      next: (response) => {
+        if (response.deleted) {
+          // Remove from local state
+          this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== slot.availabilityId);
+          
+          // Regenerate time slots for current date
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+          this.buildAvailableDates();
+        }
         
         this.isSavingSlot = false;
       },
