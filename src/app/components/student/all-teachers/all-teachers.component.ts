@@ -387,8 +387,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    */
   private loadTeacherSlotsWithFallback(teacherId: string, teacher: any): void {
     const now = DateTime.now().setZone(this.userIanaTimezone);
-    const fromDate = now.toFormat('yyyy-MM-dd');
-    const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
+    // Backend treats from/to as TEACHER-local anchor dates and enforces a max span of 30 days.
+    // Shift the window by -1 day to avoid day-boundary mismatches (DST/zone edge cases) while keeping <= 30 days.
+    const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
     this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
       .pipe(
@@ -563,8 +565,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    */
   private refreshBookingSlots(teacherId: string): void {
     const now = DateTime.now().setZone(this.userIanaTimezone);
-    const fromDate = now.toFormat('yyyy-MM-dd');
-    const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
+    // Keep polling window aligned with initial load (see loadTeacherSlotsWithFallback)
+    const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
     this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
       .pipe(catchError(() => of(null)))

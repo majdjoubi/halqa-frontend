@@ -573,7 +573,9 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     
     // Add creation operations
     this.pendingSlots.forEach(hour => {
-      const endHour = (hour + 1) % 24;
+      // IMPORTANT: Do not wrap 23:00 -> 00:00.
+      // Backend slot generation requires EndTime > StartTime. Use 24:00:00 for the last hour.
+      const endHour = hour + 1;
       operations.push({
         type: 'create',
         hour: hour,
