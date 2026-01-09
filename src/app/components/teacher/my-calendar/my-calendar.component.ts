@@ -799,14 +799,22 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   startSession(booking: BookingItem): void {
     if (!booking.canStart) return;
 
-    this.slotsService.startTeacherSession(booking.id).subscribe({
+    this.slotsService.getMeetingToken(booking.id).subscribe({
       next: (response: any) => {
-        if (response.meetingUrl || response.meetingRoomUrl) {
-          window.open(response.meetingUrl || response.meetingRoomUrl, '_blank');
+        const joinUrl = response?.joinUrl || response?.meetingUrl || booking.meetingRoomUrl;
+        if (joinUrl) {
+          window.open(joinUrl, '_blank');
+          return;
         }
+        alert('تعذر فتح الغرفة الآن، حاول مرة أخرى لاحقًا.');
       },
       error: (err) => {
-        console.error('Error starting session:', err);
+        console.error('Error getting meeting token:', err);
+        const code = err?.error?.code;
+        if (code === 'TIME_NOT_YET') {
+          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 5 دقائق.');
+          return;
+        }
         alert(this.translate.instant('my_calendar.errors.start_session'));
       }
     });

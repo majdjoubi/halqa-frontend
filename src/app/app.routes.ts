@@ -106,6 +106,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'my-bookings',
+    canActivate: [StudentGuard],
+    loadComponent: () =>
+      import('./components/student/my-bookings/my-bookings.component').then(
+        (m) => m.MyBookingsComponent
+      ),
+  },
+  {
     path: 'join-us',
     canActivate: [AuthGuard],
     loadComponent: () =>

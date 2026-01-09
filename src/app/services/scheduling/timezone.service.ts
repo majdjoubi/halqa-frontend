@@ -232,7 +232,7 @@ export class TimezoneService {
    */
   isSessionJoinable(utcIsoString: string): boolean {
     const minutes = this.getMinutesUntil(utcIsoString);
-    return minutes <= 15 && minutes >= -30; // 15 min before to 30 min after
+    return minutes <= 5 && minutes >= -30; // 5 min before to 30 min after
   }
 
   /**

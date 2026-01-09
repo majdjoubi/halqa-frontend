@@ -1,0 +1,38 @@
+<div class="my-bookings">
+  <h2 class="title">{{ 'MY_BOOKINGS' | translate }}</h2>
+
+  <div *ngIf="isLoading" class="loading">
+    {{ 'LOADING' | translate }}
+  </div>
+
+  <div *ngIf="!isLoading && bookings.length === 0" class="empty">
+    {{ 'NO_BOOKINGS' | translate }}
+  </div>
+
+  <div *ngIf="!isLoading && bookings.length > 0" class="list">
+    <div class="card" *ngFor="let b of bookings">
+      <div class="row">
+        <div class="main">
+          <div class="teacher">{{ b.teacherName }}</div>
+          <div class="lesson">{{ b.lessonTitle }}</div>
+          <div class="time">{{ formatDateTimeUtc(b.scheduledDateTime) }}</div>
+          <div class="status">{{ b.status }}</div>
+        </div>
+
+        <div class="actions">
+          <button
+            class="join"
+            [disabled]="!canJoin(b.scheduledDateTime)"
+            (click)="joinBooking(b)"
+          >
+            {{ 'JOIN' | translate }}
+          </button>
+        </div>
+      </div>
+
+      <div class="hint" *ngIf="!canJoin(b.scheduledDateTime)">
+        {{ 'JOIN_AVAILABLE_5_MIN' | translate }}
+      </div>
+    </div>
+  </div>
+</div>

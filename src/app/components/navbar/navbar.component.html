@@ -109,6 +109,15 @@
                 {{ "ALL_Teachers" | translate }}
               </a>
             </li>
+            <li class="nav-item">
+              <a
+                routerLink="/my-bookings"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "MY_BOOKINGS" | translate }}
+              </a>
+            </li>
           </ng-container>
 
           <ng-container *ngIf="role === 2">
