@@ -13,7 +13,8 @@
   "booking": {
     "errors": {
       "time_conflict": "You already have a lesson booked at this time. Please select a different time slot.",
-      "insufficient_balance": "Insufficient wallet balance. Please top up your wallet to continue."
+      "insufficient_balance": "Insufficient wallet balance. Please top up your wallet to continue.",
+      "slot_already_booked": "This slot has already been booked. Please select a different time."
     },
     "top_up_wallet": "Top Up Wallet",
     "request_sent_title": "Booking Confirmed!",

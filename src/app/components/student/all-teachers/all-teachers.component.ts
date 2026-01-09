@@ -634,13 +634,24 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           err.message || "Booking failed";
 
         const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
+        const isSlotTakenError = err.status === 409 || msg.toLowerCase().includes('already been booked');
         this.isInsufficientBalance = isBalanceError;
 
         this.showModal = true;
         this.modalType = 'error';
-        this.modalMessage = isBalanceError
-          ? this.translate.instant('booking.errors.insufficient_balance')
-          : msg;
+
+        if (isBalanceError) {
+          this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
+        } else if (isSlotTakenError) {
+          this.modalMessage = this.translate.instant('booking.errors.slot_already_booked') || 'This slot has already been booked. Please select a different time.';
+          // Refresh slots to show updated availability
+          if (this.bookingTeacher?.id) {
+            this.loadTeacherSlotsWithFallback(this.bookingTeacher.id, this.bookingTeacher);
+          }
+        } else {
+          this.modalMessage = msg;
+        }
+
         this.payProcessing = false;
       }
     });
