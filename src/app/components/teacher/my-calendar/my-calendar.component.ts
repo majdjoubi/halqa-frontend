@@ -489,7 +489,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   /**
    * Create availability for a time slot
-   * Uses V1 API: POST /v1/teacher/slots
+   * Uses Legacy API: POST /api/teacher/availability
    */
   createAvailability(slot: TimeSlot): void {
     if (this.isSavingSlot || !this.selectedCalendarDate) return;
@@ -500,28 +500,33 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     const startHour = slot.hour;
     const endHour = (slot.hour + 1) % 24;
     
-    // Build the request matching backend CreateAvailabilitySlotsRequest
+    // Parse the date to get day of week
+    const dateParts = dateStr.split('-');
+    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+    const dayOfWeek = dateObj.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    // Build request matching backend CreateAvailabilityRequestDto
     const request = {
-      date: dateStr,  // Format: YYYY-MM-DD (DateOnly on backend)
-      timeRanges: [{
-        startTime: `${String(startHour).padStart(2, '0')}:00:00`,  // Format: HH:mm:ss
-        endTime: `${String(endHour).padStart(2, '0')}:00:00`
-      }],
-      slotDurationMinutes: 60  // 1-hour slots
+      dayOfWeek: dayOfWeek,
+      startTime: `${String(startHour).padStart(2, '0')}:00:00`,
+      endTime: `${String(endHour).padStart(2, '0')}:00:00`,
+      isRecurring: false,  // Single date slot, not recurring
+      date: dateStr,
+      isAvailable: true
     };
     
-    this.slotsService.createTeacherSlots(request).subscribe({
-      next: (response) => {
-        // Update local state with created slots
-        if (response.createdSlots && response.createdSlots.length > 0) {
-          const createdSlot = response.createdSlots[0];
+    this.repo.createAvailability(request).subscribe({
+      next: (response: any) => {
+        // Update local state with created slot
+        if (response && response.id) {
           this.availabilitySlots.push({
-            id: createdSlot.slotId,
+            id: response.id,
             date: dateStr,
             displayStartTime: `${String(startHour).padStart(2, '0')}:00`,
             displayHour: startHour,
-            startTimeUtc: createdSlot.startAtUtc,
-            endTimeUtc: createdSlot.endAtUtc
+            startTimeUtc: response.startTime || `${String(startHour).padStart(2, '0')}:00:00`,
+            endTimeUtc: response.endTime || `${String(endHour).padStart(2, '0')}:00:00`,
+            status: 'Available'
           });
         }
         
@@ -541,7 +546,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   /**
    * Delete availability for a time slot
-   * Uses V1 API: DELETE /v1/teacher/slots/{id}
+   * Uses Legacy API: DELETE /api/teacher/availability/{id}
    */
   deleteAvailability(slot: TimeSlot, event: Event): void {
     event.stopPropagation(); // Prevent slot click
@@ -550,16 +555,14 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     
     this.isSavingSlot = true;
     
-    this.slotsService.deleteSlot(String(slot.availabilityId)).subscribe({
-      next: (response) => {
-        if (response.deleted) {
-          // Remove from local state
-          this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== slot.availabilityId);
+    this.repo.deleteAvailability(slot.availabilityId).subscribe({
+      next: (response: any) => {
+        // Remove from local state
+        this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== slot.availabilityId);
           
-          // Regenerate time slots for current date
-          this.generateTimeSlotsForDate(this.selectedCalendarDate);
-          this.buildAvailableDates();
-        }
+        // Regenerate time slots for current date
+        this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        this.buildAvailableDates();
         
         this.isSavingSlot = false;
       },
