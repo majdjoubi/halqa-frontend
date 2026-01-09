@@ -133,7 +133,8 @@ export class SimpleDatePickerComponent implements OnChanges {
       this.currentMonth = sortedDates[0].getMonth();
       this.currentYear = sortedDates[0].getFullYear();
       this.buildCalendar();
-      this.selectDate(firstDate);
+      // Defer the event emission to avoid ExpressionChangedAfterItHasBeenCheckedError
+      setTimeout(() => this.dateSelected.emit(firstDate), 0);
     }
   }
 

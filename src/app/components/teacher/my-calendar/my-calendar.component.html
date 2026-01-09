@@ -120,7 +120,7 @@
           <div *ngIf="selectedCalendarDate" class="slots-container">
             <div class="slots-header">
               <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
-              <p class="slots-hint" *ngIf="!isSavingSlot">
+              <p class="slots-hint" *ngIf="!isSavingSlot && !hasPendingChanges()">
                 <i class="fas fa-info-circle"></i>
                 {{ 'my_calendar_page.calendar.click_to_add' | translate }}
               </p>
@@ -130,22 +130,52 @@
               </p>
             </div>
 
+            <!-- Confirm Bar for pending changes -->
+            <div *ngIf="hasPendingChanges() && !isSavingSlot" class="confirm-bar">
+              <span class="pending-count">
+                <span *ngIf="pendingSlots.size > 0" class="add-count">
+                  <i class="fas fa-plus-circle"></i> {{ pendingSlots.size }} {{ 'my_calendar_page.batch.to_add' | translate }}
+                </span>
+                <span *ngIf="slotsToDelete.size > 0" class="remove-count">
+                  <i class="fas fa-minus-circle"></i> {{ slotsToDelete.size }} {{ 'my_calendar_page.batch.to_remove' | translate }}
+                </span>
+              </span>
+              <div class="confirm-actions">
+                <button class="btn-cancel" (click)="clearPendingChanges()">
+                  <i class="fas fa-times"></i>
+                  {{ 'my_calendar_page.batch.cancel' | translate }}
+                </button>
+                <button class="btn-confirm" (click)="confirmAvailabilityChanges()">
+                  <i class="fas fa-check"></i>
+                  {{ 'my_calendar_page.batch.confirm' | translate }}
+                </button>
+              </div>
+            </div>
+
             <div class="hours-grid">
               <div 
                 *ngFor="let slot of allTimeSlots"
                 class="hour-slot"
-                [class.available]="slot.isAvailable && !slot.isBooked"
+                [class.available]="slot.isAvailable && !slot.isBooked && !isSlotPendingDelete(slot)"
                 [class.booked]="slot.isBooked"
                 [class.past]="slot.isPast"
+                [class.pending]="isSlotPending(slot)"
+                [class.pending-delete]="isSlotPendingDelete(slot)"
                 [class.group-session]="slot.booking?.lessonType === 'Group'"
-                [class.clickable]="!slot.isPast && !slot.isBooked && !slot.isAvailable"
+                [class.clickable]="!slot.isPast && !slot.isBooked"
                 (click)="onSlotClick(slot)"
               >
                 <span class="hour-time">{{ slot.time }}</span>
                 
-                <!-- Available slot: show delete button -->
+                <!-- Pending add indicator -->
+                <i *ngIf="isSlotPending(slot)" class="fas fa-plus pending-icon"></i>
+                
+                <!-- Pending delete indicator -->
+                <i *ngIf="isSlotPendingDelete(slot)" class="fas fa-trash pending-delete-icon"></i>
+                
+                <!-- Available slot: show delete button (only if not pending delete) -->
                 <button 
-                  *ngIf="slot.isAvailable && !slot.isBooked && !slot.isPast"
+                  *ngIf="slot.isAvailable && !slot.isBooked && !slot.isPast && !isSlotPendingDelete(slot)"
                   class="slot-delete-btn"
                   (click)="deleteAvailability(slot, $event)"
                   title="{{ 'my_calendar_page.delete_availability' | translate }}"

@@ -478,7 +478,7 @@
 <!-- Dedicated booking side menu (separate from the view/profile side-menu) -->
 <app-side-menu
   [open]="bookingSidebarOpen"
-  (openChange)="bookingSidebarOpen = $any($event)"
+  (openChange)="$event ? null : closeBookingSidebar()"
   [width]="'420px'"
   [position]="'right'"
   [backdropOpacity]="0.5"

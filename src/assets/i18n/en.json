@@ -1247,6 +1247,16 @@
       "create_availability": "Failed to create availability",
       "delete_availability": "Failed to delete availability",
       "update_rate": "Failed to update hourly rate"
+    },
+    "batch": {
+      "to_add": "to add",
+      "to_remove": "to remove",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "slots": "slots",
+      "saving": "Saving changes...",
+      "success": "Availability updated successfully",
+      "error": "Failed to update some availability slots"
     }
   }
 }

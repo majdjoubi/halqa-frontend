@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subscription, forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Subscription, forkJoin, of, interval } from 'rxjs';
+import { catchError, takeWhile } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { SideMenuComponent } from '../../../shared/shared-component/side-menu/side-menu.component';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
@@ -86,6 +86,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   // Language subscription
   private langSubscription?: Subscription;
+
+  // Polling for availability updates (every 30 seconds while sidebar is open)
+  private slotsPollingSubscription?: Subscription;
+  private readonly POLLING_INTERVAL_MS = 30000; // 30 seconds
 
   // Timezone - User's IANA timezone (auto-detected)
   userIanaTimezone: string = 'UTC';
@@ -395,13 +399,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe((result: any) => {
-        if (result && result.slots && result.slots.length > 0) {
-          // V1 API succeeded with slots
-          this.processEnrichedSlots(result.slots, teacher);
-        } else {
-          // Fallback to legacy API - use availability from teacher profile
+        if (result === null) {
+          // Fallback ONLY when the V1 call fails.
           this.loadLegacyAvailability(teacher);
+          return;
         }
+
+        // V1 call succeeded (even if empty). Empty means "no bookable availability".
+        this.processEnrichedSlots((result?.slots || []) as EnrichedSlot[], teacher);
       });
   }
 
@@ -409,8 +414,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    * Process enriched slots from V1 API
    */
   private processEnrichedSlots(enrichedSlots: EnrichedSlot[], teacher: any): void {
+    // Only show slots that are actually bookable (available AND not in the past)
+    const bookableSlots = (enrichedSlots || []).filter(s => s.isBookable);
+
     // Map enriched slots to the format expected by the template
-    const mappedSlots = enrichedSlots.map((slot: EnrichedSlot) => ({
+    const mappedSlots = bookableSlots.map((slot: EnrichedSlot) => ({
       ...slot,
       // Map properties for template compatibility
       startTime: slot.viewerLocal12h,
@@ -440,6 +448,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.selectedSlotIndex = null;
     this.selectedCalendarDate = null;
     this.loadingBookId = null;
+
+    // Start polling for availability updates
+    this.startSlotsPolling(teacher.id || teacher.userId);
   }
 
   /**
@@ -449,12 +460,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const legacySlots = teacher.availability || [];
     
     // Map legacy slots to the expected format
+    const nowUtc = DateTime.utc();
     const mappedSlots = legacySlots.map((slot: any) => {
       let displayDate = '';
       let adjustedDateKey = '';
       let dayOfWeek = slot.dayOfWeek || 0;
       let startTime12h = '';
       let endTime12h = '';
+      let isPast = false;
 
       if (slot.startDateTime) {
         try {
@@ -463,6 +476,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           adjustedDateKey = localStart.toFormat('yyyy-MM-dd');
           dayOfWeek = localStart.weekday % 7;
           startTime12h = localStart.toFormat('h:mm a');
+
+          try {
+            const startUtc = DateTime.fromISO(slot.startDateTime, { zone: 'utc' });
+            isPast = startUtc.isValid && startUtc < nowUtc;
+          } catch {
+            isPast = false;
+          }
           
           const localEnd = slot.endDateTime 
             ? this.timezoneService.utcToLocal(slot.endDateTime, this.userIanaTimezone)
@@ -484,7 +504,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         startTime: startTime12h,
         endTime: endTime12h,
         price: teacher.hourlyRate,
-        isAvailable: slot.isAvailable !== false && !slot.isBooked,
+        // Only show bookable slots in the UI: available AND not in the past.
+        isAvailable: (slot.isAvailable !== false && !slot.isBooked) && !isPast,
         displayDate: displayDate,
         adjustedDateKey: adjustedDateKey,
         dayOfWeek: dayOfWeek,
@@ -493,15 +514,98 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       };
     });
 
+    // Hide unavailable/past slots completely.
+    const bookableOnly = mappedSlots.filter((s: any) => s.isAvailable);
+
     this.bookingTeacher = {
       ...teacher,
-      availability: mappedSlots
+      availability: bookableOnly
     };
 
     this.bookingSidebarOpen = true;
     this.selectedSlotIndex = null;
     this.selectedCalendarDate = null;
     this.loadingBookId = null;
+
+    // Start polling for availability updates
+    this.startSlotsPolling(teacher.id || teacher.userId);
+  }
+
+  /**
+   * Start polling for availability updates every 30 seconds
+   */
+  private startSlotsPolling(teacherId: string): void {
+    // Stop any existing polling
+    this.stopSlotsPolling();
+
+    this.slotsPollingSubscription = interval(this.POLLING_INTERVAL_MS)
+      .pipe(takeWhile(() => this.bookingSidebarOpen))
+      .subscribe(() => {
+        if (this.bookingTeacher && this.bookingSidebarOpen) {
+          console.log('[Polling] Refreshing teacher availability...');
+          this.refreshBookingSlots(teacherId);
+        }
+      });
+  }
+
+  /**
+   * Stop polling for availability updates
+   */
+  private stopSlotsPolling(): void {
+    if (this.slotsPollingSubscription) {
+      this.slotsPollingSubscription.unsubscribe();
+      this.slotsPollingSubscription = undefined;
+    }
+  }
+
+  /**
+   * Refresh slots without resetting selection (for polling)
+   */
+  private refreshBookingSlots(teacherId: string): void {
+    const now = DateTime.now().setZone(this.userIanaTimezone);
+    const fromDate = now.toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 30 }).toFormat('yyyy-MM-dd');
+
+    this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
+      .pipe(catchError(() => of(null)))
+      .subscribe((result: any) => {
+        if (result && result.slots && result.slots.length > 0 && this.bookingTeacher) {
+          // Update slots while preserving current selection
+          const currentSelection = this.selectedSlotIndex;
+          const currentDate = this.selectedCalendarDate;
+          
+          const mappedSlots = result.slots.map((slot: EnrichedSlot) => ({
+            ...slot,
+            startTime: slot.viewerLocal12h,
+            endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
+            price: this.bookingTeacher.hourlyRate,
+            isAvailable: slot.isBookable,
+            date: slot.viewerLocalDate,
+            displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
+            adjustedDateKey: slot.viewerLocalDate,
+            dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+            id: slot.slotId,
+            startIsoUtc: slot.startAtUtc
+          }));
+
+          this.bookingTeacher = {
+            ...this.bookingTeacher,
+            availability: mappedSlots
+          };
+
+          // Restore selection if still valid
+          this.selectedCalendarDate = currentDate;
+          // Validate that selected slot is still available
+          if (currentSelection !== null) {
+            const selectedSlot = mappedSlots[currentSelection];
+            if (!selectedSlot || !selectedSlot.isAvailable) {
+              this.selectedSlotIndex = null; // Reset if no longer available
+            } else {
+              this.selectedSlotIndex = currentSelection;
+            }
+          }
+        }
+      });
   }
 
   private _calculateEndTime(startTime12h: string, durationMin: number): string {
@@ -618,7 +722,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       next: (res) => {
         console.log('Booking created successfully via SlotsService', res);
         this.payProcessing = false;
-        this.bookingSidebarOpen = false;
+        this.closeBookingSidebar();
 
         // Convert response to compatible format if needed for displaying confirmation
         // (The backend response for bookSlot matches what we need for confirmation)
@@ -699,7 +803,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         console.log('Group session booked successfully', res);
         this.groupBookingProcessing = false;
         this.closeGroupSessionModal();
-        this.bookingSidebarOpen = false;
+        this.closeBookingSidebar();
 
         // Refresh student bookings
         this.loadStudentExistingBookings();
@@ -956,9 +1060,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     if (!this.bookingTeacher?.availability) return [];
 
     // Filter slots by selected calendar date if set
-    let slotsToGroup = this.bookingTeacher.availability;
+    let slotsToGroup = this.bookingTeacher.availability.filter((s: any) => !!s?.isAvailable);
     if (this.selectedCalendarDate) {
-      slotsToGroup = this.bookingTeacher.availability.filter((slot: any) => {
+      slotsToGroup = slotsToGroup.filter((slot: any) => {
         // First priority: use adjustedDateKey (calculated during slot processing)
         if (slot.adjustedDateKey) {
           return slot.adjustedDateKey === this.selectedCalendarDate;
@@ -1051,5 +1155,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.langSubscription?.unsubscribe();
+    this.stopSlotsPolling();
+  }
+
+  /**
+   * Close booking sidebar and stop polling
+   */
+  closeBookingSidebar(): void {
+    this.bookingSidebarOpen = false;
+    this.stopSlotsPolling();
   }
 }

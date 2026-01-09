@@ -54,7 +54,7 @@ interface TimeSlot {
   standalone: true,
   imports: [CommonModule, TranslateModule, FormsModule, SimpleDatePickerComponent],
   templateUrl: './my-calendar.component.html',
-  styleUrl: './my-calendar.component.scss',
+  styleUrls: ['./my-calendar.component.scss'],
 })
 export class MyCalendarComponent implements OnInit, OnDestroy {
   // ===== VIEW STATE =====
@@ -83,6 +83,10 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   // ===== AVAILABILITY DATA =====
   availabilitySlots: any[] = [];
+
+  // ===== PENDING SELECTION =====
+  pendingSlots: Set<number> = new Set(); // Hours pending to be added
+  slotsToDelete: Set<number> = new Set(); // Availability IDs pending to be deleted
 
   // ===== HOURLY RATE =====
   hourlyRate: number = 0;
@@ -192,12 +196,27 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
           this.hourlyRate = profile.hourlyRate;
           this.newHourlyRate = profile.hourlyRate;
         }
+
+        // Availability management on this page uses the legacy teacher availability endpoints,
+        // which require a numeric availabilityId. Load legacy availability here.
+        this.loadLegacyAvailability(profile);
       },
       error: (err) => console.error('Error loading teacher profile:', err)
     });
+  }
 
-    // Load availability from V1 API
-    this.loadAvailabilityFromV1();
+  private normalizeDateOnly(value: unknown): string | undefined {
+    if (!value) return undefined;
+    if (typeof value === 'string') {
+      // API may return DateTime like "2026-01-09T00:00:00"; UI expects "2026-01-09"
+      const idx = value.indexOf('T');
+      const datePart = (idx >= 0 ? value.slice(0, idx) : value).trim();
+      return /^\d{4}-\d{2}-\d{2}$/.test(datePart) ? datePart : datePart.slice(0, 10);
+    }
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      return value.toISOString().slice(0, 10);
+    }
+    return undefined;
   }
 
   /**
@@ -278,7 +297,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
         return {
           ...slot,
-          date: dateStr || slot.date,
+          date: dateStr || this.normalizeDateOnly(slot.date) || slot.date,
           displayStartTime: displayStartTime || slot.startTime,
           displayHour: displayHour
         };
@@ -308,8 +327,9 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
     // Add dates from availability
     this.availabilitySlots.forEach(slot => {
-      if (slot.date) {
-        dates.add(slot.date);
+      const normalized = this.normalizeDateOnly(slot.date) || slot.date;
+      if (normalized) {
+        dates.add(normalized);
       }
     });
 
@@ -435,6 +455,14 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
       });
       const isAvailable = !!availabilitySlot;
 
+      const rawAvailabilityId = availabilitySlot?.id;
+      const availabilityId =
+        typeof rawAvailabilityId === 'number'
+          ? rawAvailabilityId
+          : (typeof rawAvailabilityId === 'string' && /^\d+$/.test(rawAvailabilityId))
+              ? Number(rawAvailabilityId)
+              : undefined;
+
       const isPast = isPastDate || (isToday && hour <= currentHour);
 
       slots.push({
@@ -445,7 +473,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         isBooked: !!booking,
         isPast: isPast,
         booking: booking,
-        availabilityId: availabilitySlot?.id
+        availabilityId: availabilityId
       });
     }
 
@@ -468,30 +496,190 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   // ===== AVAILABILITY ACTIONS =====
 
   /**
-   * Handle click on a time slot
-   * - If empty slot (not booked, not available): create availability
-   * - If available slot: handled by delete button (x)
-   * - If booked: do nothing (just show info)
+   * Handle click on a time slot - toggle selection
+   * - If empty slot: toggle pending selection (green)
+   * - If available slot: toggle for deletion (red)
+   * - If booked: do nothing
    */
   onSlotClick(slot: TimeSlot): void {
-    // Don't allow actions on past slots
-    if (slot.isPast) return;
+    // Don't allow actions on past slots or booked slots
+    if (slot.isPast || slot.isBooked) return;
     
-    // Don't allow actions on booked slots
-    if (slot.isBooked) return;
-    
-    // If slot is already available, don't do anything (use delete button)
-    if (slot.isAvailable) return;
-    
-    // Create availability for this empty slot
-    this.createAvailability(slot);
+    if (slot.isAvailable && slot.availabilityId) {
+      // Toggle deletion for existing availability
+      if (this.slotsToDelete.has(slot.availabilityId)) {
+        this.slotsToDelete.delete(slot.availabilityId);
+      } else {
+        this.slotsToDelete.add(slot.availabilityId);
+      }
+    } else if (!slot.isAvailable) {
+      // Toggle pending selection for new slot
+      if (this.pendingSlots.has(slot.hour)) {
+        this.pendingSlots.delete(slot.hour);
+      } else {
+        this.pendingSlots.add(slot.hour);
+      }
+    }
   }
 
   /**
-   * Create availability for a time slot
-   * Uses Legacy API: POST /api/teacher/availability
+   * Check if a slot is pending to be added
    */
-  createAvailability(slot: TimeSlot): void {
+  isSlotPending(slot: TimeSlot): boolean {
+    return this.pendingSlots.has(slot.hour) && !slot.isAvailable;
+  }
+
+  /**
+   * Check if a slot is pending to be deleted
+   */
+  isSlotPendingDelete(slot: TimeSlot): boolean {
+    return slot.availabilityId ? this.slotsToDelete.has(slot.availabilityId) : false;
+  }
+
+  /**
+   * Check if there are any pending changes
+   */
+  hasPendingChanges(): boolean {
+    return this.pendingSlots.size > 0 || this.slotsToDelete.size > 0;
+  }
+
+  /**
+   * Clear all pending selections
+   */
+  clearPendingChanges(): void {
+    this.pendingSlots.clear();
+    this.slotsToDelete.clear();
+  }
+
+  /**
+   * Confirm and save all pending changes
+   */
+  confirmAvailabilityChanges(): void {
+    if (this.isSavingSlot || !this.hasPendingChanges()) return;
+    
+    this.isSavingSlot = true;
+    const dateStr = this.selectedCalendarDate;
+    const dateParts = dateStr.split('-');
+    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+    const dayOfWeek = dateObj.getDay();
+    
+    const operations: any[] = [];
+    const results = {
+      createFailed: 0,
+      deleteFailed: 0,
+      created: 0,
+      deleted: 0
+    };
+    
+    // Add creation operations
+    this.pendingSlots.forEach(hour => {
+      const endHour = (hour + 1) % 24;
+      operations.push({
+        type: 'create',
+        hour: hour,
+        request: {
+          dayOfWeek: dayOfWeek,
+          startTime: `${String(hour).padStart(2, '0')}:00:00`,
+          endTime: `${String(endHour).padStart(2, '0')}:00:00`,
+          isRecurring: false,
+          date: dateStr,
+          isAvailable: true
+        }
+      });
+    });
+    
+    // Add deletion operations
+    this.slotsToDelete.forEach(availabilityId => {
+      operations.push({ type: 'delete', availabilityId: availabilityId });
+    });
+    
+    this.executeOperations(operations, 0, results);
+  }
+
+  /**
+   * Execute operations one by one
+   */
+  private executeOperations(
+    operations: any[],
+    index: number,
+    results: { createFailed: number; deleteFailed: number; created: number; deleted: number }
+  ): void {
+    if (index >= operations.length) {
+      // All done: clear pending, then reload from backend so refresh matches persisted state.
+      this.clearPendingChanges();
+      this.reloadAvailabilityAfterSave(results);
+      return;
+    }
+    
+    const op = operations[index];
+    
+    if (op.type === 'create') {
+      this.repo.createAvailability(op.request).subscribe({
+        next: (response: any) => {
+          if (response && response.id) {
+            results.created++;
+            this.availabilitySlots.push({
+              id: response.id,
+              date: this.selectedCalendarDate,
+              displayStartTime: `${String(op.hour).padStart(2, '0')}:00`,
+              displayHour: op.hour
+            });
+          }
+          this.executeOperations(operations, index + 1, results);
+        },
+        error: () => {
+          results.createFailed++;
+          this.executeOperations(operations, index + 1, results);
+        }
+      });
+    } else if (op.type === 'delete') {
+      this.repo.deleteAvailability(op.availabilityId).subscribe({
+        next: () => {
+          results.deleted++;
+          this.availabilitySlots = this.availabilitySlots.filter(s => s.id !== op.availabilityId);
+          this.executeOperations(operations, index + 1, results);
+        },
+        error: () => {
+          results.deleteFailed++;
+          this.executeOperations(operations, index + 1, results);
+        }
+      });
+    }
+  }
+
+  private reloadAvailabilityAfterSave(results: { createFailed: number; deleteFailed: number; created: number; deleted: number }): void {
+    this.repo.getTeacherProfile().subscribe({
+      next: (response: any) => {
+        const profile = response?.profile || response;
+        this.loadLegacyAvailability(profile);
+
+        if (this.selectedCalendarDate) {
+          this.generateTimeSlotsForDate(this.selectedCalendarDate);
+        }
+        this.buildAvailableDates();
+
+        this.isSavingSlot = false;
+
+        const hadFailures = results.createFailed > 0 || results.deleteFailed > 0;
+        if (hadFailures) {
+          alert(this.translate.instant('my_calendar_page.batch.error') || 'Failed to update some availability slots');
+        } else {
+          alert(this.translate.instant('my_calendar_page.batch.success') || 'Availability updated successfully');
+        }
+      },
+      error: (err) => {
+        console.error('Error reloading availability after save:', err);
+        this.isSavingSlot = false;
+        alert(this.translate.instant('my_calendar_page.batch.error') || 'Failed to update some availability slots');
+      }
+    });
+  }
+
+  /**
+   * Create availability for a time slot (legacy)
+   * @deprecated Use confirmAvailabilityChanges() instead
+   */
+  private createAvailability(slot: TimeSlot): void {
     if (this.isSavingSlot || !this.selectedCalendarDate) return;
     
     this.isSavingSlot = true;

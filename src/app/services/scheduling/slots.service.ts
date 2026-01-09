@@ -13,7 +13,8 @@ export interface SlotDto {
   endAtUtc: string;
   anchorDateTeacher: string;
   durationMin: number;
-  status: 'Available' | 'Booked';
+  /** Status can be string ('Available'|'Booked') or number (1=Available, 2=Booked) */
+  status: 'Available' | 'Booked' | 1 | 2;
   teacherLocal?: {
     date: string;
     time24h: string;
@@ -277,7 +278,9 @@ export class SlotsService {
       
       const slotTime = this.timezoneService.utcToLocal(slot.startAtUtc, 'UTC');
       const isPast = slotTime < now;
-      const isBookable = slot.status === 'Available' && !isPast;
+      // Handle both string ('Available') and number (1) status from backend
+      const isAvailableStatus = slot.status === 'Available' || slot.status === 1;
+      const isBookable = isAvailableStatus && !isPast;
 
       return {
         ...slot,
