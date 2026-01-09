@@ -22,6 +22,8 @@ import { environment } from '../../environment/environment';
 })
 export class TimezoneService {
 
+  private readonly legacyBaseUrl = (environment.apiUrl || '').replace(/\/$/, '');
+
   private readonly TIMEZONE_CACHE_KEY = 'halqa_iana_timezone';
   private readonly TIMEZONE_SYNC_KEY = 'halqa_timezone_synced';
 
@@ -274,7 +276,7 @@ export class TimezoneService {
     console.log('[TimezoneService] Syncing timezone to backend:', detectedTz);
     
     return this.http.put<{ message: string; ianaTimezone: string }>(
-      `${environment.apiUrl}/users/me/timezone`,
+      `${this.legacyBaseUrl}/api/user/me/timezone`,
       { ianaTimezone: detectedTz }
     ).pipe(
       tap(response => {
@@ -302,7 +304,7 @@ export class TimezoneService {
     }
 
     return this.http.get<{ ianaTimezone: string; isValid: boolean; needsUpdate: boolean }>(
-      `${environment.apiUrl}/users/me/timezone`
+      `${this.legacyBaseUrl}/api/user/me/timezone`
     ).pipe(
       catchError(err => {
         console.error('[TimezoneService] Failed to get backend timezone:', err);
