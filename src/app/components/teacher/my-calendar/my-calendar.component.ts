@@ -812,7 +812,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         console.error('Error getting meeting token:', err);
         const code = err?.error?.code;
         if (code === 'TIME_NOT_YET') {
-          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 5 دقائق.');
+          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 60 دقيقة.');
           return;
         }
         alert(this.translate.instant('my_calendar.errors.start_session'));
