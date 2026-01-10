@@ -1015,6 +1015,8 @@
     "GROUP_SESSIONS": "الجلسات الجماعية",
     "MY_BOOKINGS": "حجوزاتي",
     "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 5 دقائق",
+    "STARTS_IN": "يبدأ بعد",
+    "SESSION_STARTED": "بدأت الجلسة",
     "INDIVIDUAL_LESSONS": "الدروس الفردية",
     "MIN_RATING": "الحد الأدنى للتقييم",
     "ANY": "الكل",

@@ -13,9 +13,15 @@
     <div class="card" *ngFor="let b of bookings">
       <div class="row">
         <div class="main">
-          <div class="teacher">{{ b.teacherName }}</div>
+          <div class="teacherRow">
+            <img *ngIf="b.teacherProfileImage" class="avatar" [src]="b.teacherProfileImage" alt="" />
+            <div class="teacher">{{ b.teacherName }}</div>
+          </div>
           <div class="lesson">{{ b.lessonTitle }}</div>
           <div class="time">{{ formatDateTimeUtc(b.scheduledDateTime) }}</div>
+          <div class="countdown" *ngIf="getCountdownText(b.scheduledDateTime)">
+            {{ getCountdownText(b.scheduledDateTime) }}
+          </div>
           <div class="status">{{ b.status }}</div>
         </div>
 

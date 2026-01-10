@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Subscription, timer } from 'rxjs';
 import { SlotsService } from '../../../services/scheduling/slots.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
 
@@ -8,10 +9,13 @@ interface StudentBookingItem {
   id: number;
   teacherId: string;
   teacherName: string;
+  teacherProfileImage?: string;
   lessonTitle: string;
   scheduledDateTime: string; // UTC ISO
   duration: number;
   status: string;
+  bookingType?: string;
+  amountPaid?: number;
   meetingRoomUrl?: string;
 }
 
@@ -26,6 +30,9 @@ export class MyBookingsComponent implements OnInit {
   isLoading = true;
   bookings: StudentBookingItem[] = [];
 
+  private tickSub?: Subscription;
+  private nowUtcIso: string = new Date().toISOString();
+
   userIanaTimezone: string = 'UTC';
 
   constructor(
@@ -36,7 +43,15 @@ export class MyBookingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.userIanaTimezone = this.timezoneService.detectClientTimezone();
+    // Update countdowns every second.
+    this.tickSub = timer(0, 1000).subscribe(() => {
+      this.nowUtcIso = this.timezoneService.nowUtc().toISO() ?? new Date().toISOString();
+    });
     this.loadBookings();
+  }
+
+  ngOnDestroy(): void {
+    this.tickSub?.unsubscribe();
   }
 
   loadBookings(): void {
@@ -45,14 +60,26 @@ export class MyBookingsComponent implements OnInit {
     this.slotsService.getStudentBookings().subscribe({
       next: (response: any) => {
         // Backend returns StudentBookingDto[] from legacy endpoint.
-        this.bookings = (response || []).map((b: any) => ({
+        // Be tolerant if the API ever wraps the array.
+        const list = Array.isArray(response)
+          ? response
+          : Array.isArray(response?.bookings)
+            ? response.bookings
+            : Array.isArray(response?.data)
+              ? response.data
+              : [];
+
+        this.bookings = list.map((b: any) => ({
           id: b.id,
           teacherId: b.teacherId,
           teacherName: b.teacherName,
+          teacherProfileImage: b.teacherProfileImage,
           lessonTitle: b.lessonTitle,
           scheduledDateTime: b.scheduledDateTime,
           duration: b.duration,
           status: typeof b.status === 'string' ? b.status : String(b.status),
+          bookingType: typeof b.bookingType === 'string' ? b.bookingType : b.bookingType != null ? String(b.bookingType) : undefined,
+          amountPaid: typeof b.amountPaid === 'number' ? b.amountPaid : b.amountPaid != null ? Number(b.amountPaid) : undefined,
           meetingRoomUrl: b.meetingRoomUrl,
         }));
         this.isLoading = false;
@@ -74,6 +101,34 @@ export class MyBookingsComponent implements OnInit {
 
   canJoin(utcIso: string): boolean {
     return this.timezoneService.isSessionJoinable(utcIso);
+  }
+
+  getCountdownText(utcIso: string): string {
+    try {
+      // Ensure countdown updates by depending on nowUtcIso.
+      void this.nowUtcIso;
+
+      const seconds = Math.floor(
+        this.timezoneService.utcToLocal(utcIso, 'UTC')
+          .diff(this.timezoneService.utcToLocal(this.nowUtcIso, 'UTC'), 'seconds').seconds
+      );
+
+      if (seconds <= 0) {
+        return this.translate.instant('SESSION_STARTED') || 'بدأت الجلسة';
+      }
+
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const secs = seconds % 60;
+      const hh = String(hours).padStart(2, '0');
+      const mm = String(minutes).padStart(2, '0');
+      const ss = String(secs).padStart(2, '0');
+
+      const prefix = this.translate.instant('STARTS_IN') || 'يبدأ بعد';
+      return `${prefix}: ${hh}:${mm}:${ss}`;
+    } catch {
+      return '';
+    }
   }
 
   joinBooking(booking: StudentBookingItem): void {

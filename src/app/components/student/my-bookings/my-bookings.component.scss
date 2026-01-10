@@ -34,6 +34,20 @@
   gap: 12px;
 }
 
+.teacherRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
 .teacher {
   font-weight: 700;
 }
@@ -43,6 +57,12 @@
 .status {
   font-size: 13px;
   opacity: 0.9;
+}
+
+.countdown {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .actions {

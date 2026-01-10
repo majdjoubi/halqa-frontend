@@ -1016,6 +1016,8 @@
     "GROUP_SESSIONS": "Group Sessions",
     "MY_BOOKINGS": "My Bookings",
     "JOIN_AVAILABLE_5_MIN": "Available 5 minutes before start",
+    "STARTS_IN": "Starts in",
+    "SESSION_STARTED": "Session started",
     "INDIVIDUAL_LESSONS": "Individual Lessons",
     "MIN_RATING": "Minimum Rating",
     "ANY": "Any",
