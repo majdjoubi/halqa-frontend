@@ -1,13 +1,8 @@
 @import "../../../shared/styles/_color-variable";
 
-/* Reuse header spacing utility */
-.Student-custom-marginTop {
-  padding-top: calc(80px + 32px);
-}
-
 /* Page-level loader */
 .page-loader-holder {
-  padding-top: calc(80px + 32px);
+  padding-top: calc(80px + 32px + 24px);
   min-height: 50vh;
   display: flex;
   align-items: center;
@@ -41,6 +36,7 @@
 
 .my-bookings {
   padding: 24px;
+  padding-top: calc(80px + 32px + 24px);
   background: #f5f6f7;
   min-height: 100vh;
   box-sizing: border-box;
