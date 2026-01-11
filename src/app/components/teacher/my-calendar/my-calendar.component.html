@@ -21,19 +21,6 @@
     </div>
   </div>
 
-  <!-- Hourly Rate Card -->
-  <div class="hourly-rate-card">
-    <div class="rate-info">
-      <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
-      <span class="rate-value">${{ hourlyRate }}</span>
-      <span class="rate-per-hour">/ {{ 'my_calendar_page.per_hour' | translate }}</span>
-    </div>
-    <button class="btn-edit-rate" (click)="openRateModal()">
-      <i class="fas fa-edit"></i>
-      {{ 'my_calendar_page.edit_rate' | translate }}
-    </button>
-  </div>
-
   <div class="calendar-content">
     <!-- Tabs -->
     <div class="tabs-container">
@@ -67,6 +54,17 @@
       <div class="calendar-layout">
         <!-- Date Picker -->
         <div class="date-picker-section">
+          <!-- Compact Hourly Rate Widget -->
+          <div class="rate-widget">
+            <div class="rate-display">
+              <span class="rate-amount">${{ hourlyRate }}</span>
+              <span class="rate-unit">/ {{ 'my_calendar_page.per_hour' | translate }}</span>
+            </div>
+            <button class="btn-edit-rate-mini" (click)="openRateModal()">
+              <i class="fas fa-edit"></i>
+            </button>
+          </div>
+
           <app-simple-date-picker
             [availableDates]="availableDates"
             [selectedDate]="selectedCalendarDate"
@@ -78,24 +76,6 @@
 
         <!-- Time Slots Grid -->
         <div class="time-slots-section">
-          <!-- Next Lesson Mini Widget (top right) -->
-          <div *ngIf="nextUpcoming" class="next-lesson-widget">
-            <div class="widget-icon">
-              <i class="fas fa-bell"></i>
-            </div>
-            <div class="widget-info">
-              <span class="widget-label">{{ "my_calendar_page.next_lesson" | translate }}</span>
-              <span class="widget-title">{{ nextUpcoming.lessonTitle }}</span>
-              <span class="widget-time">{{ formatDateTime(nextUpcoming.scheduledDateTime) }}</span>
-            </div>
-            <div class="widget-countdown">
-              <span class="countdown-val">{{ countdownText }}</span>
-              <button *ngIf="nextUpcoming.canStart" class="btn-widget-join" (click)="startSession(nextUpcoming)">
-                <i class="fas fa-video"></i>
-              </button>
-            </div>
-          </div>
-
           <div *ngIf="!selectedCalendarDate" class="select-date-prompt">
             <i class="fas fa-calendar-alt"></i>
             <p>{{ 'my_calendar_page.calendar.select_date' | translate }}</p>
