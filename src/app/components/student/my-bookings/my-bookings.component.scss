@@ -2,12 +2,12 @@
 
 /* Reuse header spacing utility */
 .Student-custom-marginTop {
-  padding-top: calc(80px + 16px);
+  padding-top: calc(80px + 32px);
 }
 
 /* Page-level loader */
 .page-loader-holder {
-  padding-top: calc(80px + 24px);
+  padding-top: calc(80px + 32px);
   min-height: 50vh;
   display: flex;
   align-items: center;
@@ -49,6 +49,113 @@
 .header {
   max-width: 1200px;
   margin: 0 auto 18px auto;
+}
+
+.next-lesson-card {
+  max-width: 1200px;
+  margin: 0 auto 16px auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-left: 4px solid rgba($primary-color, 0.9);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.next-lesson-left {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.next-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: $primary-color;
+  margin-bottom: 6px;
+}
+
+.next-title {
+  font-size: 18px;
+  font-weight: 900;
+  color: #12221a;
+  margin-bottom: 8px;
+}
+
+.next-teacher {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 800;
+  color: #12221a;
+  margin-bottom: 8px;
+}
+
+.next-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 4px solid rgba(0, 0, 0, 0.04);
+  background: #fff;
+}
+
+.next-datetime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #646464;
+  font-size: 13px;
+}
+
+.next-lesson-right {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.next-countdown {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba($primary-color, 0.06);
+  border: 1px solid rgba($primary-color, 0.12);
+
+  .countdown-label {
+    font-size: 12px;
+    font-weight: 900;
+    color: #12221a;
+    opacity: 0.85;
+  }
+
+  .countdown-value {
+    font-size: 14px;
+    font-weight: 900;
+    color: #12221a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.lessons-section {
+  max-width: 1200px;
+  margin: 18px auto 0 auto;
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  font-weight: 900;
+  color: #12221a;
 }
 
 .header-content {
@@ -444,5 +551,15 @@
   }
   .image-col {
     width: 100%;
+  }
+
+  .next-lesson-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .next-lesson-right {
+    width: 100%;
+    align-items: stretch;
   }
 }

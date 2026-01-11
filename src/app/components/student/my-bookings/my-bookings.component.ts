@@ -34,6 +34,11 @@ export class MyBookingsComponent implements OnInit {
   hasLoaded = false;
   bookings: StudentBookingItem[] = [];
 
+  upcomingBookings: StudentBookingItem[] = [];
+  pastBookings: StudentBookingItem[] = [];
+  nextUpcoming: StudentBookingItem | null = null;
+  upcomingAfterNext: StudentBookingItem[] = [];
+
   private tickSub?: Subscription;
   private nowUtcIso: string = new Date().toISOString();
 
@@ -58,6 +63,7 @@ export class MyBookingsComponent implements OnInit {
     // Update countdowns every second.
     this.tickSub = timer(0, 1000).subscribe(() => {
       this.nowUtcIso = this.timezoneService.nowUtc().toISO() ?? new Date().toISOString();
+      this.refreshBookingsView();
     });
     this.loadBookings();
   }
@@ -96,6 +102,8 @@ export class MyBookingsComponent implements OnInit {
           amountPaid: typeof b.amountPaid === 'number' ? b.amountPaid : b.amountPaid != null ? Number(b.amountPaid) : undefined,
           meetingRoomUrl: b.meetingRoomUrl,
         }));
+
+        this.refreshBookingsView();
         this.isLoading = false;
         this.hasLoaded = true;
 
@@ -108,6 +116,44 @@ export class MyBookingsComponent implements OnInit {
         this.hasLoaded = true;
       },
     });
+  }
+
+  private refreshBookingsView(): void {
+    if (!this.bookings || this.bookings.length === 0) {
+      this.upcomingBookings = [];
+      this.pastBookings = [];
+      this.nextUpcoming = null;
+      this.upcomingAfterNext = [];
+      return;
+    }
+
+    const nowMs = this.getUtcMs(this.nowUtcIso);
+
+    const upcoming = this.bookings
+      .filter((b) => this.getUtcMs(b.scheduledDateTime) >= nowMs)
+      .sort((a, b) => this.getUtcMs(a.scheduledDateTime) - this.getUtcMs(b.scheduledDateTime));
+
+    const past = this.bookings
+      .filter((b) => this.getUtcMs(b.scheduledDateTime) < nowMs)
+      .sort((a, b) => this.getUtcMs(b.scheduledDateTime) - this.getUtcMs(a.scheduledDateTime));
+
+    this.upcomingBookings = upcoming;
+    this.pastBookings = past;
+    this.nextUpcoming = upcoming.length > 0 ? upcoming[0] : null;
+    this.upcomingAfterNext = upcoming.length > 1 ? upcoming.slice(1) : [];
+  }
+
+  private getUtcMs(utcIso: string): number {
+    try {
+      return this.timezoneService.utcToLocal(utcIso, 'UTC').toMillis();
+    } catch {
+      const ms = Date.parse(utcIso);
+      return Number.isFinite(ms) ? ms : 0;
+    }
+  }
+
+  isUpcomingBooking(b: StudentBookingItem): boolean {
+    return this.getUtcMs(b.scheduledDateTime) >= this.getUtcMs(this.nowUtcIso);
   }
 
   trackById(index: number, item: StudentBookingItem) {
@@ -128,19 +174,19 @@ export class MyBookingsComponent implements OnInit {
     return this.normalizeStatus(b.status);
   }
 
-  statusLabel(b: StudentBookingItem): string {
+  statusKey(b: StudentBookingItem): string {
     const s = this.normalizeStatus(b.status);
     switch (s) {
       case 'confirmed':
-        return this.translate.instant('BOOKING_STATUS_CONFIRMED') || 'مؤكد';
+        return 'BOOKING_STATUS_CONFIRMED';
       case 'in progress':
-        return this.translate.instant('BOOKING_STATUS_IN_PROGRESS') || 'قيد التنفيذ';
+        return 'BOOKING_STATUS_IN_PROGRESS';
       case 'completed':
-        return this.translate.instant('BOOKING_STATUS_COMPLETED') || 'مكتمل';
+        return 'BOOKING_STATUS_COMPLETED';
       case 'cancelled':
-        return this.translate.instant('BOOKING_STATUS_CANCELLED') || 'ملغى';
+        return 'BOOKING_STATUS_CANCELLED';
       default:
-        return this.translate.instant('BOOKING_STATUS_SCHEDULED') || 'مجدول';
+        return 'BOOKING_STATUS_SCHEDULED';
     }
   }
 
@@ -165,7 +211,7 @@ export class MyBookingsComponent implements OnInit {
     return this.timezoneService.isSessionJoinable(utcIso);
   }
 
-  getCountdownText(utcIso: string): string {
+  getCountdownTime(utcIso: string): string {
     try {
       // Ensure countdown updates by depending on nowUtcIso.
       void this.nowUtcIso;
@@ -176,7 +222,7 @@ export class MyBookingsComponent implements OnInit {
       );
 
       if (seconds <= 0) {
-        return this.translate.instant('SESSION_STARTED') || 'بدأت الجلسة';
+        return '';
       }
 
       const hours = Math.floor(seconds / 3600);
@@ -186,8 +232,7 @@ export class MyBookingsComponent implements OnInit {
       const mm = String(minutes).padStart(2, '0');
       const ss = String(secs).padStart(2, '0');
 
-      const prefix = this.translate.instant('STARTS_IN') || 'يبدأ بعد';
-      return `${prefix}: ${hh}:${mm}:${ss}`;
+      return `${hh}:${mm}:${ss}`;
     } catch {
       return '';
     }

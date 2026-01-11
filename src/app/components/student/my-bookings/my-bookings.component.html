@@ -20,75 +20,162 @@
     </div>
   </div>
 
+  <!-- Next lesson countdown -->
+  <div class="next-lesson-card" *ngIf="nextUpcoming">
+    <div class="next-lesson-left">
+      <div class="next-label">{{ 'MY_BOOKINGS_NEXT_LESSON' | translate }}</div>
+      <div class="next-title">{{ nextUpcoming.lessonTitle }}</div>
+      <div class="next-teacher">
+        <img
+          class="next-avatar"
+          [src]="nextUpcoming.teacherProfileImage || '/assets/images/blank-avatar.webp'"
+          [alt]="nextUpcoming.teacherName"
+        />
+        <span>{{ nextUpcoming.teacherName }}</span>
+      </div>
+      <div class="next-datetime">
+        <i class="icon-clock"></i>
+        {{ formatDateTimeUtc(nextUpcoming.scheduledDateTime) }}
+      </div>
+    </div>
+
+    <div class="next-lesson-right">
+      <ng-container *ngIf="getCountdownTime(nextUpcoming.scheduledDateTime) as t; else startedBlock">
+        <div class="next-countdown">
+          <div class="countdown-label">{{ 'STARTS_IN' | translate }}</div>
+          <div class="countdown-value">
+            <i class="icon-timer"></i>
+            {{ t }}
+          </div>
+        </div>
+      </ng-container>
+      <ng-template #startedBlock>
+        <div class="next-countdown">
+          <div class="countdown-label">{{ 'SESSION_STARTED' | translate }}</div>
+        </div>
+      </ng-template>
+      <button
+        class="btn-join"
+        [disabled]="!canJoin(nextUpcoming.scheduledDateTime)"
+        (click)="joinBooking(nextUpcoming)"
+        type="button"
+      >
+        {{ 'JOIN' | translate }}
+      </button>
+      <div class="hint" *ngIf="!canJoin(nextUpcoming.scheduledDateTime)">
+        {{ 'JOIN_AVAILABLE_5_MIN' | translate }}
+      </div>
+    </div>
+  </div>
+
   <!-- Empty state -->
   <div *ngIf="hasLoaded && bookings.length === 0" class="empty-state">
     <img src="/assets/images/emptyData.svg" alt="No bookings" />
     <p>{{ 'NO_BOOKINGS' | translate }}</p>
   </div>
 
-  <!-- Cards grid -->
-  <div class="lessons-cards" *ngIf="bookings.length > 0">
-    <div class="card" *ngFor="let b of bookings; trackBy: trackById">
-      <div class="card-body">
-        <div class="card-top d-flex">
-          <div class="teacher-avatar">
-            <img
-              [src]="b.teacherProfileImage || '/assets/images/blank-avatar.webp'"
-              [alt]="b.teacherName"
-            />
+  <!-- Upcoming lessons -->
+  <div class="lessons-section" *ngIf="upcomingAfterNext.length > 0">
+    <h2 class="section-title">{{ 'MY_BOOKINGS_UPCOMING' | translate }}</h2>
+    <div class="lessons-cards">
+      <div class="card" *ngFor="let b of upcomingAfterNext; trackBy: trackById">
+        <div class="card-body">
+          <div class="card-top d-flex">
+            <div class="teacher-avatar">
+              <img
+                [src]="b.teacherProfileImage || '/assets/images/blank-avatar.webp'"
+                [alt]="b.teacherName"
+              />
+            </div>
+            <div class="teacher-info">
+              <div class="teacher-name">{{ b.teacherName }}</div>
+            </div>
           </div>
-          <div class="teacher-info">
-            <div class="teacher-name">{{ b.teacherName }}</div>
+
+          <div class="lesson-title">{{ b.lessonTitle }}</div>
+
+          <div class="lesson-meta small">
+            <div class="meta-row">
+              <i class="icon-clock"></i>
+              {{ formatDateTimeUtc(b.scheduledDateTime) }}
+            </div>
+            <div class="meta-row" *ngIf="b.amountPaid != null">
+              <i class="icon-dollar"></i>
+              {{ 'AMOUNT' | translate }}: {{ b.amountPaid }}
+            </div>
           </div>
-        </div>
 
-        <div class="lesson-title">{{ b.lessonTitle }}</div>
+          <div class="card-footer d-flex align-items-center">
+            <span class="status" [ngClass]="statusClass(b)">{{ statusKey(b) | translate }}</span>
 
-        <div class="lesson-meta small">
-          <div class="meta-row">
-            <i class="icon-clock"></i>
-            {{ formatDateTimeUtc(b.scheduledDateTime) }}
+            <div class="actions">
+              <button
+                class="btn-join"
+                [disabled]="!canJoin(b.scheduledDateTime)"
+                (click)="joinBooking(b)"
+                type="button"
+              >
+                {{ 'JOIN' | translate }}
+              </button>
+            </div>
           </div>
-          <div class="meta-row" *ngIf="getCountdownText(b.scheduledDateTime)">
-            <i class="icon-timer"></i>
-            {{ getCountdownText(b.scheduledDateTime) }}
-          </div>
-          <div class="meta-row" *ngIf="b.amountPaid != null">
-            <i class="icon-dollar"></i>
-            {{ 'AMOUNT' | translate }}: {{ b.amountPaid }}
-          </div>
-        </div>
 
-        <div class="card-footer d-flex align-items-center">
-          <span class="status" [ngClass]="statusClass(b)">{{ statusLabel(b) }}</span>
-
-          <div class="actions">
-            <button
-              class="btn-join"
-              [disabled]="!canJoin(b.scheduledDateTime)"
-              (click)="joinBooking(b)"
-              type="button"
-            >
-              {{ 'JOIN' | translate }}
-            </button>
-
-            <button
-              *ngIf="canReview(b)"
-              class="btn-review"
-              (click)="openReviewModal(b)"
-              type="button"
-            >
-              {{ 'REVIEW_BTN' | translate }}
-            </button>
-
-            <span *ngIf="isCompleted(b) && !canReview(b)" class="reviewed-badge">
-              {{ 'REVIEWED' | translate }}
-            </span>
+          <div class="hint" *ngIf="!canJoin(b.scheduledDateTime)">
+            {{ 'JOIN_AVAILABLE_5_MIN' | translate }}
           </div>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <div class="hint" *ngIf="!canJoin(b.scheduledDateTime)">
-          {{ 'JOIN_AVAILABLE_5_MIN' | translate }}
+  <!-- Past lessons -->
+  <div class="lessons-section" *ngIf="pastBookings.length > 0">
+    <h2 class="section-title">{{ 'MY_BOOKINGS_PAST' | translate }}</h2>
+    <div class="lessons-cards">
+      <div class="card" *ngFor="let b of pastBookings; trackBy: trackById">
+        <div class="card-body">
+          <div class="card-top d-flex">
+            <div class="teacher-avatar">
+              <img
+                [src]="b.teacherProfileImage || '/assets/images/blank-avatar.webp'"
+                [alt]="b.teacherName"
+              />
+            </div>
+            <div class="teacher-info">
+              <div class="teacher-name">{{ b.teacherName }}</div>
+            </div>
+          </div>
+
+          <div class="lesson-title">{{ b.lessonTitle }}</div>
+
+          <div class="lesson-meta small">
+            <div class="meta-row">
+              <i class="icon-clock"></i>
+              {{ formatDateTimeUtc(b.scheduledDateTime) }}
+            </div>
+            <div class="meta-row" *ngIf="b.amountPaid != null">
+              <i class="icon-dollar"></i>
+              {{ 'AMOUNT' | translate }}: {{ b.amountPaid }}
+            </div>
+          </div>
+
+          <div class="card-footer d-flex align-items-center">
+            <span class="status" [ngClass]="statusClass(b)">{{ statusKey(b) | translate }}</span>
+            <div class="actions">
+              <button
+                *ngIf="canReview(b)"
+                class="btn-review"
+                (click)="openReviewModal(b)"
+                type="button"
+              >
+                {{ 'REVIEW_BTN' | translate }}
+              </button>
+
+              <span *ngIf="isCompleted(b) && !canReview(b)" class="reviewed-badge">
+                {{ 'REVIEWED' | translate }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
