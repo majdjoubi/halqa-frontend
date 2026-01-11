@@ -35,34 +35,6 @@
   </div>
 
   <div class="calendar-content">
-    <!-- Next Lesson Countdown Card -->
-    <div *ngIf="nextUpcoming" class="countdown-card">
-      <div class="countdown-info">
-        <div class="countdown-label">{{ "my_calendar_page.next_lesson" | translate }}</div>
-        <div class="countdown-title">{{ nextUpcoming.lessonTitle }}</div>
-        <div class="countdown-student">
-          <i [class]="getBookingTypeIcon(nextUpcoming)"></i>
-          {{ nextUpcoming.studentName }}
-        </div>
-        <div class="countdown-datetime">
-          <i class="fas fa-clock"></i>
-          {{ formatDateTime(nextUpcoming.scheduledDateTime) }}
-        </div>
-      </div>
-      <div class="countdown-timer">
-        <div class="countdown-value">{{ countdownText }}</div>
-        <div class="countdown-hint">{{ "my_calendar_page.time_remaining" | translate }}</div>
-        <button 
-          *ngIf="nextUpcoming.canStart"
-          class="btn-join"
-          (click)="startSession(nextUpcoming)"
-        >
-          <i class="fas fa-video"></i>
-          {{ "my_calendar_page.join_now" | translate }}
-        </button>
-      </div>
-    </div>
-
     <!-- Tabs -->
     <div class="tabs-container">
       <div class="tabs" role="tablist">
@@ -218,7 +190,33 @@
           <span class="count">({{ upcomingBookings.length }})</span>
         </h3>
 
-        <div *ngIf="upcomingBookings.length === 0" class="empty-state">
+        <!-- Next Lesson Compact Card -->
+        <div *ngIf="nextUpcoming" class="next-lesson-inline">
+          <div class="next-lesson-badge">
+            <i class="fas fa-star"></i>
+            {{ "my_calendar_page.next_lesson" | translate }}
+          </div>
+          <div class="next-lesson-content">
+            <div class="next-lesson-left">
+              <div class="next-lesson-title">{{ nextUpcoming.lessonTitle }}</div>
+              <div class="next-lesson-meta">
+                <span><i [class]="getBookingTypeIcon(nextUpcoming)"></i> {{ nextUpcoming.studentName }}</span>
+                <span><i class="fas fa-clock"></i> {{ formatDateTime(nextUpcoming.scheduledDateTime) }}</span>
+              </div>
+            </div>
+            <div class="next-lesson-right">
+              <div class="countdown-compact">
+                <span class="countdown-time">{{ countdownText }}</span>
+                <span class="countdown-text">{{ "my_calendar_page.time_remaining" | translate }}</span>
+              </div>
+              <button *ngIf="nextUpcoming.canStart" class="btn-join-compact" (click)="startSession(nextUpcoming)">
+                <i class="fas fa-video"></i> {{ "my_calendar_page.join_now" | translate }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="upcomingBookings.length === 0 && !nextUpcoming" class="empty-state">
           <img src="/assets/images/emptyData.svg" alt="No sessions" />
           <p>{{ "my_calendar_page.sessions.no_upcoming" | translate }}</p>
         </div>

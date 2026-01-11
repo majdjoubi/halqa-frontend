@@ -1077,6 +1077,200 @@ $bg-white: #ffffff;
   }
 }
 
+// ===== NEXT LESSON INLINE (inside sessions) =====
+.next-lesson-inline {
+  background: linear-gradient(135deg, rgba($primary-color, 0.08) 0%, rgba($group-color, 0.08) 100%);
+  border: 1px solid rgba($primary-color, 0.2);
+  border-radius: 12px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+  overflow: hidden;
+
+  .next-lesson-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: linear-gradient(135deg, $group-color, $primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem 0.25rem 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0 12px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  .next-lesson-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .next-lesson-left {
+    flex: 1;
+    min-width: 200px;
+
+    .next-lesson-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: $text-color;
+      margin-bottom: 0.5rem;
+    }
+
+    .next-lesson-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: $text-muted;
+
+      span {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+    }
+  }
+
+  .next-lesson-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+
+    .countdown-compact {
+      text-align: center;
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+      .countdown-time {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: $primary-color;
+        font-family: monospace;
+      }
+
+      .countdown-text {
+        font-size: 0.65rem;
+        color: $text-muted;
+      }
+    }
+
+    .btn-join-compact {
+      background: $success-color;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s;
+
+      &:hover {
+        background: darken($success-color, 10%);
+        transform: translateY(-2px);
+      }
+    }
+  }
+}
+
+// Mobile responsive for inline card
+@media (max-width: 600px) {
+  .next-lesson-inline {
+    .next-lesson-content {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .next-lesson-right {
+      justify-content: space-between;
+      margin-top: 0.75rem;
+    }
+  }
+}
+
+// ===== GLOBAL MOBILE IMPROVEMENTS =====
+@media (max-width: 768px) {
+  .my-calendar-page {
+    padding: 0.75rem;
+    padding-top: 80px;
+  }
+
+  .header .header-content {
+    .text-col .title {
+      font-size: 1.1rem;
+    }
+    .image-col img {
+      width: 60px;
+    }
+  }
+
+  .hourly-rate-card {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+
+    .rate-info {
+      justify-content: center;
+    }
+  }
+
+  .tabs-container .tabs {
+    flex-direction: column;
+
+    .tab {
+      padding: 0.6rem;
+      font-size: 0.85rem;
+    }
+  }
+
+  .session-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+
+    .session-avatar {
+      width: 40px;
+      height: 40px;
+    }
+
+    .session-actions {
+      width: 100%;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .header .header-content .image-col {
+    display: none;
+  }
+
+  .session-card .session-info {
+    .session-title {
+      font-size: 0.9rem;
+    }
+    .session-student,
+    .session-datetime,
+    .session-duration {
+      font-size: 0.75rem;
+    }
+  }
+}
+
 .modal-footer {
   display: flex;
   justify-content: flex-end;
