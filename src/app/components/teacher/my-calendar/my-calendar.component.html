@@ -54,17 +54,6 @@
       <div class="calendar-layout">
         <!-- Date Picker -->
         <div class="date-picker-section">
-          <!-- Compact Hourly Rate Widget -->
-          <div class="rate-widget">
-            <div class="rate-display">
-              <span class="rate-amount">${{ hourlyRate }}</span>
-              <span class="rate-unit">/ {{ 'my_calendar_page.per_hour' | translate }}</span>
-            </div>
-            <button class="btn-edit-rate-mini" (click)="openRateModal()">
-              <i class="fas fa-edit"></i>
-            </button>
-          </div>
-
           <app-simple-date-picker
             [availableDates]="availableDates"
             [selectedDate]="selectedCalendarDate"
@@ -83,15 +72,25 @@
 
           <div *ngIf="selectedCalendarDate" class="slots-container">
             <div class="slots-header">
-              <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
-              <p class="slots-hint" *ngIf="!isSavingSlot && !hasPendingChanges()">
-                <i class="fas fa-info-circle"></i>
-                {{ 'my_calendar_page.calendar.click_to_add' | translate }}
-              </p>
-              <p class="slots-hint saving" *ngIf="isSavingSlot">
-                <i class="fas fa-spinner fa-spin"></i>
-                {{ 'common.saving' | translate }}
-              </p>
+              <div class="slots-header-left">
+                <h3>{{ getSelectedDayName() }} - {{ selectedCalendarDate }}</h3>
+                <p class="slots-hint" *ngIf="!isSavingSlot && !hasPendingChanges()">
+                  <i class="fas fa-info-circle"></i>
+                  {{ 'my_calendar_page.calendar.click_to_add' | translate }}
+                </p>
+                <p class="slots-hint saving" *ngIf="isSavingSlot">
+                  <i class="fas fa-spinner fa-spin"></i>
+                  {{ 'common.saving' | translate }}
+                </p>
+              </div>
+              <!-- Hourly Rate Widget (top right) -->
+              <div class="rate-widget-inline">
+                <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
+                <span class="rate-value">${{ hourlyRate }}</span>
+                <button class="btn-edit-rate-sm" (click)="openRateModal()">
+                  <i class="fas fa-edit"></i>
+                </button>
+              </div>
             </div>
 
             <!-- Confirm Bar for pending changes -->
