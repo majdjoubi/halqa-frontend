@@ -326,6 +326,19 @@
               <span class="status-badge completed">
                 {{ "my_calendar_page.sessions.completed" | translate }}
               </span>
+
+              <button
+                *ngIf="booking.canRateStudent"
+                class="btn-review"
+                (click)="openStudentReviewModal(booking)"
+              >
+                <i class="fas fa-star"></i>
+                {{ 'REVIEW_STUDENT_BTN' | translate }}
+              </button>
+
+              <span *ngIf="booking.hasRatedStudent" class="status-badge reviewed">
+                {{ 'REVIEW_STUDENT_DONE' | translate }}
+              </span>
             </div>
           </div>
         </div>
@@ -389,6 +402,57 @@
       >
         <i *ngIf="isSavingRate" class="fas fa-spinner fa-spin"></i>
         <span *ngIf="!isSavingRate">{{ 'common.save' | translate }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Student Review Modal (Teacher -> Student) -->
+<div *ngIf="showStudentReviewModal" class="modal-overlay" (click)="closeStudentReviewModal()">
+  <div class="modal-content review-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ 'REVIEW_STUDENT_MODAL_TITLE' | translate }}</h3>
+      <button class="modal-close" (click)="closeStudentReviewModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="review-target">
+        {{ selectedStudentReviewBooking?.studentName }}
+      </p>
+
+      <div class="rate-input-group">
+        <label>{{ 'REVIEW_STUDENT_MODAL_RATING_LABEL' | translate }}</label>
+        <select class="review-select" [(ngModel)]="studentReviewRating">
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="4">4</option>
+          <option [ngValue]="3">3</option>
+          <option [ngValue]="2">2</option>
+          <option [ngValue]="1">1</option>
+        </select>
+      </div>
+
+      <div class="rate-input-group">
+        <label>{{ 'REVIEW_STUDENT_MODAL_COMMENT_LABEL' | translate }}</label>
+        <textarea
+          class="review-textarea"
+          [(ngModel)]="studentReviewComment"
+          rows="4"
+          [placeholder]="'REVIEW_STUDENT_MODAL_COMMENT_PLACEHOLDER' | translate"
+        ></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeStudentReviewModal()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button
+        class="btn-save"
+        (click)="submitStudentReview()"
+        [disabled]="isSubmittingStudentReview"
+      >
+        <i *ngIf="isSubmittingStudentReview" class="fas fa-spinner fa-spin"></i>
+        <span *ngIf="!isSubmittingStudentReview">{{ 'REVIEW_STUDENT_MODAL_BTN_SUBMIT' | translate }}</span>
       </button>
     </div>
   </div>

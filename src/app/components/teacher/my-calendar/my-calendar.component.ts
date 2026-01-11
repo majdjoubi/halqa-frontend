@@ -24,6 +24,8 @@ interface BookingItem {
   amountPaid: number;
   meetingRoomUrl?: string;
   canStart: boolean;
+  canRateStudent?: boolean;
+  hasRatedStudent?: boolean;
   createdAt: string;
 }
 
@@ -94,6 +96,13 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   newHourlyRate: number = 0;
   isSavingRate: boolean = false;
   isSavingSlot: boolean = false;
+
+  // ===== STUDENT REVIEW (TEACHER -> STUDENT) =====
+  showStudentReviewModal: boolean = false;
+  selectedStudentReviewBooking: BookingItem | null = null;
+  studentReviewRating: number = 5;
+  studentReviewComment: string = '';
+  isSubmittingStudentReview: boolean = false;
 
   // ===== SUBSCRIPTIONS =====
   private langSubscription?: Subscription;
@@ -790,6 +799,57 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         console.error('Error updating hourly rate:', err);
         this.isSavingRate = false;
         alert(this.translate.instant('my_calendar_page.errors.update_rate') || 'Failed to update hourly rate');
+      }
+    });
+  }
+
+  // ===== STUDENT REVIEW ACTIONS =====
+
+  openStudentReviewModal(booking: BookingItem): void {
+    if (!booking?.canRateStudent) return;
+    this.selectedStudentReviewBooking = booking;
+    this.studentReviewRating = 5;
+    this.studentReviewComment = '';
+    this.showStudentReviewModal = true;
+  }
+
+  closeStudentReviewModal(): void {
+    if (this.isSubmittingStudentReview) return;
+    this.showStudentReviewModal = false;
+    this.selectedStudentReviewBooking = null;
+  }
+
+  submitStudentReview(): void {
+    const booking = this.selectedStudentReviewBooking;
+    if (!booking) return;
+    if (this.isSubmittingStudentReview) return;
+
+    const rating = Number(this.studentReviewRating);
+    if (!Number.isFinite(rating) || rating < 1 || rating > 5) {
+      alert(this.translate.instant('REVIEW_STUDENT_MODAL_INVALID_RATING') || 'Rating must be between 1 and 5');
+      return;
+    }
+
+    this.isSubmittingStudentReview = true;
+
+    this.repo.reviewStudent({
+      bookingId: booking.id,
+      rating,
+      comment: (this.studentReviewComment || '').trim() || null,
+    }).subscribe({
+      next: () => {
+        booking.hasRatedStudent = true;
+        booking.canRateStudent = false;
+        this.isSubmittingStudentReview = false;
+        this.showStudentReviewModal = false;
+        this.selectedStudentReviewBooking = null;
+        alert(this.translate.instant('REVIEW_STUDENT_THANK_YOU') || 'Thank you!');
+      },
+      error: (err) => {
+        console.error('Error submitting student review:', err);
+        this.isSubmittingStudentReview = false;
+        const message = err?.error?.message;
+        alert(message || this.translate.instant('my_bookings_page.review.error') || 'Failed to submit review');
       }
     });
   }

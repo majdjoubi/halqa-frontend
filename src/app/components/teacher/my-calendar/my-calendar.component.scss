@@ -785,6 +785,24 @@ $bg-white: #ffffff;
         }
       }
 
+      .btn-review {
+        background: $primary-color;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: background 0.2s;
+
+        &:hover {
+          background: darken($primary-color, 10%);
+        }
+      }
+
       .status-badge {
         padding: 0.25rem 0.75rem;
         border-radius: 20px;
@@ -799,6 +817,11 @@ $bg-white: #ffffff;
         &.completed {
           background: lighten($success-color, 40%);
           color: darken($success-color, 10%);
+        }
+
+        &.reviewed {
+          background: lighten($primary-color, 40%);
+          color: darken($primary-color, 5%);
         }
       }
     }
@@ -981,6 +1004,38 @@ $bg-white: #ffffff;
 
 .modal-body {
   padding: 1.5rem;
+
+  .review-target {
+    margin: 0 0 1rem;
+    font-weight: 600;
+    color: $text-color;
+  }
+
+  .review-select {
+    width: 100%;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    padding: 0.75rem 0.875rem;
+    background: white;
+    outline: none;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
+
+  .review-textarea {
+    width: 100%;
+    border: 2px solid $border-color;
+    border-radius: 10px;
+    padding: 0.75rem 0.875rem;
+    resize: vertical;
+    outline: none;
+
+    &:focus {
+      border-color: $primary-color;
+    }
+  }
 
   .rate-input-group {
     label {

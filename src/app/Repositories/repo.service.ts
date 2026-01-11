@@ -595,6 +595,11 @@ export class RepoService {
     return this.http.post<any>(`${this.base_url}/api/review/student`, data);
   }
 
+  // review (rate) student by teacher
+  reviewStudent(data: any): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/review/teacher`, data);
+  }
+
   // ============ REFUND APIs ============
   // NOTE: Cancellation and refund methods are being migrated to SlotsService.
 
