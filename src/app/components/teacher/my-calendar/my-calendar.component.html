@@ -78,6 +78,24 @@
 
         <!-- Time Slots Grid -->
         <div class="time-slots-section">
+          <!-- Next Lesson Mini Widget (top right) -->
+          <div *ngIf="nextUpcoming" class="next-lesson-widget">
+            <div class="widget-icon">
+              <i class="fas fa-bell"></i>
+            </div>
+            <div class="widget-info">
+              <span class="widget-label">{{ "my_calendar_page.next_lesson" | translate }}</span>
+              <span class="widget-title">{{ nextUpcoming.lessonTitle }}</span>
+              <span class="widget-time">{{ formatDateTime(nextUpcoming.scheduledDateTime) }}</span>
+            </div>
+            <div class="widget-countdown">
+              <span class="countdown-val">{{ countdownText }}</span>
+              <button *ngIf="nextUpcoming.canStart" class="btn-widget-join" (click)="startSession(nextUpcoming)">
+                <i class="fas fa-video"></i>
+              </button>
+            </div>
+          </div>
+
           <div *ngIf="!selectedCalendarDate" class="select-date-prompt">
             <i class="fas fa-calendar-alt"></i>
             <p>{{ 'my_calendar_page.calendar.select_date' | translate }}</p>
