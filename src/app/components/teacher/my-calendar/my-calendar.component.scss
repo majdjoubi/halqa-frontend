@@ -161,20 +161,6 @@ $bg-white: #ffffff;
   }
 }
 
-// ===== TIMEZONE HINT =====
-.timezone-hint {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: $text-muted;
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  background: $bg-light;
-  border-radius: 8px;
-  width: fit-content;
-}
-
 // ===== TABS =====
 .tabs-container {
   margin-bottom: 1.5rem;
