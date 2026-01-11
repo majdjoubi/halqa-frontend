@@ -1,6 +1,17 @@
 {
   "WELCOME": "Welcome to Halqa",
   "GREETING": "Hello",
+  "MY_BOOKINGS": "My Bookings",
+  "MY_BOOKINGS_SUBTITLE": "Here you can find your upcoming and completed lessons.",
+  "MY_BOOKINGS_NEXT_LESSON": "Next Lesson",
+  "MY_BOOKINGS_UPCOMING": "Upcoming Lessons",
+  "MY_BOOKINGS_PAST": "Past Lessons",
+  "STARTS_IN": "Starts in",
+  "SESSION_STARTED": "Session started",
+  "JOIN": "Join",
+  "JOIN_AVAILABLE_5_MIN": "Available 60 min before start",
+  "NO_BOOKINGS": "No bookings yet",
+  "LOADING": "Loading...",
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },

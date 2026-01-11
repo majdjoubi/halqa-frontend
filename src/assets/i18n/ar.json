@@ -1,6 +1,17 @@
 {
   "WELCOME": "أهلاً بكم في حلقة",
   "GREETING": "مرحباً",
+  "MY_BOOKINGS": "حجوزاتي",
+  "MY_BOOKINGS_SUBTITLE": "هنا تجد جميع دروسك القادمة والمكتملة.",
+  "MY_BOOKINGS_NEXT_LESSON": "الدرس القادم",
+  "MY_BOOKINGS_UPCOMING": "الدروس القادمة",
+  "MY_BOOKINGS_PAST": "الدروس السابقة",
+  "STARTS_IN": "يبدأ بعد",
+  "SESSION_STARTED": "بدأت الجلسة",
+  "JOIN": "انضم",
+  "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 60 دقيقة",
+  "NO_BOOKINGS": "لا توجد حجوزات بعد",
+  "LOADING": "جاري التحميل...",
   "maintenance": {
     "message": "⚠️ الموقع يخضع حالياً لأعمال الصيانة والتحسينات. نرجو منكم العودة في وقت لاحق. شكراً لتفهمكم."
   },
