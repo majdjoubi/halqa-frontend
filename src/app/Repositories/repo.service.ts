@@ -93,6 +93,13 @@ export class RepoService {
     );
   }
 
+  // remove teacher language
+  removeTeacherLanguage(language: number | string): Observable<any> {
+    return this.http.delete<any>(
+      `${this.base_url}/api/teacher/languages/${language}`
+    );
+  }
+
   // get teacher languages
   getTeacherLanguages(): Observable<LanguageProficiency[]> {
     return this.http.get<LanguageProficiency[]>(

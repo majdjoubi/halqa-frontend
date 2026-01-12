@@ -8,7 +8,7 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin } from 'rxjs';
 import { FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 
 import { SideMenuComponent } from '../../../../shared/shared-component/side-menu/side-menu.component';
@@ -55,6 +55,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   // ===== Teaching Languages (Edit Profile) =====
   // Backend enum: Arabic=1, English=2, German=3
   selectedLanguages: string[] = [];
+  private lastSyncedLanguageIds: number[] = [];
   availableLanguages: Array<{ value: 'arabic' | 'english' | 'german'; name: string; nativeName: string }> = [
     { value: 'arabic', name: 'teacher_create_profile.language_arabic', nativeName: 'العربية' },
     { value: 'english', name: 'teacher_create_profile.language_english', nativeName: 'English' },
@@ -730,31 +731,57 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
 
     this.selectedLanguages = Array.from(new Set(selected));
     this.profileForm.get('languages')?.setValue([...this.selectedLanguages]);
+
+    // Track what's currently persisted so we can compute add/remove deltas later
+    this.lastSyncedLanguageIds = this.selectedLanguages
+      .map((x) => this.mapLanguageValueToId(x))
+      .filter((x): x is number => x !== null);
   }
 
-  private submitLanguages(): void {
+  private mapLanguageValueToId(languageValue: string): number | null {
     const languageMap: { [key: string]: number } = {
       arabic: 1,
       english: 2,
       german: 3,
     };
 
-    const languageIds = this.selectedLanguages
-      .map((lang) => languageMap[lang])
-      .filter((id) => id !== undefined);
+    const key = String(languageValue || '').trim().toLowerCase();
+    return languageMap[key] ?? null;
+  }
 
-    if (languageIds.length === 0) {
+  private submitLanguages(): void {
+    const currentIds = this.selectedLanguages
+      .map((x) => this.mapLanguageValueToId(x))
+      .filter((x): x is number => x !== null);
+
+    const uniqueCurrentIds = Array.from(new Set(currentIds));
+    const uniqueSyncedIds = Array.from(new Set(this.lastSyncedLanguageIds || []));
+
+    const idsToAdd = uniqueCurrentIds.filter((id) => !uniqueSyncedIds.includes(id));
+    const idsToRemove = uniqueSyncedIds.filter((id) => !uniqueCurrentIds.includes(id));
+
+    if (idsToAdd.length === 0 && idsToRemove.length === 0) {
       return;
     }
 
-    const languagesData = { languages: languageIds };
+    const ops = [] as any[];
 
-    this._repo.setLanguage(languagesData).subscribe({
+    if (idsToAdd.length > 0) {
+      ops.push(this._repo.setLanguage({ languages: idsToAdd }));
+    }
+
+    if (idsToRemove.length > 0) {
+      // Backend supports deleting by enum value (int) in route
+      idsToRemove.forEach((id) => ops.push(this._repo.removeTeacherLanguage(id)));
+    }
+
+    forkJoin(ops).subscribe({
       next: (response) => {
-        console.log('✅ Languages submitted successfully:', response);
+        console.log('✅ Languages updated successfully:', response);
+        this.lastSyncedLanguageIds = uniqueCurrentIds;
       },
       error: (error) => {
-        console.error('❌ Error submitting languages:', error);
+        console.error('❌ Error updating languages:', error);
       },
     });
   }
