@@ -385,6 +385,9 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
     this.countdownText = parts.join(' ');
 
+    // Keep join availability in sync as time passes (no refresh required)
+    this.refreshJoinAvailability();
+
     // Play alert sound when 5 minutes remaining
     if (diff <= 5 * 60 * 1000 && diff > 4 * 60 * 1000 && !this.alertPlayed) {
       this.playAlertSound();
@@ -394,6 +397,33 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     // Reset alert flag when more than 10 minutes
     if (diff > 10 * 60 * 1000) {
       this.alertPlayed = false;
+    }
+  }
+
+  private refreshJoinAvailability(): void {
+    const nowMs = Date.now();
+
+    const computeCanStart = (scheduledDateTime: string | undefined, durationMinutes: number | undefined): boolean => {
+      if (!scheduledDateTime) return false;
+      const startMs = new Date(scheduledDateTime).getTime();
+      if (!Number.isFinite(startMs)) return false;
+      const duration = typeof durationMinutes === 'number' && durationMinutes > 0 ? durationMinutes : 60;
+
+      const joinOpenMs = startMs - 5 * 60 * 1000; // 5 minutes before
+      const endMs = startMs + duration * 60 * 1000;
+
+      return nowMs >= joinOpenMs && nowMs <= endMs;
+    };
+
+    if (this.nextUpcoming) {
+      this.nextUpcoming.canStart = computeCanStart(this.nextUpcoming.scheduledDateTime, this.nextUpcoming.duration);
+    }
+
+    // Update all bookings so all join buttons behave consistently
+    if (Array.isArray(this.bookings) && this.bookings.length > 0) {
+      for (const booking of this.bookings) {
+        booking.canStart = computeCanStart(booking.scheduledDateTime, booking.duration);
+      }
     }
   }
 
