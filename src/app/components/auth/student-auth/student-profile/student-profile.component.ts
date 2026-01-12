@@ -25,6 +25,8 @@ import {
 import { SideMenuComponent } from '../../../../shared/shared-component/side-menu/side-menu.component';
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
 import { StripeService } from '../../../../services/stripe.service';
+import { RepoService } from '../../../../Repositories/repo.service';
+import { FacadeAuthService } from '../../../../services/auth/facade-auth.service';
 
 @Component({
   selector: 'app-student-profile',
@@ -48,6 +50,12 @@ export class StudentProfileComponent implements OnInit, OnDestroy {
   menuOpen = false;
   isSubmitting = false;
   isLoading = true;
+
+  // ===== Account actions (self-service) =====
+  isDeactivatingAccount = false;
+  isDeletingAccount = false;
+  showDeleteAccountConfirm = false;
+  accountActionError: string | null = null;
 
   // Form
   profileForm!: FormGroup;
@@ -75,9 +83,62 @@ export class StudentProfileComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private _uploadService: UploadFilesService,
     private stripeService: StripeService,
+    private _repo: RepoService,
+    private _facadeAuth: FacadeAuthService,
     private router: Router
   ) {
     this.initializeForm();
+  }
+
+  // ===== Self-service account actions =====
+  deactivateAccount(): void {
+    if (this.isDeactivatingAccount || this.isDeletingAccount) return;
+
+    this.accountActionError = null;
+    this.isDeactivatingAccount = true;
+
+    this._repo.deactivateCurrentAccount().subscribe({
+      next: () => {
+        this.isDeactivatingAccount = false;
+        this._facadeAuth.logout();
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Error deactivating account:', err);
+        this.isDeactivatingAccount = false;
+        this.accountActionError = 'teacher_profile.account_action_failed';
+      },
+    });
+  }
+
+  openDeleteAccountConfirm(): void {
+    this.accountActionError = null;
+    this.showDeleteAccountConfirm = true;
+  }
+
+  cancelDeleteAccount(): void {
+    if (this.isDeletingAccount) return;
+    this.showDeleteAccountConfirm = false;
+  }
+
+  confirmDeleteAccount(): void {
+    if (this.isDeletingAccount || this.isDeactivatingAccount) return;
+
+    this.accountActionError = null;
+    this.isDeletingAccount = true;
+
+    this._repo.deleteCurrentAccount().subscribe({
+      next: () => {
+        this.isDeletingAccount = false;
+        this._facadeAuth.logout();
+        this.router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Error deleting account:', err);
+        this.isDeletingAccount = false;
+        this.accountActionError = 'teacher_profile.account_action_failed';
+      },
+    });
   }
 
   ngOnInit(): void {

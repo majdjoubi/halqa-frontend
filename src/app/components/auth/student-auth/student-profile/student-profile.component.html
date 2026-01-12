@@ -154,6 +154,65 @@
     </div>
   </div>
 
+  <!-- Account Actions (must be at bottom) -->
+  <div class="container-fluid mt-4">
+    <button
+      type="button"
+      class="btn btn-outline-warning w-100 mb-2"
+      (click)="deactivateAccount()"
+      [disabled]="isDeactivatingAccount || isDeletingAccount"
+    >
+      <span *ngIf="!isDeactivatingAccount">{{ 'teacher_profile.deactivate_account' | translate }}</span>
+      <span *ngIf="isDeactivatingAccount" class="d-flex align-items-center justify-content-center">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        {{ 'teacher_profile.working' | translate }}
+      </span>
+    </button>
+
+    <button
+      type="button"
+      class="btn btn-outline-danger w-100"
+      (click)="openDeleteAccountConfirm()"
+      [disabled]="isDeactivatingAccount || isDeletingAccount"
+    >
+      {{ 'teacher_profile.delete_account' | translate }}
+    </button>
+
+    <div *ngIf="showDeleteAccountConfirm" class="alert alert-danger mt-3">
+      <div class="mb-2">
+        <strong>{{ 'teacher_profile.delete_account_confirm_title' | translate }}</strong>
+      </div>
+      <div class="mb-3">{{ 'teacher_profile.delete_account_confirm_text' | translate }}</div>
+
+      <div class="d-flex gap-2">
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="confirmDeleteAccount()"
+          [disabled]="isDeletingAccount"
+        >
+          <span *ngIf="!isDeletingAccount">{{ 'teacher_profile.confirm' | translate }}</span>
+          <span *ngIf="isDeletingAccount" class="d-flex align-items-center justify-content-center">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            {{ 'teacher_profile.working' | translate }}
+          </span>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="cancelDeleteAccount()"
+          [disabled]="isDeletingAccount"
+        >
+          {{ 'teacher_profile.cancel' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="accountActionError" class="alert alert-danger mt-3">
+      {{ accountActionError | translate }}
+    </div>
+  </div>
+
   <!-- Edit Profile Side Menu -->
   <app-side-menu
     [open]="menuOpen"
