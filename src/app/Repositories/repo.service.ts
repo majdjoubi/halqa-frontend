@@ -100,6 +100,15 @@ export class RepoService {
     );
   }
 
+  // self-service account actions
+  deactivateCurrentAccount(): Observable<any> {
+    return this.http.patch<any>(`${this.base_url}/api/account/deactivate`, {});
+  }
+
+  deleteCurrentAccount(): Observable<any> {
+    return this.http.delete<any>(`${this.base_url}/api/account`);
+  }
+
   // get teacher languages
   getTeacherLanguages(): Observable<LanguageProficiency[]> {
     return this.http.get<LanguageProficiency[]>(

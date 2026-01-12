@@ -130,7 +130,7 @@
                         type="number"
                         class="form-control"
                         formControlName="hourlyRate"
-                        min="5"
+                        min="0"
                         step="0.5"
                         placeholder="{{
                           'teacher_create_profile.hourly_rate_placeholder'
@@ -256,11 +256,12 @@
                     <i class="fas fa-check-circle"></i>
                   </div>
                 </div>
+
               </div>
 
               <div
                 *ngIf="
-                  selectedSpecializations.length === 0 &&
+                  profileForm.get('specializations')?.invalid &&
                   profileForm.get('specializations')?.touched
                 "
                 class="invalid-feedback d-block mt-2"
@@ -272,141 +273,13 @@
               </div>
             </div>
 
-            <!-- Availability Section -->
-            <div class="form-section">
-              <h3 class="section-title">
-                {{ "teacher_create_profile.availability" | translate }}
-              </h3>
-
-              <div class="availability-container" formArrayName="availability">
-                <div
-                  *ngFor="let slot of availability.controls; let i = index"
-                  class="availability-slot"
-                  [formGroupName]="i"
-                >
-                  <div class="slot-header">
-                    <h4 class="slot-title">
-                      {{ "teacher_create_profile.slot" | translate }}
-                      {{ i + 1 }}
-                    </h4>
-                    <button
-                      *ngIf="availability.length > 1"
-                      type="button"
-                      class="btn btn-sm btn-outline-danger"
-                      (click)="removeAvailability(i)"
-                    >
-                      <i class="fas fa-times"></i>
-                    </button>
-                  </div>
-
-                  <div class="row g-3">
-                    <!-- Day Selection -->
-                    <div class="col-md-4">
-                      <div class="form-group">
-                        <label class="form-label">{{
-                          "teacher_create_profile.day" | translate
-                        }}</label>
-                        <select class="form-select" formControlName="day">
-                          <option value="">
-                            {{
-                              "teacher_create_profile.select_day" | translate
-                            }}
-                          </option>
-                          <option
-                            *ngFor="let day of days; let dayIndex = index"
-                            [value]="dayIndex"
-                          >
-                            {{ day | translate }}
-                          </option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <!-- From Time -->
-                    <div class="col-md-4">
-                      <div class="form-group">
-                        <label class="form-label">{{
-                          "teacher_create_profile.from_time" | translate
-                        }}</label>
-                        <input
-                          type="time"
-                          class="form-control"
-                          formControlName="fromTime"
-                        />
-                      </div>
-                    </div>
-
-                    <!-- To Time -->
-                    <div class="col-md-4">
-                      <div class="form-group">
-                        <label class="form-label">{{
-                          "teacher_create_profile.to_time" | translate
-                        }}</label>
-                        <input
-                          type="time"
-                          class="form-control"
-                          formControlName="toTime"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Is Recurring Checkbox -->
-                  <div class="form-check mt-3">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="isRecurring{{ i }}"
-                      formControlName="isRecurring"
-                    />
-                    <label class="form-check-label" for="isRecurring{{ i }}">
-                      {{ "teacher_create_profile.is_recurring" | translate }}
-                    </label>
-                  </div>
-
-                  <!-- Slot Validation -->
-                  <div
-                    *ngIf="slot.errors?.['timeRangeInvalid'] && slot.touched"
-                    class="invalid-feedback d-block"
-                  >
-                    {{
-                      "teacher_create_profile.validation.invalid_time_range"
-                        | translate
-                    }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Add Slot Button -->
-              <button
-                type="button"
-                class="btn btn-outline-primary add-slot-btn"
-                (click)="addAvailability()"
-                [disabled]="availability.length >= 7"
-              >
-                <i class="fas fa-plus me-2"></i>
-                {{ "teacher_create_profile.add_time_slot" | translate }}
-              </button>
-
-              <!-- Availability Validation -->
-              <div
-                *ngIf="profileForm.get('availability')?.errors?.['maxSlotsPerDay'] && profileForm.get('availability')?.touched"
-                class="invalid-feedback d-block mt-2"
-              >
-                {{
-                  "teacher_create_profile.validation.max_slots_per_day"
-                    | translate
-                }}
-              </div>
-            </div>
-
-            <!-- Certification Section -->
+            <!-- Certifications Section -->
             <div class="form-section">
               <h3 class="section-title">
                 {{ "teacher_create_profile.certifications" | translate }}
-                <small class="text-muted ms-2">
+                <span class="ms-2 text-muted" style="font-size: 0.9em">
                   ({{ "teacher_create_profile.optional" | translate }})
-                </small>
+                </span>
               </h3>
 
               <div

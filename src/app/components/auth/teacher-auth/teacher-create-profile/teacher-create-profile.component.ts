@@ -34,13 +34,6 @@ interface Specialization {
   icon: string;
 }
 
-interface AvailabilitySlot {
-  day: number | null;
-  fromTime: string;
-  toTime: string;
-  isRecurring: boolean;
-}
-
 interface Certification {
   title: string;
   description: string;
@@ -89,6 +82,24 @@ export class TeacherCreateProfileComponent implements OnInit {
       nativeName: 'Deutsch',
       flag: '🇩🇪',
     },
+    {
+      value: 'french',
+      name: 'teacher_create_profile.language_french',
+      nativeName: 'Français',
+      flag: '🇫🇷',
+    },
+    {
+      value: 'turkish',
+      name: 'teacher_create_profile.language_turkish',
+      nativeName: 'Türkçe',
+      flag: '🇹🇷',
+    },
+    {
+      value: 'other',
+      name: 'teacher_create_profile.language_other',
+      nativeName: 'Other',
+      flag: '🌐',
+    },
   ];
 
   // Available Specializations
@@ -133,16 +144,6 @@ export class TeacherCreateProfileComponent implements OnInit {
     },
   ];
 
-  // Days of the week according to backend enum (0 = Sunday → 6 = Saturday)
-  days: string[] = [
-    'teacher_create_profile.sunday', // 0
-    'teacher_create_profile.monday', // 1
-    'teacher_create_profile.tuesday', // 2
-    'teacher_create_profile.wednesday', // 3
-    'teacher_create_profile.thursday', // 4
-    'teacher_create_profile.friday', // 5
-    'teacher_create_profile.saturday', // 6
-  ];
 
   constructor(
     private formBuilder: FormBuilder,
@@ -171,7 +172,7 @@ export class TeacherCreateProfileComponent implements OnInit {
         '',
         [
           Validators.required,
-          Validators.min(5),
+          Validators.min(0),
           Validators.max(200),
           Validators.pattern('^[0-9]+(\\.[0-9]{1,2})?$'),
         ],
@@ -192,17 +193,8 @@ export class TeacherCreateProfileComponent implements OnInit {
         this.selectedSpecializations,
         [Validators.required, this.minArrayLengthValidator(1)],
       ],
-      availability: this.formBuilder.array(
-        [this.createAvailabilitySlot()],
-        [this.maxSlotsPerDayValidator]
-      ),
       certifications: this.formBuilder.array([]),
     });
-  }
-
-  // FormArray getter for availability
-  get availability(): FormArray {
-    return this.profileForm.get('availability') as FormArray;
   }
 
   // FormArray getter for certifications
@@ -210,34 +202,6 @@ export class TeacherCreateProfileComponent implements OnInit {
     return this.profileForm.get('certifications') as FormArray;
   }
 
-  // Create availability slot form group
-  private createAvailabilitySlot(): FormGroup {
-    return this.formBuilder.group(
-      {
-        day: [null, Validators.required],
-        fromTime: ['', Validators.required],
-        toTime: ['', Validators.required],
-        isRecurring: [true], // Default to true as per the example
-      },
-      { validators: this.timeRangeValidator }
-    );
-  }
-
-  // Add new availability slot
-  addAvailability(): void {
-    if (this.availability.length < 7) {
-      this.availability.push(this.createAvailabilitySlot());
-      this.availability.markAsTouched();
-    }
-  }
-
-  // Remove availability slot
-  removeAvailability(index: number): void {
-    if (this.availability.length > 1) {
-      this.availability.removeAt(index);
-      this.availability.markAsTouched();
-    }
-  }
 
   // Create certification form group
   private createCertificationGroup(): FormGroup {
@@ -421,80 +385,15 @@ export class TeacherCreateProfileComponent implements OnInit {
     };
   }
 
-  private timeRangeValidator = (
-    control: AbstractControl
-  ): ValidationErrors | null => {
-    const fromTime = control.get('fromTime')?.value;
-    const toTime = control.get('toTime')?.value;
-
-    if (!fromTime || !toTime) {
-      return null;
-    }
-
-    const from = this.timeToMinutes(fromTime);
-    const to = this.timeToMinutes(toTime);
-
-    if (to <= from) {
-      return { timeRangeInvalid: true };
-    }
-
-    // Check minimum duration (30 minutes)
-    if (to - from < 30) {
-      return { minDuration: true };
-    }
-
-    return null;
-  };
-
-  private maxSlotsPerDayValidator = (
-    control: AbstractControl
-  ): ValidationErrors | null => {
-    const slots = control.value as AvailabilitySlot[];
-    const dayCount: { [key: number]: number } = {};
-
-    slots.forEach((slot) => {
-      if (slot.day !== null) {
-        dayCount[slot.day] = (dayCount[slot.day] || 0) + 1;
-      }
-    });
-
-    const maxSlotsExceeded = Object.values(dayCount).some((count) => count > 2);
-
-    return maxSlotsExceeded ? { maxSlotsPerDay: true } : null;
-  };
-
-  private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
-  }
-
-  private convertLocalTimeToUTC(localTime: string): string {
-    // Return time in HH:mm:ss format as expected by API
-    return `${localTime}:00`;
-  }
 
   private prepareFormData(profilePictureUrl?: string): any {
     const formValue = this.profileForm.value;
-
-    // Validate and clean availability data
-    const cleanAvailability = formValue.availability
-      .filter(
-        (slot: AvailabilitySlot) =>
-          slot.day !== null && slot.fromTime && slot.toTime
-      )
-      .map((slot: AvailabilitySlot) => ({
-        dayOfWeek: parseInt(slot.day!.toString()),
-        startTime: this.convertLocalTimeToUTC(slot.fromTime),
-        endTime: this.convertLocalTimeToUTC(slot.toTime),
-        isRecurring: slot.isRecurring,
-      }));
 
     const data: any = {
       specializations: this.selectedSpecializations,
       yearsOfExperience: parseInt(formValue.yearsOfExperience),
       hourlyRate: parseFloat(formValue.hourlyRate),
       bio: formValue.bio.trim(),
-      availability: cleanAvailability,
     };
 
     // Add profile picture URL only if we have one
@@ -516,15 +415,6 @@ export class TeacherCreateProfileComponent implements OnInit {
       // Additional validation
       if (this.selectedSpecializations.length === 0) {
         console.error('No specializations selected');
-        this.isSubmitting = false;
-        return;
-      }
-
-      if (
-        this.availability.length === 0 ||
-        this.availability.controls.some((control) => !control.valid)
-      ) {
-        console.error('Invalid availability slots');
         this.isSubmitting = false;
         return;
       }
@@ -603,6 +493,9 @@ export class TeacherCreateProfileComponent implements OnInit {
       arabic: 1,
       english: 2,
       german: 3,
+      french: 4,
+      turkish: 5,
+      other: 6,
     };
 
     // Convert selected languages to array of numbers

@@ -27,6 +27,7 @@ import {
   LanguageProficiency,
 } from '../../../../shared/modals/auth-modals';
 import { RepoService } from '../../../../Repositories/repo.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-teacher-profile',
@@ -53,14 +54,23 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   teacherLanguagesData: LanguageProficiency[] = [];
 
   // ===== Teaching Languages (Edit Profile) =====
-  // Backend enum: Arabic=1, English=2, German=3
+  // Backend enum: Arabic=1, English=2, German=3, French=4, Turkish=5, Other=6
   selectedLanguages: string[] = [];
   private lastSyncedLanguageIds: number[] = [];
-  availableLanguages: Array<{ value: 'arabic' | 'english' | 'german'; name: string; nativeName: string }> = [
+  availableLanguages: Array<{ value: string; name: string; nativeName: string }> = [
     { value: 'arabic', name: 'teacher_create_profile.language_arabic', nativeName: 'العربية' },
     { value: 'english', name: 'teacher_create_profile.language_english', nativeName: 'English' },
     { value: 'german', name: 'teacher_create_profile.language_german', nativeName: 'Deutsch' },
+    { value: 'french', name: 'teacher_create_profile.language_french', nativeName: 'Français' },
+    { value: 'turkish', name: 'teacher_create_profile.language_turkish', nativeName: 'Türkçe' },
+    { value: 'other', name: 'teacher_create_profile.language_other', nativeName: 'Other' },
   ];
+
+  // ===== Account actions (self-service) =====
+  isDeactivatingAccount = false;
+  isDeletingAccount = false;
+  showDeleteAccountConfirm = false;
+  accountActionError: string | null = null;
 
   // UI State
   menuOpen = false;
@@ -206,7 +216,9 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     private fb: FormBuilder,
     private facadeProfilesService: FacadeProfilesService,
     private _uploadService: UploadFilesService,
-    private _repo: RepoService
+    private _repo: RepoService,
+    private _facadeAuth: FacadeAuthService,
+    private _router: Router
   ) {
     this.initializeForm();
   }
@@ -754,7 +766,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     this.getLanguageName();
   }
 
-  toggleLanguage(languageValue: 'arabic' | 'english' | 'german'): void {
+  toggleLanguage(languageValue: string): void {
     const index = this.selectedLanguages.indexOf(languageValue);
     if (index > -1) {
       this.selectedLanguages.splice(index, 1);
@@ -776,10 +788,13 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
       .filter(Boolean)
       .map((x: string) => String(x).trim().toLowerCase());
 
-    const map: Record<string, 'arabic' | 'english' | 'german'> = {
+    const map: Record<string, string> = {
       arabic: 'arabic',
       english: 'english',
       german: 'german',
+      french: 'french',
+      turkish: 'turkish',
+      other: 'other',
     };
 
     const selected = normalized
@@ -800,6 +815,9 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
       arabic: 1,
       english: 2,
       german: 3,
+      french: 4,
+      turkish: 5,
+      other: 6,
     };
 
     const key = String(languageValue || '').trim().toLowerCase();
@@ -839,6 +857,57 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('❌ Error updating languages:', error);
+      },
+    });
+  }
+
+  // ===== Self-service account actions =====
+  deactivateAccount(): void {
+    if (this.isDeactivatingAccount || this.isDeletingAccount) return;
+
+    this.accountActionError = null;
+    this.isDeactivatingAccount = true;
+
+    this._repo.deactivateCurrentAccount().subscribe({
+      next: () => {
+        this.isDeactivatingAccount = false;
+        this._facadeAuth.logout();
+        this._router.navigate(['/login']);
+      },
+      error: (err) => {
+        console.error('Error deactivating account:', err);
+        this.isDeactivatingAccount = false;
+        this.accountActionError = 'teacher_profile.account_action_failed';
+      },
+    });
+  }
+
+  openDeleteAccountConfirm(): void {
+    this.accountActionError = null;
+    this.showDeleteAccountConfirm = true;
+  }
+
+  cancelDeleteAccount(): void {
+    if (this.isDeletingAccount) return;
+    this.showDeleteAccountConfirm = false;
+  }
+
+  confirmDeleteAccount(): void {
+    if (this.isDeletingAccount || this.isDeactivatingAccount) return;
+
+    this.accountActionError = null;
+    this.isDeletingAccount = true;
+
+    this._repo.deleteCurrentAccount().subscribe({
+      next: () => {
+        this.isDeletingAccount = false;
+        this._facadeAuth.logout();
+        this._router.navigate(['/']);
+      },
+      error: (err) => {
+        console.error('Error deleting account:', err);
+        this.isDeletingAccount = false;
+        this.accountActionError = 'teacher_profile.account_action_failed';
       },
     });
   }

@@ -80,7 +80,6 @@ export class TeacherRegisterComponent {
           ],
         ],
         confirmPassword: ['', [Validators.required]],
-        phoneNumber: ['', [Validators.required]], // Phone number without pattern validation
       },
       { validators: this.passwordMatchValidator }
     );
@@ -226,7 +225,6 @@ export class TeacherRegisterComponent {
           password: this.step1Form.value.password,
           confirmPassword: this.step1Form.value.confirmPassword,
           role: 2, // Role 2 for teachers
-          phoneNumber: this.step1Form.value.phoneNumber,
           // Use default avatar when no image URL provided
           profilePictureUrl: imageUrl || this.defaultAvatar,
           timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes(), // Auto-detect timezone
