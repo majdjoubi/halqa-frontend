@@ -494,6 +494,24 @@
           </div>
         </div>
 
+        <!-- Teaching Languages -->
+        <div class="form-group mt-3">
+          <label class="form-label">{{ "teacher_create_profile.teaching_languages" | translate }}</label>
+          <div class="d-flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="btn btn-sm"
+              *ngFor="let language of availableLanguages"
+              [class.btn-primary]="isLanguageSelected(language.value)"
+              [class.btn-outline-primary]="!isLanguageSelected(language.value)"
+              (click)="toggleLanguage(language.value)"
+            >
+              {{ language.name | translate }}
+              <span style="opacity: 0.8">({{ language.nativeName }})</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Phone Number -->
         <div class="form-group">
           <label class="form-label required">{{

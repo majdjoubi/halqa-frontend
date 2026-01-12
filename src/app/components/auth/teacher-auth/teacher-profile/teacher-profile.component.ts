@@ -52,6 +52,15 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   // Teacher Languages from API
   teacherLanguagesData: LanguageProficiency[] = [];
 
+  // ===== Teaching Languages (Edit Profile) =====
+  // Backend enum: Arabic=1, English=2, German=3
+  selectedLanguages: string[] = [];
+  availableLanguages: Array<{ value: 'arabic' | 'english' | 'german'; name: string; nativeName: string }> = [
+    { value: 'arabic', name: 'teacher_create_profile.language_arabic', nativeName: 'العربية' },
+    { value: 'english', name: 'teacher_create_profile.language_english', nativeName: 'English' },
+    { value: 'german', name: 'teacher_create_profile.language_german', nativeName: 'Deutsch' },
+  ];
+
   // UI State
   menuOpen = false;
   withdrawMenuOpen = false;
@@ -222,6 +231,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
       bio: [''],
       profilePictureUrl: [''],
       specializations: [this.selectedSpecializations],
+      languages: [this.selectedLanguages],
       availability: this.fb.array([this.createAvailabilitySlot()]),
     });
 
@@ -678,9 +688,75 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     // Refresh profile data AND languages
     this.facadeProfilesService.getTeacherProfile().subscribe();
 
+    // Save teaching languages (bulk)
+    this.submitLanguages();
+
     // Refresh languages data after update
     console.log('🔄 Refreshing languages after profile update...');
     this.getLanguageName();
+  }
+
+  toggleLanguage(languageValue: 'arabic' | 'english' | 'german'): void {
+    const index = this.selectedLanguages.indexOf(languageValue);
+    if (index > -1) {
+      this.selectedLanguages.splice(index, 1);
+    } else {
+      this.selectedLanguages.push(languageValue);
+    }
+
+    this.profileForm.get('languages')?.setValue([...this.selectedLanguages]);
+    this.profileForm.get('languages')?.markAsDirty();
+  }
+
+  isLanguageSelected(languageValue: string): boolean {
+    return this.selectedLanguages.includes(languageValue);
+  }
+
+  private hydrateSelectedLanguagesFromApi(data: LanguageProficiency[] | null | undefined): void {
+    const normalized = (data || [])
+      .map((x) => (x as any)?.language)
+      .filter(Boolean)
+      .map((x: string) => String(x).trim().toLowerCase());
+
+    const map: Record<string, 'arabic' | 'english' | 'german'> = {
+      arabic: 'arabic',
+      english: 'english',
+      german: 'german',
+    };
+
+    const selected = normalized
+      .map((name) => map[name])
+      .filter(Boolean);
+
+    this.selectedLanguages = Array.from(new Set(selected));
+    this.profileForm.get('languages')?.setValue([...this.selectedLanguages]);
+  }
+
+  private submitLanguages(): void {
+    const languageMap: { [key: string]: number } = {
+      arabic: 1,
+      english: 2,
+      german: 3,
+    };
+
+    const languageIds = this.selectedLanguages
+      .map((lang) => languageMap[lang])
+      .filter((id) => id !== undefined);
+
+    if (languageIds.length === 0) {
+      return;
+    }
+
+    const languagesData = { languages: languageIds };
+
+    this._repo.setLanguage(languagesData).subscribe({
+      next: (response) => {
+        console.log('✅ Languages submitted successfully:', response);
+      },
+      error: (error) => {
+        console.error('❌ Error submitting languages:', error);
+      },
+    });
   }
 
   private handleUpdateError(error: any): void {
@@ -722,6 +798,8 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
           console.log('✅ Teacher Languages Data received:', data);
           console.log('📊 Number of languages:', data?.length || 0);
           this.teacherLanguagesData = data || [];
+          // Keep edit form language selection in sync with API
+          this.hydrateSelectedLanguagesFromApi(this.teacherLanguagesData);
 
           if (data && data.length > 0) {
             console.log('🎉 Languages loaded successfully!');
@@ -740,6 +818,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
           console.error('❌ Error fetching teacher languages:', err);
           console.error('Error details:', err?.error || err?.message || err);
           this.teacherLanguagesData = [];
+          this.hydrateSelectedLanguagesFromApi([]);
         },
       });
   }
