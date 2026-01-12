@@ -130,6 +130,15 @@
                 {{ "my_calendar" | translate }}
               </a>
             </li>
+            <li class="nav-item">
+              <a
+                routerLink="/teacher-instructions"
+                class="nav-link"
+                (click)="closeMobileMenu()"
+              >
+                {{ "teacher_instructions.nav" | translate }}
+              </a>
+            </li>
           </ng-container>
 
           <ng-container *ngIf="role === 3">

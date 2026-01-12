@@ -58,6 +58,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'teacher-instructions',
+    canActivate: [TeacherGuard],
+    loadComponent: () =>
+      import(
+        './components/teacher/teacher-instructions/teacher-instructions.component'
+      ).then((m) => m.TeacherInstructionsComponent),
+  },
+  {
     path: 'forgot-password',
     canActivate: [AuthGuard],
     loadComponent: () =>

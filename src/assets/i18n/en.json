@@ -21,6 +21,12 @@
   "OUR_MISSION": "our mission",
   "ALL_Teachers": "Book Your Lesson",
   "my_calendar": "My Calendar",
+  "teacher_instructions": {
+    "nav": "Instructions",
+    "title": "Teacher Instructions",
+    "description": "This video explains how teachers can use the website and its features.",
+    "contact": "For any other questions, contact us at"
+  },
   "booking": {
     "errors": {
       "time_conflict": "You already have a lesson booked at this time. Please select a different time slot.",
