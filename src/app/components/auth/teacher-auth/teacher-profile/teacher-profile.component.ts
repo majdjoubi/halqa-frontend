@@ -198,6 +198,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   newHourlyRate: number = 0;
   isSavingHourlyRate = false;
   hourlyRateSaveSuccess = false;
+  hourlyRateSaveError = false;
 
   private destroy$ = new Subject<void>();
 
@@ -215,6 +216,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     const numeric = Number(raw ?? 0);
     this.newHourlyRate = Number.isFinite(numeric) ? numeric : 0;
     this.hourlyRateSaveSuccess = false;
+    this.hourlyRateSaveError = false;
     this.showHourlyRateModal = true;
   }
 
@@ -222,6 +224,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     if (this.isSavingHourlyRate) return;
     this.showHourlyRateModal = false;
     this.hourlyRateSaveSuccess = false;
+    this.hourlyRateSaveError = false;
   }
 
   saveHourlyRate(): void {
@@ -230,6 +233,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
 
     this.isSavingHourlyRate = true;
     this.hourlyRateSaveSuccess = false;
+    this.hourlyRateSaveError = false;
 
     this._repo.updateTeacherHourlyRate(this.newHourlyRate).subscribe({
       next: () => {
@@ -248,7 +252,7 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error updating hourly rate:', err);
         this.isSavingHourlyRate = false;
-        alert('Failed to update hourly rate');
+        this.hourlyRateSaveError = true;
       },
     });
   }

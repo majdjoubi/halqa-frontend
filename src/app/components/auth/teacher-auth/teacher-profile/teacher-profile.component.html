@@ -1253,6 +1253,9 @@
         <div *ngIf="hourlyRateSaveSuccess" class="rate-success">
           {{ 'my_calendar_page.rate_updated_success' | translate }}
         </div>
+        <div *ngIf="hourlyRateSaveError" class="rate-error">
+          {{ 'my_calendar_page.errors.update_rate' | translate }}
+        </div>
       </div>
     </div>
 
