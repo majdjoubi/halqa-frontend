@@ -76,6 +76,21 @@
       </div>
 
       <div class="profile-actions flex flex-column">
+        <div class="rate-widget-inline">
+          <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
+          <span class="rate-value">
+            ${{
+              UserData?.profile?.hourlyRate !== null &&
+              UserData?.profile?.hourlyRate !== undefined
+                ? UserData?.profile?.hourlyRate
+                : 0
+            }}
+          </span>
+          <button class="btn-edit-rate-sm" type="button" (click)="openHourlyRateModal()">
+            <i class="fas fa-edit"></i>
+          </button>
+        </div>
+
         <button class="edit-profile-btn mb-2" (click)="openProfileEdit()">
           <i class="fas fa-edit"></i>
           {{ "teacher_profile.edit_profile_button" | translate }}
@@ -1207,6 +1222,52 @@
       >
         <span *ngIf="!isSavingAvailability">{{ "common.save" | translate }}</span>
         <span *ngIf="isSavingAvailability">{{ "common.saving" | translate }}...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Hourly Rate Modal -->
+<div class="modal-overlay" *ngIf="showHourlyRateModal" (click)="closeHourlyRateModal()">
+  <div class="modal-container availability-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ 'my_calendar_page.edit_hourly_rate' | translate }}</h3>
+      <button class="close-btn" (click)="closeHourlyRateModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">{{ 'my_calendar_page.new_hourly_rate' | translate }}</label>
+        <div class="rate-input-wrapper">
+          <span class="currency-symbol">$</span>
+          <input
+            type="number"
+            class="form-control"
+            [(ngModel)]="newHourlyRate"
+            min="0"
+            step="0.5"
+            placeholder="0.00"
+          />
+        </div>
+        <small class="rate-hint">{{ 'my_calendar_page.rate_hint' | translate }}</small>
+        <div *ngIf="hourlyRateSaveSuccess" class="rate-success">
+          {{ 'my_calendar_page.rate_updated_success' | translate }}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="cancel-btn" type="button" (click)="closeHourlyRateModal()">
+        {{ 'common.cancel' | translate }}
+      </button>
+      <button
+        class="save-btn"
+        type="button"
+        (click)="saveHourlyRate()"
+        [disabled]="isSavingHourlyRate || newHourlyRate < 0"
+      >
+        <i *ngIf="isSavingHourlyRate" class="fas fa-spinner fa-spin"></i>
+        <span *ngIf="!isSavingHourlyRate">{{ 'common.save' | translate }}</span>
       </button>
     </div>
   </div>

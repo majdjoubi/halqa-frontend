@@ -16,6 +16,45 @@
     margin: 0 auto;
     padding: 2rem 1rem;
   }
+.rate-widget-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.rate-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.rate-value {
+  font-size: 14px;
+  font-weight: 700;
+}
+.btn-edit-rate-sm {
+  border: none;
+  background: transparent;
+  padding: 4px 6px;
+}
+.rate-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.currency-symbol {
+  font-weight: 700;
+}
+.rate-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+.rate-success {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
 
   // Profile Header
   .profile-header {

@@ -378,6 +378,9 @@
           />
         </div>
         <small class="rate-hint">{{ 'my_calendar_page.rate_hint' | translate }}</small>
+        <div *ngIf="rateSaveSuccess" class="rate-success">
+          {{ 'my_calendar_page.rate_updated_success' | translate }}
+        </div>
       </div>
     </div>
     <div class="modal-footer">

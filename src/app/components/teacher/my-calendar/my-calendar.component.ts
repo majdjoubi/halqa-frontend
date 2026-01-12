@@ -95,6 +95,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   showRateModal: boolean = false;
   newHourlyRate: number = 0;
   isSavingRate: boolean = false;
+  rateSaveSuccess: boolean = false;
   isSavingSlot: boolean = false;
 
   // ===== STUDENT REVIEW (TEACHER -> STUDENT) =====
@@ -807,11 +808,13 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
   openRateModal(): void {
     this.newHourlyRate = this.hourlyRate;
+    this.rateSaveSuccess = false;
     this.showRateModal = true;
   }
 
   closeRateModal(): void {
     this.showRateModal = false;
+    this.rateSaveSuccess = false;
   }
 
   saveHourlyRate(): void {
@@ -822,8 +825,14 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     this.repo.updateTeacherHourlyRate(this.newHourlyRate).subscribe({
       next: () => {
         this.hourlyRate = this.newHourlyRate;
-        this.showRateModal = false;
+        this.rateSaveSuccess = true;
         this.isSavingRate = false;
+
+        // Keep the modal open briefly so the user sees the confirmation message.
+        setTimeout(() => {
+          this.showRateModal = false;
+          this.rateSaveSuccess = false;
+        }, 900);
       },
       error: (err) => {
         console.error('Error updating hourly rate:', err);

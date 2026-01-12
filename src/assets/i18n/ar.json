@@ -1261,6 +1261,7 @@
     "edit_hourly_rate": "تعديل سعر الساعة",
     "new_hourly_rate": "سعر الساعة الجديد",
     "rate_hint": "اكتب 0 للدروس المجانية",
+    "rate_updated_success": "تم تحديث سعر الساعة بنجاح",
     "delete_availability": "حذف هذا الموعد",
     "tabs": {
       "calendar": "التقويم",

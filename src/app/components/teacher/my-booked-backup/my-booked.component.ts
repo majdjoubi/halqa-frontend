@@ -141,7 +141,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
   addAvailabilityForm!: FormGroup;
   isSavingAvailability = false;
   minDate: string = DateTime.now().toFormat('yyyy-MM-dd');
-  defaultHourlyRate: number = 10; // Default price from teacher profile
+  defaultHourlyRate: number = 0; // Default price from teacher profile
   isSavingDefaultRate: boolean = false; // Loading state for saving default rate
 
   // Weekly Pattern Modal
@@ -344,9 +344,9 @@ export class MyBookedComponent implements OnInit, OnDestroy {
       filter((data) => !!data?.profile),
       take(1)
     ).subscribe((data) => {
-      // Get default hourly rate from teacher profile
-      if (data.profile.hourlyRate) {
-        this.defaultHourlyRate = data.profile.hourlyRate;
+      // Get default hourly rate from teacher profile (0 is valid)
+      if (data.profile.hourlyRate !== null && data.profile.hourlyRate !== undefined) {
+        this.defaultHourlyRate = Number(data.profile.hourlyRate);
         // Update form with new default price
         this.addAvailabilityForm.patchValue({ price: this.defaultHourlyRate });
       }
@@ -405,7 +405,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
               studentId: slot.studentId,
               studentName: slot.studentName,
               bookingId: slot.bookingId,
-              price: slot.price || this.defaultHourlyRate,
+              price: slot.price ?? this.defaultHourlyRate,
               // Store both display date and original UTC data
               date: dateStr,
               startDateTime: slot.startDateTime,
@@ -2565,7 +2565,7 @@ export class MyBookedComponent implements OnInit, OnDestroy {
         dayOfWeek: slot.dayOfWeek,
         startTime: slot.startTime,
         endTime: slot.endTime,
-        price: slot.price || this.defaultHourlyRate,
+        price: slot.price ?? this.defaultHourlyRate,
         isRecurring: slot.isRecurring || false,
       })),
     };

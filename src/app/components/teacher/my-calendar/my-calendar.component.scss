@@ -1160,6 +1160,12 @@ $bg-white: #ffffff;
   }
 }
 
+.rate-success {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 // ===== NEXT LESSON INLINE (inside sessions) =====
 .next-lesson-inline {
   background: linear-gradient(135deg, rgba($primary-color, 0.08) 0%, rgba($group-color, 0.08) 100%);

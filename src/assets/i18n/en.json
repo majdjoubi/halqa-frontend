@@ -1262,6 +1262,7 @@
     "edit_hourly_rate": "Edit Hourly Rate",
     "new_hourly_rate": "New Hourly Rate",
     "rate_hint": "Set 0 for free lessons",
+    "rate_updated_success": "Hourly rate updated successfully",
     "delete_availability": "Delete this availability",
     "tabs": {
       "calendar": "Calendar",

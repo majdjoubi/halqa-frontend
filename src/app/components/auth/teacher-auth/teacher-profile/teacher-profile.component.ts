@@ -193,6 +193,12 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
   showBookingDetailsModal = false;
   selectedBookingDetails: any = null;
 
+  // Hourly Rate Modal
+  showHourlyRateModal = false;
+  newHourlyRate: number = 0;
+  isSavingHourlyRate = false;
+  hourlyRateSaveSuccess = false;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -202,6 +208,49 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
     private _repo: RepoService
   ) {
     this.initializeForm();
+  }
+
+  openHourlyRateModal(): void {
+    const raw = (this.UserData?.profile as any)?.hourlyRate;
+    const numeric = Number(raw ?? 0);
+    this.newHourlyRate = Number.isFinite(numeric) ? numeric : 0;
+    this.hourlyRateSaveSuccess = false;
+    this.showHourlyRateModal = true;
+  }
+
+  closeHourlyRateModal(): void {
+    if (this.isSavingHourlyRate) return;
+    this.showHourlyRateModal = false;
+    this.hourlyRateSaveSuccess = false;
+  }
+
+  saveHourlyRate(): void {
+    if (this.isSavingHourlyRate) return;
+    if (this.newHourlyRate < 0) return;
+
+    this.isSavingHourlyRate = true;
+    this.hourlyRateSaveSuccess = false;
+
+    this._repo.updateTeacherHourlyRate(this.newHourlyRate).subscribe({
+      next: () => {
+        if (this.UserData?.profile) {
+          (this.UserData.profile as any).hourlyRate = this.newHourlyRate;
+        }
+
+        this.isSavingHourlyRate = false;
+        this.hourlyRateSaveSuccess = true;
+
+        setTimeout(() => {
+          this.showHourlyRateModal = false;
+          this.hourlyRateSaveSuccess = false;
+        }, 900);
+      },
+      error: (err) => {
+        console.error('Error updating hourly rate:', err);
+        this.isSavingHourlyRate = false;
+        alert('Failed to update hourly rate');
+      },
+    });
   }
 
   ngOnInit(): void {
@@ -425,7 +474,11 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
           : this.UserData?.profile?.specializations || ['quran-memorization'],
       yearsOfExperience:
         (this.UserData?.profile?.yearsOfExperience as number) || 1,
-      hourlyRate: (this.UserData?.profile?.hourlyRate as number) || 10,
+      hourlyRate: (() => {
+        const raw = (this.UserData?.profile as any)?.hourlyRate;
+        const numeric = Number(raw ?? 0);
+        return Number.isFinite(numeric) ? numeric : 0;
+      })(),
       bio:
         formValue.bio ||
         this.UserData?.profile?.bio ||
