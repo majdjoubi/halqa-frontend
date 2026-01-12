@@ -19,6 +19,14 @@ export function app(): express.Express {
 
   // Example Express Rest API endpoints
   // server.get('/api/**', (req, res) => { });
+
+  // Force favicon requests (especially on mobile) to use the Halqa logo.
+  // Must be registered before the static '*.*' handler.
+  server.get('/favicon.ico', (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    res.redirect(302, '/assets/images/logo.png');
+  });
+
   // Serve static files from /browser
   server.get('*.*', express.static(browserDistFolder, {
     maxAge: '1y'

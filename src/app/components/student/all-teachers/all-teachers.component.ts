@@ -366,6 +366,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   // lightweight helper to start booking flow (placeholder)
   bookTeacher(teacherId: string) {
+    // If the teacher profile side-menu is open, close it when starting booking.
+    // This prevents having both the profile sidebar and booking sidebar visible.
+    this.sidebarOpen = false;
+
     // show spinner on the clicked Book button
     this.loadingBookId = teacherId;
 
@@ -698,6 +702,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     if (this.selectedSlotIndex === null || !this.bookingTeacher) return;
     const slot = this.bookingTeacher.availability[this.selectedSlotIndex];
     this.payProcessing = true;
+    // UX: hide the booking sidebar immediately after clicking Book/Pay Now.
+    // Confirmation/error will be shown via the modal.
+    this.closeBookingSidebar();
 
     // Use the secure bookSlot method from SlotsService
     // We just need teacherId and the secure slotId
@@ -725,7 +732,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       next: (res) => {
         console.log('Booking created successfully via SlotsService', res);
         this.payProcessing = false;
-        this.closeBookingSidebar();
+        // Sidebar already closed on click
 
         // Convert response to compatible format if needed for displaying confirmation
         // (The backend response for bookSlot matches what we need for confirmation)
