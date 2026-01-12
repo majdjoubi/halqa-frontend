@@ -98,7 +98,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
           amount: this.amount
         });
         setTimeout(() => {
-          this.router.navigate(['/wallet']);
+          this.router.navigate(['/wallet/topup']);
         }, 2000);
       },
       (error) => {
@@ -171,7 +171,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
 
         // Wait 2 seconds then navigate
         setTimeout(() => {
-          this.router.navigate(['/wallet']);
+          this.router.navigate(['/wallet/topup']);
         }, 2000);
       }
     } catch (error: any) {

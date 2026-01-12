@@ -79,7 +79,7 @@
       <!-- Footer -->
       @if (notifications.length > 0) {
         <div class="notification-footer">
-          <a routerLink="/notifications" (click)="isOpen = false">
+          <a (click)="viewAllNotifications()" role="button">
             {{ 'notifications.viewAll' | translate }}
             <i class="fas fa-arrow-right"></i>
           </a>

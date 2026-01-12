@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy, ElementRef, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { NotificationService, Notification } from '../../services/notification.service';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { StorageService } from '../../services/storage.service';
 
 @Component({
   selector: 'app-notification-bell',
@@ -22,6 +23,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
+    private router: Router,
+    private storageService: StorageService,
     private elementRef: ElementRef,
     public translate: TranslateService
   ) {}
@@ -78,8 +81,8 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
     setTimeout(() => this.isLoading = false, 500);
   }
 
-  markAsRead(notification: Notification, event: Event): void {
-    event.stopPropagation();
+  markAsRead(notification: Notification, event?: Event): void {
+    event?.stopPropagation();
     if (!notification.isRead) {
       this.notificationService.markAsRead(notification.id)
         .pipe(takeUntil(this.destroy$))
@@ -102,11 +105,27 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
   }
 
   navigateToNotification(notification: Notification): void {
-    this.markAsRead(notification, new Event('click'));
-    if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
+    this.markAsRead(notification);
+
+    const actionUrl = (notification.actionUrl || '').trim();
+    if (actionUrl) {
+      const isAbsolute = /^https?:\/\//i.test(actionUrl);
+      if (isAbsolute) {
+        window.location.href = actionUrl;
+      } else {
+        this.router.navigateByUrl(actionUrl).catch(() => {
+          this.router.navigate(['/not-found']);
+        });
+      }
     }
     this.isOpen = false;
+  }
+
+  viewAllNotifications(): void {
+    const role = (this.storageService.getItem('user_role') || '').trim();
+    const target = role === '2' ? '/my-calendar' : role === '1' ? '/my-bookings' : '/home';
+    this.isOpen = false;
+    this.router.navigateByUrl(target);
   }
 
   getIcon(type: string): string {
