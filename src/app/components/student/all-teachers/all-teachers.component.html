@@ -138,14 +138,11 @@
               <div class="teacher-left">
                 <div class="avatar-wrap">
                   <img
-                    [src]="
-                      t.profilePictureUrl
-                        ? t.profilePictureUrl
-                        : '../../../../assets/images/blank-avatar.webp'
-                    "
+                    [src]="t.profilePictureUrl || '/assets/images/blank-avatar.webp'"
                     [alt]="
                       t.name + ' ' + ('common.default_avatar_alt' | translate)
                     "
+                    (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
                   />
                 </div>
               </div>
@@ -311,6 +308,7 @@
             ('common.default_avatar_alt' | translate)
           "
           class="profile-avatar"
+          (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
         />
 
         <div class="profile-meta">

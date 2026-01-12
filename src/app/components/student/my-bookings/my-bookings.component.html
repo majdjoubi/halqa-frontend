@@ -29,7 +29,8 @@
         <img
           class="next-avatar"
           [src]="nextUpcoming.teacherProfileImage || '/assets/images/blank-avatar.webp'"
-          [alt]="nextUpcoming.teacherName"
+           [alt]="nextUpcoming.teacherName"
+            (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
         />
         <span>{{ nextUpcoming.teacherName }}</span>
       </div>
@@ -85,6 +86,7 @@
               <img
                 [src]="b.teacherProfileImage || '/assets/images/blank-avatar.webp'"
                 [alt]="b.teacherName"
+                  (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
               />
             </div>
             <div class="teacher-info">
@@ -139,6 +141,7 @@
               <img
                 [src]="b.teacherProfileImage || '/assets/images/blank-avatar.webp'"
                 [alt]="b.teacherName"
+                  (error)="$any($event.target).src = '/assets/images/blank-avatar.webp'"
               />
             </div>
             <div class="teacher-info">
