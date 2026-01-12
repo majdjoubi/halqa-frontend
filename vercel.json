@@ -8,6 +8,18 @@
   "outputDirectory": "dist/halqa/browser",
   "rewrites": [
     {
+      "source": "/favicon.ico",
+      "destination": "/assets/images/logo.png"
+    },
+    {
+      "source": "/apple-touch-icon.png",
+      "destination": "/assets/images/logo.png"
+    },
+    {
+      "source": "/apple-touch-icon-precomposed.png",
+      "destination": "/assets/images/logo.png"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "https://halqa-api-k60w.onrender.com/api/$1"
     },
