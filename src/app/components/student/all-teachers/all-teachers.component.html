@@ -64,21 +64,21 @@
             </div>
 
             <div class="filter-item">
-              <label for="courseDropdown" class="visually-hidden"
-                >Courses</label
+              <label for="languageDropdown" class="visually-hidden"
+                >Language</label
               >
               <div
                 class="select-wrapper custom-dropdown"
-                [class.open]="coursesOpen"
-                (click)="toggleCourses($event)"
-                (keydown)="onCourseKeydown($event)"
+                [class.open]="languagesOpen"
+                (click)="toggleLanguages($event)"
+                (keydown)="onLanguageKeydown($event)"
                 tabindex="0"
                 role="button"
                 aria-haspopup="listbox"
-                [attr.aria-expanded]="coursesOpen"
+                [attr.aria-expanded]="languagesOpen"
               >
                 <div class="selected-value">
-                  {{ getCourseLabel$() | async }}
+                  {{ getLanguageLabel() }}
                 </div>
                 <span class="arrow" aria-hidden="true">
                   <svg
@@ -98,33 +98,22 @@
                   </svg>
                 </span>
 
-                <ul class="options" role="listbox" *ngIf="coursesOpen">
+                <ul class="options" role="listbox" *ngIf="languagesOpen">
                   <li
                     role="option"
-                    [class.selected]="selectedCourse === ''"
-                    (click)="selectCourse('', $event)"
+                    [class.selected]="!selectedLanguage"
+                    (click)="selectLanguage(null, $event)"
                   >
-                    {{ "all_teachers.all_courses" | translate }}
+                    {{ isRtl ? 'كل اللغات' : 'All Languages' }}
                   </li>
-                  <ng-container *ngIf="coursesLoading">
-                    <li class="loading">{{ "common.loading" | translate }}</li>
-                  </ng-container>
-                  <ng-container *ngIf="!coursesLoading">
-                    <li
-                      *ngIf="!courses || courses.length === 0"
-                      class="no-courses"
-                    >
-                      {{ "all_teachers.no_courses" | translate }}
-                    </li>
-                    <li
-                      *ngFor="let c of courses"
-                      role="option"
-                      [class.selected]="selectedCourse === c.value"
-                      (click)="selectCourse(c.value, $event)"
-                    >
-                      {{ c.label || c.name || c | translate }}
-                    </li>
-                  </ng-container>
+                  <li
+                    *ngFor="let lang of languages"
+                    role="option"
+                    [class.selected]="selectedLanguage === lang.value"
+                    (click)="selectLanguage(lang.value, $event)"
+                  >
+                    {{ lang.label }}
+                  </li>
                 </ul>
               </div>
             </div>

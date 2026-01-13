@@ -79,6 +79,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   courses: any[] = [];
   coursesLoading = false;
 
+  // Language filter options (teacher languages)
+  languages: Array<{ label: string; value: string }> = [
+    { label: 'Arabic', value: 'Arabic' },
+    { label: 'English', value: 'English' },
+    { label: 'German', value: 'German' },
+    { label: 'French', value: 'French' },
+    { label: 'Turkish', value: 'Turkish' },
+    { label: 'Other', value: 'Other' },
+  ];
+
   teachers = [
     { label: 'teachers.ahmed', value: 'ahmed' },
     { label: 'teachers.sara', value: 'sara' },
@@ -942,31 +952,36 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.loadPage(1);
   }
 
+  onLanguageChange() {
+    // When language filter changes, reload results immediately
+    this.loadPage(1);
+  }
+
   onTeacherChange() {
     // update teacher filter but don't auto-search
   }
 
   // Custom dropdown open states
-  coursesOpen = false;
+  languagesOpen = false;
   teachersOpen = false;
 
-  toggleCourses(event?: Event) {
+  toggleLanguages(event?: Event) {
     if (event) event.stopPropagation();
-    this.coursesOpen = !this.coursesOpen;
-    if (this.coursesOpen) this.teachersOpen = false;
+    this.languagesOpen = !this.languagesOpen;
+    if (this.languagesOpen) this.teachersOpen = false;
   }
 
   toggleTeachers(event?: Event) {
     if (event) event.stopPropagation();
     this.teachersOpen = !this.teachersOpen;
-    if (this.teachersOpen) this.coursesOpen = false;
+    if (this.teachersOpen) this.languagesOpen = false;
   }
 
-  selectCourse(value: string, event?: Event) {
+  selectLanguage(value: string | number | null, event?: Event) {
     if (event) event.stopPropagation();
-    this.selectedCourse = value;
-    this.coursesOpen = false;
-    this.onCourseChange();
+    this.selectedLanguage = value;
+    this.languagesOpen = false;
+    this.onLanguageChange();
   }
 
   selectTeacher(value: string, event?: Event) {
@@ -976,12 +991,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.onTeacherChange();
   }
 
-  getCourseLabel$() {
-    if (!this.selectedCourse)
-      return this.translate.get('all_teachers.all_courses');
-    const found = this.courses.find((c) => c.value === this.selectedCourse);
-    if (!found) return this.translate.get('all_teachers.all_courses');
-    return this.translate.get(found.label || found.value);
+  getLanguageLabel(): string {
+    if (!this.selectedLanguage) {
+      return this.isRtl ? 'كل اللغات' : 'All Languages';
+    }
+    // selectedLanguage is sent as-is to API (string/number). Display it as string.
+    return String(this.selectedLanguage);
   }
 
   getTeacherLabel$() {
@@ -1137,12 +1152,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   }
 
   // Keyboard handlers for accessibility
-  onCourseKeydown(e: KeyboardEvent) {
+  onLanguageKeydown(e: KeyboardEvent) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      this.toggleCourses();
+      this.toggleLanguages();
     } else if (e.key === 'Escape') {
-      this.coursesOpen = false;
+      this.languagesOpen = false;
     }
   }
 
@@ -1159,7 +1174,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
     // close both dropdowns
-    this.coursesOpen = false;
+    this.languagesOpen = false;
     this.teachersOpen = false;
   }
 

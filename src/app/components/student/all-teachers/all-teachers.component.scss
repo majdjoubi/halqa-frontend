@@ -846,8 +846,8 @@
     }
 
     .time-slots {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -865,7 +865,8 @@
       flex-direction: column;
       align-items: center;
       gap: 2px;
-      min-width: 90px;
+      min-width: 0;
+      width: 100%;
 
       .slot-time {
         font-family: 'Roboto Mono', 'Courier New', monospace;
@@ -897,6 +898,14 @@
         opacity: 0.4;
         cursor: not-allowed;
         text-decoration: line-through;
+      }
+    }
+  }
+
+  @media (max-width: 420px) {
+    .day-group {
+      .time-slots {
+        grid-template-columns: 1fr;
       }
     }
   }
