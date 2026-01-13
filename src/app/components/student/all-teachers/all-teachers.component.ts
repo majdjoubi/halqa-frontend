@@ -434,26 +434,31 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const bookableSlots = (enrichedSlots || []).filter(s => s.isBookable);
 
     // Map enriched slots to the format expected by the template
-    const mappedSlots = bookableSlots.map((slot: EnrichedSlot) => ({
-      ...slot,
-      // Map properties for template compatibility
-      startTime: slot.viewerLocal12h,
-      endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
-      price: teacher.hourlyRate, // Use teacher's hourly rate
-      isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
+    const mappedSlots = bookableSlots.map((slot: EnrichedSlot) => {
+      const startTime = slot.viewerLocal12h;
+      const endTime = this._calculateEndTime(startTime, slot.durationMin);
+      return {
+        ...slot,
+        // Map properties for template compatibility
+        startTime,
+        endTime,
+        displayTimeRange: this._formatTimeRange(startTime, endTime),
+        price: teacher.hourlyRate, // Use teacher's hourly rate
+        isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
 
-      // Date handling
-      date: slot.viewerLocalDate,
-      displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-      adjustedDateKey: slot.viewerLocalDate,
+        // Date handling
+        date: slot.viewerLocalDate,
+        displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
+        adjustedDateKey: slot.viewerLocalDate,
 
-      // Calculate day of week (0-6) from date
-      dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+        // Calculate day of week (0-6) from date
+        dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
 
-      // Preserve original slotId for booking
-      id: slot.slotId, // Ensure ID is mapped correctly
-      startIsoUtc: slot.startAtUtc
-    }));
+        // Preserve original slotId for booking
+        id: slot.slotId, // Ensure ID is mapped correctly
+        startIsoUtc: slot.startAtUtc
+      };
+    });
 
     this.bookingTeacher = {
       ...teacher,
@@ -519,6 +524,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         ...slot,
         startTime: startTime12h,
         endTime: endTime12h,
+        displayTimeRange: this._formatTimeRange(startTime12h, endTime12h),
         price: teacher.hourlyRate,
         // Only show bookable slots in the UI: available AND not in the past.
         isAvailable: (slot.isAvailable !== false && !slot.isBooked) && !isPast,
@@ -591,19 +597,24 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           const currentSelection = this.selectedSlotIndex;
           const currentDate = this.selectedCalendarDate;
           
-          const mappedSlots = result.slots.map((slot: EnrichedSlot) => ({
-            ...slot,
-            startTime: slot.viewerLocal12h,
-            endTime: this._calculateEndTime(slot.viewerLocal12h, slot.durationMin),
-            price: this.bookingTeacher.hourlyRate,
-            isAvailable: slot.isBookable,
-            date: slot.viewerLocalDate,
-            displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-            adjustedDateKey: slot.viewerLocalDate,
-            dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
-            id: slot.slotId,
-            startIsoUtc: slot.startAtUtc
-          }));
+          const mappedSlots = result.slots.map((slot: EnrichedSlot) => {
+            const startTime = slot.viewerLocal12h;
+            const endTime = this._calculateEndTime(startTime, slot.durationMin);
+            return {
+              ...slot,
+              startTime,
+              endTime,
+              displayTimeRange: this._formatTimeRange(startTime, endTime),
+              price: this.bookingTeacher.hourlyRate,
+              isAvailable: slot.isBookable,
+              date: slot.viewerLocalDate,
+              displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
+              adjustedDateKey: slot.viewerLocalDate,
+              dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+              id: slot.slotId,
+              startIsoUtc: slot.startAtUtc
+            };
+          });
 
           this.bookingTeacher = {
             ...this.bookingTeacher,
@@ -635,6 +646,31 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
   }
 
+  private _formatTimeRange(startTime: string, endTime: string): string {
+    const start = (startTime || '').trim();
+    const end = (endTime || '').trim();
+    if (!start || !end) return start && end ? `${start} - ${end}` : (start || end);
+
+    const re = /^(\d{1,2}:\d{2})\s*([AP]M)$/i;
+    const startMatch = start.match(re);
+    const endMatch = end.match(re);
+
+    if (!startMatch || !endMatch) {
+      return `${start} - ${end}`;
+    }
+
+    const startHm = startMatch[1];
+    const startMeridiem = startMatch[2].toUpperCase();
+    const endHm = endMatch[1];
+    const endMeridiem = endMatch[2].toUpperCase();
+
+    if (startMeridiem === endMeridiem) {
+      return `${startHm} - ${endHm} ${endMeridiem}`;
+    }
+
+    return `${startHm} ${startMeridiem} - ${endHm} ${endMeridiem}`;
+  }
+
   // Map group session to slot format for display in the calendar
   private _mapGroupSessionToSlot(gs: any): any {
     // Use TimezoneService to convert UTC to user's local timezone
@@ -642,6 +678,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       const localStart = this.timezoneService.utcToLocal(gs.scheduledDateTime, this.userIanaTimezone);
       const durationHours = gs.duration || 1;
       const localEnd = localStart.plus({ hours: durationHours });
+
+      const startTime = localStart.toFormat('h:mm a');
+      const endTime = localEnd.toFormat('h:mm a');
 
       return {
         slotType: 'group',
@@ -656,8 +695,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         teacherName: gs.teacherName,
         status: gs.status,
         isAvailable: gs.status === 'Open' || gs.status === 0, // 0 = Open status
-        startTime: localStart.toFormat('h:mm a'),
-        endTime: localEnd.toFormat('h:mm a'),
+        startTime,
+        endTime,
+        displayTimeRange: this._formatTimeRange(startTime, endTime),
         displayDate: localStart.toFormat('MMM d'),
         dayOfWeek: localStart.weekday % 7, // Luxon uses 1-7 (Mon-Sun), convert to 0-6
         date: localStart.toFormat('yyyy-MM-dd'),
