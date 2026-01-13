@@ -525,7 +525,6 @@
               (click)="selectSlot(getSlotOriginalIndex(slot))"
             >
               <span class="slot-time">{{ slot.startTime }} - {{ slot.endTime }}</span>
-              <span class="slot-price" *ngIf="slot.price && !slot.isGroupSession">${{ slot.price }}</span>
             </button>
           </div>
         </div>
