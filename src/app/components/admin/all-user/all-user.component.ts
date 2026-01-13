@@ -60,6 +60,77 @@ export class AllUserComponent implements OnInit {
     });
   }
 
+  get teacherEmails(): string[] {
+    const emails = (this.AllUsers || [])
+      .filter((u) => {
+        const role = u?.role;
+        if (typeof role === 'number') return role === 2;
+        if (typeof role === 'string') {
+          const r = role.trim().toLowerCase();
+          return r === 'teacher';
+        }
+        return false;
+      })
+      .map((u) => String(u?.email || '').trim().toLowerCase())
+      .filter((e) => !!e);
+
+    return Array.from(new Set(emails));
+  }
+
+  get teacherEmailCount(): number {
+    return this.teacherEmails.length;
+  }
+
+  async copyAllTeacherEmails(): Promise<void> {
+    const emails = this.teacherEmails;
+    if (!emails.length) {
+      alert('لا يوجد ايميلات للمعلمين حالياً\nNo teacher emails found');
+      return;
+    }
+
+    // Semicolon-separated is widely accepted (e.g., Outlook) for bulk email fields.
+    const text = emails.join('; ');
+    const ok = await this.copyTextToClipboard(text);
+
+    if (ok) {
+      alert(
+        `تم نسخ ${emails.length} ايميل للمعلمين للنسخ\nCopied ${emails.length} teacher emails to clipboard`
+      );
+    } else {
+      alert(
+        'فشل نسخ الايميلات. حاول مرة أخرى\nFailed to copy emails. Please try again.'
+      );
+    }
+  }
+
+  private async copyTextToClipboard(text: string): Promise<boolean> {
+    try {
+      if ((window as any).isSecureContext && navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // fall back below
+    }
+
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.setAttribute('readonly', '');
+      textarea.style.position = 'fixed';
+      textarea.style.top = '0';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(textarea);
+      return ok;
+    } catch {
+      return false;
+    }
+  }
+
   // Role filter method
   filterByRole(role: string) {
     this.selectedRoleFilter = role;

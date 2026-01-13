@@ -13,6 +13,17 @@
         <span class="count" *ngIf="role.key === 'teacher'">({{ (AllUsers | filterByRole:'teacher').length }})</span>
         <span class="count" *ngIf="role.key === 'student'">({{ (AllUsers | filterByRole:'student').length }})</span>
       </button>
+
+      <button
+        type="button"
+        class="role-filter-btn"
+        (click)="copyAllTeacherEmails()"
+        [disabled]="teacherEmailCount === 0"
+        title="Copy all teacher emails"
+      >
+        نسخ ايميلات المعلمين
+        <span class="count">({{ teacherEmailCount }})</span>
+      </button>
     </div>
   </div>
 
