@@ -227,6 +227,32 @@ export class RepoService {
       `${this.base_url}/api/admin/statistics/dashboard`
     );
   }
+
+  // Admin Messaging APIs (SendGrid-only backend)
+
+  adminMessagingCreateCampaign(data: any): Observable<any> {
+    return this.http.post<any>(
+      `${this.base_url}/api/admin/messaging/campaigns`,
+      data
+    );
+  }
+
+  adminMessagingListCampaigns(params?: { status?: string; page?: number; pageSize?: number }): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params?.status) httpParams = httpParams.set('status', String(params.status));
+    if (params?.page) httpParams = httpParams.set('page', String(params.page));
+    if (params?.pageSize) httpParams = httpParams.set('pageSize', String(params.pageSize));
+
+    return this.http.get<any>(`${this.base_url}/api/admin/messaging/campaigns`, {
+      params: httpParams,
+    });
+  }
+
+  adminMessagingGetCampaign(campaignId: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.base_url}/api/admin/messaging/campaigns/${campaignId}`
+    );
+  }
   // get quick status counts for admin dashboard
   getAdminStatusCounts(): Observable<any> {
     return this.http.get<any>(`${this.base_url}/api/admin/statistics/quick`);
@@ -235,6 +261,13 @@ export class RepoService {
   // get financial statistics for admin dashboard
   getAdminFinancialStats(): Observable<any> {
     return this.http.get<any>(`${this.base_url}/api/admin/statistics/financial`);
+  }
+
+  // Public unsubscribe endpoint (one-click)
+  unsubscribe(token: string): Observable<any> {
+    return this.http.get<any>(`${this.base_url}/api/unsubscribe`, {
+      params: new HttpParams().set('token', token),
+    });
   }
 
   // get students ordered by wallet balance (highest first)

@@ -170,11 +170,26 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'messaging',
+    canActivate: [AdminGuard],
+    loadComponent: () =>
+      import('./components/admin/messaging/messaging.component').then(
+        (m) => m.MessagingComponent
+      ),
+  },
+  {
     path: 'wallet/topup',
     canActivate: [StudentGuard],
     loadComponent: () =>
       import('./components/wallet-topup/wallet-topup.component').then(
         (m) => m.WalletTopupComponent
+      ),
+  },
+  {
+    path: 'unsubscribe',
+    loadComponent: () =>
+      import('./components/unsubscribe/unsubscribe.component').then(
+        (m) => m.UnsubscribeComponent
       ),
   },
   {

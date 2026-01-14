@@ -1,0 +1,219 @@
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="m-0">Messaging</h2>
+    <button
+      class="btn btn-primary"
+      (click)="send()"
+      [disabled]="sending() || loading()"
+    >
+      {{ sending() ? 'Sending…' : 'Send / Queue' }}
+    </button>
+  </div>
+
+  <div *ngIf="error()" class="alert alert-danger">{{ error() }}</div>
+  <div *ngIf="success()" class="alert alert-success">{{ success() }}</div>
+
+  <div *ngIf="spamIssues().length" class="alert alert-warning">
+    <div class="fw-semibold">Safety checks failed:</div>
+    <ul class="mb-0">
+      <li *ngFor="let issue of spamIssues()">{{ issue }}</li>
+    </ul>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-5">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Recipients</h5>
+
+          <label class="form-label">Audience</label>
+          <select class="form-select" [formControl]="form.controls.audienceType">
+            <option value="all_teachers">All Teachers</option>
+            <option value="all_students">All Students</option>
+            <option value="all_users">All Users</option>
+            <option value="custom_list">Custom List</option>
+            <option value="single_email">Single Email</option>
+          </select>
+
+          <div class="mt-3" *ngIf="form.controls.audienceType.value === 'single_email'">
+            <label class="form-label">Recipient email</label>
+            <input
+              type="email"
+              class="form-control"
+              placeholder="user@example.com"
+              [formControl]="form.controls.singleEmail"
+            />
+            <div class="text-danger small" *ngIf="getFieldError(form.controls.singleEmail)">
+              {{ getFieldError(form.controls.singleEmail) }}
+            </div>
+          </div>
+
+          <div class="mt-3" *ngIf="form.controls.audienceType.value === 'custom_list'">
+            <div class="d-flex align-items-center justify-content-between">
+              <label class="form-label m-0">Select users by email</label>
+              <button class="btn btn-sm btn-outline-secondary" (click)="loadUsersIfNeeded()" type="button">
+                Refresh
+              </button>
+            </div>
+
+            <div class="small text-muted" *ngIf="usersLoading()">Loading users…</div>
+
+            <div class="user-list mt-2" *ngIf="!usersLoading()">
+              <div class="form-check" *ngFor="let u of users()">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  [checked]="isCustomEmailSelected(u.email)"
+                  (change)="toggleCustomEmail(u.email, $any($event.target).checked)"
+                  [id]="'u-' + u.email"
+                />
+                <label class="form-check-label" [for]="'u-' + u.email">
+                  {{ u.email }}
+                </label>
+              </div>
+            </div>
+
+            <div class="small text-muted mt-2">
+              Selected: {{ (form.controls.customEmails.value || []).length }}
+            </div>
+          </div>
+
+          <hr />
+
+          <h5 class="card-title">Options</h5>
+
+          <div class="form-check">
+            <input class="form-check-input" type="radio" value="now" [formControl]="form.controls.timing" id="timing-now" />
+            <label class="form-check-label" for="timing-now">Send immediately</label>
+          </div>
+
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="radio" value="schedule" [formControl]="form.controls.timing" id="timing-schedule" />
+            <label class="form-check-label" for="timing-schedule">Schedule</label>
+          </div>
+
+          <div class="mt-2" *ngIf="form.controls.timing.value === 'schedule'">
+            <label class="form-label">Date & time</label>
+            <input type="datetime-local" class="form-control" [formControl]="form.controls.scheduledAt" />
+            <div class="text-danger small" *ngIf="getFieldError(form.controls.scheduledAt)">
+              {{ getFieldError(form.controls.scheduledAt) }}
+            </div>
+          </div>
+
+          <hr />
+
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" [formControl]="form.controls.testSend" id="testSend" />
+            <label class="form-check-label" for="testSend">Test send to admin email</label>
+          </div>
+
+          <div class="mt-2" *ngIf="form.controls.testSend.value">
+            <label class="form-label">Admin email</label>
+            <input type="email" class="form-control" [formControl]="form.controls.testEmail" />
+            <div class="text-danger small" *ngIf="getFieldError(form.controls.testEmail)">
+              {{ getFieldError(form.controls.testEmail) }}
+            </div>
+          </div>
+
+          <div class="alert alert-info mt-3 mb-0">
+            Footer (company, unsubscribe, address) is enforced and cannot be removed.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-7">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Compose</h5>
+
+          <label class="form-label">Subject</label>
+          <input class="form-control" [formControl]="form.controls.subject" placeholder="Subject…" />
+          <div class="text-danger small" *ngIf="getFieldError(form.controls.subject)">
+            {{ getFieldError(form.controls.subject) }}
+          </div>
+
+          <div class="mt-3 d-flex flex-wrap gap-2">
+            <span class="badge bg-secondary">Variables</span>
+            <span class="badge bg-light text-dark">{{ '{{first_name}}' }}</span>
+            <span class="badge bg-light text-dark">{{ '{{email}}' }}</span>
+            <span class="badge bg-light text-dark">{{ '{{role}}' }}</span>
+          </div>
+
+          <label class="form-label mt-3">HTML body</label>
+          <quill-editor
+            class="quill-wrap"
+            [modules]="quillModules"
+            [formControl]="form.controls.htmlBody"
+            [placeholder]="editorPlaceholder"
+          ></quill-editor>
+          <div class="text-danger small" *ngIf="getFieldError(form.controls.htmlBody)">
+            {{ getFieldError(form.controls.htmlBody) }}
+          </div>
+
+          <div class="mt-3">
+            <h6 class="mb-2">Preview (footer auto-added)</h6>
+            <div class="preview" [innerHTML]="finalHtmlPreview()"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-body">
+          <div class="d-flex align-items-center justify-content-between">
+            <h5 class="card-title m-0">Campaigns</h5>
+            <button class="btn btn-sm btn-outline-secondary" (click)="refreshCampaigns()" type="button">
+              Refresh
+            </button>
+          </div>
+
+          <div class="small text-muted mt-2" *ngIf="campaignsLoading()">Loading campaigns…</div>
+
+          <div class="table-responsive mt-2" *ngIf="!campaignsLoading()">
+            <table class="table table-sm align-middle">
+              <thead>
+                <tr>
+                  <th>Created</th>
+                  <th>Audience</th>
+                  <th>Subject</th>
+                  <th>Status</th>
+                  <th class="text-end">Recipients</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of campaigns()">
+                  <td class="text-muted small">{{ c.created_at | date:'short' }}</td>
+                  <td>{{ c.audience_type }}</td>
+                  <td class="text-truncate" style="max-width: 240px">{{ c.subject }}</td>
+                  <td>{{ c.status }}</td>
+                  <td class="text-end">{{ c.total_recipients }}</td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-primary" (click)="selectCampaign(c.id)" type="button">
+                      View
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="(campaigns() || []).length === 0">
+                  <td colspan="6" class="text-muted">No campaigns yet.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-3" *ngIf="selectedCampaign()">
+            <h6 class="mb-2">Selected Campaign</h6>
+            <div class="row g-2">
+              <div class="col-6 col-md-4"><div class="stat">Delivered: <strong>{{ selectedCampaignCounts()?.delivered || 0 }}</strong></div></div>
+              <div class="col-6 col-md-4"><div class="stat">Opens: <strong>{{ selectedCampaignCounts()?.opens || 0 }}</strong></div></div>
+              <div class="col-6 col-md-4"><div class="stat">Bounced: <strong>{{ selectedCampaignCounts()?.bounced || 0 }}</strong></div></div>
+              <div class="col-6 col-md-4"><div class="stat">Blocked: <strong>{{ selectedCampaignCounts()?.blocked || 0 }}</strong></div></div>
+              <div class="col-6 col-md-4"><div class="stat">Spam: <strong>{{ selectedCampaignCounts()?.spam_reports || 0 }}</strong></div></div>
+              <div class="col-6 col-md-4"><div class="stat">Queued: <strong>{{ selectedCampaignCounts()?.queued || 0 }}</strong></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

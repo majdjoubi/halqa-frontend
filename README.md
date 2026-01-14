@@ -122,3 +122,49 @@ npm test
 ---
 
 Built with ❤️ using Angular
+
+## 📨 Admin Messaging (SendGrid Only)
+
+تم إضافة نظام مراسلة للإدمن عبر تبويب **Messaging**، وهو **الطريقة الوحيدة** المعتمدة لإرسال الإيميلات من لوحة الإدارة.
+
+### ✅ قواعد أساسية
+
+- الإرسال يتم عبر **SendGrid API v3 فقط** (لا SMTP، لا Nodemailer SMTP، لا مزود بريد).
+- From / Reply-To ثابت:
+	- `info@halqa.online`
+- يتم إضافة Footer إلزامي (Halqa + Unsubscribe + العنوان) تلقائياً ولا يمكن للإدمن إزالته.
+- يتم فرض Rate limit:
+	- `50 / minute`
+	- `500 / day` لكل دومين
+	- Warm-up تلقائي: إذا عمر الدومين < 30 يوم → `50 / day`
+
+### 🔐 متغيرات البيئة المطلوبة (Vercel Environment Variables)
+
+- `SENDGRID_API_KEY` (Required)
+- `DATABASE_URL` (Required) PostgreSQL connection string
+- `HALQA_PHYSICAL_ADDRESS` (Required) مثال: `Street, City, Country`
+- `PUBLIC_APP_BASE_URL` (Optional) default `https://halqa.online`
+- `MESSAGING_WORKER_SECRET` (Required) secret for cron/worker endpoint
+- `HALQA_DOMAIN_CREATED_AT` (Optional) ISO date مثل: `2025-12-01`
+- `SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY_PEM` (Recommended) للتحقق من Webhook signature
+
+### 🗄️ قاعدة البيانات (Database)
+
+- ملف الـ migration موجود هنا: [db/migrations/001_admin_messaging.sql](db/migrations/001_admin_messaging.sql)
+- يجب تطبيقه على PostgreSQL قبل تشغيل الإرسال.
+
+### 🧰 Worker (Queue Processor)
+
+- أنشئ Vercel Cron Job يستدعي:
+	- `POST /api/admin/messaging/worker/run`
+	- Header: `x-worker-secret: <MESSAGING_WORKER_SECRET>`
+
+### 📈 Reporting / Webhook
+
+- فعّل SendGrid Event Webhook إلى:
+	- `POST /api/admin/messaging/webhook/sendgrid`
+- سيتم تخزين الأحداث (delivered/open/bounce/blocked/spam) داخل قاعدة البيانات لعرضها في لوحة Messaging.
+
+### ⚙️ DKIM/SPF
+
+- يجب تفعيل **Domain Authentication** داخل SendGrid لضمان DKIM + SPF للدومين `halqa.online`.

@@ -1,0 +1,21 @@
+<div class="container py-5">
+  <div class="card mx-auto" style="max-width: 560px">
+    <div class="card-body">
+      <h3 class="card-title">Unsubscribe</h3>
+
+      <div *ngIf="loading()" class="text-muted">Processing…</div>
+
+      <div *ngIf="!loading() && ok()" class="alert alert-success mt-3">
+        You have been unsubscribed successfully.
+      </div>
+
+      <div *ngIf="!loading() && error()" class="alert alert-danger mt-3">
+        {{ error() }}
+      </div>
+
+      <div class="text-muted small mt-3">
+        If this was a mistake, contact support.
+      </div>
+    </div>
+  </div>
+</div>

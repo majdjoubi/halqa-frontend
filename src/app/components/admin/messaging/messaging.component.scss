@@ -1,0 +1,41 @@
+.user-list {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fafafa;
+  min-height: 120px;
+}
+
+.quill-wrap {
+  display: block;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+:host ::ng-deep .ql-toolbar.ql-snow {
+  border: none;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:host ::ng-deep .ql-container.ql-snow {
+  border: none;
+  min-height: 220px;
+}
+
+.stat {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #fff;
+}
