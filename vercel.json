@@ -29,7 +29,7 @@
       "dest": "/assets/images/logo.png"
     },
     {
-      "src": "/api/(.*)",
+      "src": "/api/(?!admin/messaging|unsubscribe|health)(.*)",
       "dest": "https://halqa-api-k60w.onrender.com/api/$1"
     },
     {

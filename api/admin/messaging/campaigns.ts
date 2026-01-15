@@ -44,13 +44,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') {
       await requireAdmin(req);
+      const page = Math.max(1, Number(req.query.page || 1));
+      const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 50)));
+      const offset = (page - 1) * pageSize;
+
       const rows = await dbQuery(
         `select id, created_at, audience_type, total_recipients, subject, status, scheduled_at
          from messaging_campaigns
          order by created_at desc
-         limit 50`
+         limit $1 offset $2`,
+        [pageSize, offset]
       );
-      return sendJson(res, 200, { campaigns: rows });
+      return sendJson(res, 200, { campaigns: rows, page, pageSize });
     }
 
     if (req.method !== 'POST') {
@@ -169,6 +174,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   } catch (e: any) {
     console.error(e);
-    return sendJson(res, 400, { message: e?.message || 'Bad Request' });
+
+    const msg = String(e?.message || 'Unknown error');
+    // Map common operational failures to correct HTTP statuses (and clearer messages).
+    if (msg.includes('Missing Authorization header') || msg.includes('Unauthorized')) {
+      return sendJson(res, 401, { message: msg });
+    }
+    if (msg.includes('DATABASE_URL is required')) {
+      return sendJson(res, 500, { message: 'Server not configured: DATABASE_URL is missing' });
+    }
+    if (msg.includes('relation') && msg.includes('messaging_')) {
+      return sendJson(res, 500, {
+        message: 'Database schema missing: apply db/migrations/001_admin_messaging.sql',
+      });
+    }
+    if (msg.includes('Failed to fetch users from backend')) {
+      return sendJson(res, 502, { message: 'Upstream backend error while fetching users' });
+    }
+
+    return sendJson(res, 500, { message: 'A server error has occurred' });
   }
 }
