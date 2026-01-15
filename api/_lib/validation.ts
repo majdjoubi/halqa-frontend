@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 
 export const FROM_EMAIL = 'info@halqa.online';
 export const REPLY_TO_EMAIL = 'info@halqa.online';

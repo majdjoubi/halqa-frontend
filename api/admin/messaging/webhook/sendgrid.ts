@@ -1,10 +1,10 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'crypto';
+import * as crypto from 'crypto';
 import { dbQuery } from '../../../_lib/db';
 import { readJson, sendJson } from '../../../_lib/http';
 
 function verifyIfConfigured(req: VercelRequest, rawBody: string): void {
-  const publicKeyPem = process.env.SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY_PEM;
+  const publicKeyPem = process.env['SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY_PEM'];
   if (!publicKeyPem) {
     // In production, set SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY to enforce verification.
     return;

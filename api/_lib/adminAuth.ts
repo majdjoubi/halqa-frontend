@@ -64,5 +64,5 @@ export async function fetchAdminUsers(req: VercelRequest): Promise<any[]> {
     throw new Error('Failed to fetch users from backend');
   }
 
-  return await resp.json();
+  return (await resp.json()) as any[];
 }
