@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import crypto from 'crypto';
+import { randomUUID } from 'crypto';
 import { dbQuery } from '../../_lib/db';
 import { requireAdmin, fetchAdminUsers } from '../../_lib/adminAuth';
 import { readJson, sendJson } from '../../_lib/http';
@@ -29,6 +29,37 @@ type CreateCampaignBody = {
   custom_emails?: string[] | null;
   single_email?: string | null;
 };
+
+async function insertRecipientsAndJobs(params: {
+  campaignId: string;
+  scheduledAtIso: string;
+  emails: string[];
+}): Promise<void> {
+  const uniqueEmails = Array.from(new Set(params.emails.map(normalizeEmail).filter(Boolean)));
+  if (uniqueEmails.length === 0) return;
+
+  // Bulk insert recipients (idempotent via unique(campaign_id,email))
+  await dbQuery(
+    `insert into messaging_recipients (campaign_id, email)
+     select $1, e
+     from unnest($2::text[]) as e
+     on conflict (campaign_id, email) do update set email = excluded.email`,
+    [params.campaignId, uniqueEmails]
+  );
+
+  // Bulk insert jobs for any recipients that don't have a job yet (idempotent)
+  await dbQuery(
+    `insert into messaging_send_jobs (campaign_id, recipient_id, scheduled_at, status)
+     select $1, r.id, $2::timestamptz, 'queued'
+     from messaging_recipients r
+     where r.campaign_id = $1
+       and not exists (
+         select 1 from messaging_send_jobs j
+         where j.campaign_id = $1 and j.recipient_id = r.id
+       )`,
+    [params.campaignId, params.scheduledAtIso]
+  );
+}
 
 function isValidAudience(a: any): a is AudienceType {
   return (
@@ -130,7 +161,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       recipientEmails = Array.from(new Set(recipientEmails));
     }
 
-    const campaignId = crypto.randomUUID();
+    const campaignId = randomUUID();
     const status = 'queued';
 
     await dbQuery(
@@ -150,22 +181,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ]
     );
 
-    // Insert recipients + jobs
-    for (const email of recipientEmails) {
-      const [rec] = await dbQuery<{ id: number }>(
-        `insert into messaging_recipients (campaign_id, email)
-         values ($1,$2)
-         on conflict (campaign_id, email) do update set email = excluded.email
-         returning id`,
-        [campaignId, email]
-      );
-
-      await dbQuery(
-        `insert into messaging_send_jobs (campaign_id, recipient_id, scheduled_at, status)
-         values ($1,$2,$3,'queued')`,
-        [campaignId, rec.id, scheduledAt.toISOString()]
-      );
-    }
+    await insertRecipientsAndJobs({
+      campaignId,
+      scheduledAtIso: scheduledAt.toISOString(),
+      emails: recipientEmails,
+    });
 
     return sendJson(res, 201, {
       id: campaignId,

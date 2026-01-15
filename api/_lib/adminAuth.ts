@@ -2,6 +2,16 @@ import type { VercelRequest } from '@vercel/node';
 
 const BACKEND_BASE = 'https://halqa-api-k60w.onrender.com';
 
+async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(id);
+  }
+}
+
 export async function requireAdmin(req: VercelRequest): Promise<{ email?: string }>{
   const auth = req.headers.authorization;
   if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
@@ -9,13 +19,17 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
   }
 
   // Validate token + admin role by calling an admin-only endpoint on the existing backend.
-  const resp = await fetch(`${BACKEND_BASE}/api/admin/statistics/quick`, {
-    method: 'GET',
-    headers: {
-      authorization: auth,
-      accept: 'application/json',
+  const resp = await fetchWithTimeout(
+    `${BACKEND_BASE}/api/admin/statistics/quick`,
+    {
+      method: 'GET',
+      headers: {
+        authorization: auth,
+        accept: 'application/json',
+      },
     },
-  });
+    8000
+  );
 
   if (!resp.ok) {
     throw new Error('Unauthorized (admin required)');
@@ -34,13 +48,17 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
 
 export async function fetchAdminUsers(req: VercelRequest): Promise<any[]> {
   const auth = req.headers.authorization;
-  const resp = await fetch(`${BACKEND_BASE}/api/admin/users`, {
-    method: 'GET',
-    headers: {
-      authorization: auth || '',
-      accept: 'application/json',
+  const resp = await fetchWithTimeout(
+    `${BACKEND_BASE}/api/admin/users`,
+    {
+      method: 'GET',
+      headers: {
+        authorization: auth || '',
+        accept: 'application/json',
+      },
     },
-  });
+    15000
+  );
 
   if (!resp.ok) {
     throw new Error('Failed to fetch users from backend');
