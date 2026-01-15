@@ -13,6 +13,22 @@ const fs = require('fs');
 const path = require('path');
 const { Client } = require('pg');
 
+function shouldUseSsl(connectionString) {
+  const envMode = process.env.PGSSLMODE;
+  if (envMode && String(envMode).toLowerCase() === 'disable') return false;
+
+  try {
+    const u = new URL(connectionString);
+    const sslmode = String(u.searchParams.get('sslmode') || '').toLowerCase();
+    if (sslmode) return sslmode !== 'disable';
+    const host = String(u.hostname || '').toLowerCase();
+    if (host === 'localhost' || host === '127.0.0.1') return false;
+    return true;
+  } catch {
+    return true;
+  }
+}
+
 function parseArgs(argv) {
   const out = { envFile: null };
   for (let i = 2; i < argv.length; i++) {
@@ -46,11 +62,14 @@ function parseEnvFile(filePath) {
 }
 
 function splitSqlStatements(sql) {
-  // Naive splitter is OK for this migration file (no semicolons inside strings).
-  return sql
+  // Strip SQL comments, then split on semicolons.
+  // This migration file does not contain semicolons inside strings.
+  const withoutLineComments = sql.replace(/^\s*--.*$/gm, '');
+  const withoutBlockComments = withoutLineComments.replace(/\/\*[\s\S]*?\*\//g, '');
+  return withoutBlockComments
     .split(';')
     .map((s) => s.trim())
-    .filter((s) => s && !s.startsWith('--'));
+    .filter((s) => s);
 }
 
 async function main() {
@@ -83,7 +102,11 @@ async function main() {
     process.exit(1);
   }
 
-  const client = new Client({ connectionString: databaseUrl });
+  const useSsl = shouldUseSsl(databaseUrl);
+  const client = new Client({
+    connectionString: databaseUrl,
+    ...(useSsl ? { ssl: { rejectUnauthorized: false } } : {}),
+  });
 
   await client.connect();
   try {
