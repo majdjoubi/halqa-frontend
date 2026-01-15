@@ -4,7 +4,7 @@ export const FROM_EMAIL = 'info@halqa.online';
 export const REPLY_TO_EMAIL = 'info@halqa.online';
 
 export function getDomainAgeDays(): number | null {
-  const createdAt = process.env.HALQA_DOMAIN_CREATED_AT;
+  const createdAt = process.env['HALQA_DOMAIN_CREATED_AT'];
   if (!createdAt) return null;
   const d = new Date(createdAt);
   if (Number.isNaN(d.getTime())) return null;
@@ -27,7 +27,9 @@ export function scanContentOrThrow(subject: string, htmlBody: string): void {
   if (!htmlBody?.trim()) throw new Error('HTML body is required');
 
   if (!htmlBody.includes('{{first_name}}')) {
-    throw new Error('Missing required personalization variable: {{first_name}}');
+    throw new Error(
+      'Missing required personalization variable: {{first_name}}. Add it once anywhere (e.g., "مرحباً {{first_name}}" / "Hi {{first_name}}"). If a recipient has no name, a default value will be used.'
+    );
   }
 
   const hasImage = /<img\b/i.test(htmlBody);
@@ -79,7 +81,7 @@ export function generateUnsubscribeToken(): string {
 }
 
 export function buildFooterHtml(unsubscribeUrl: string): string {
-  const address = process.env.HALQA_PHYSICAL_ADDRESS;
+  const address = process.env['HALQA_PHYSICAL_ADDRESS'];
   if (!address) {
     throw new Error('HALQA_PHYSICAL_ADDRESS is required');
   }

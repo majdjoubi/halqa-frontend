@@ -11,7 +11,7 @@ import {
 import { sendViaSendGrid } from '../../../_lib/sendgrid';
 
 function requireWorkerSecret(req: VercelRequest): void {
-  const expected = process.env.MESSAGING_WORKER_SECRET;
+  const expected = process.env['MESSAGING_WORKER_SECRET'];
   if (!expected) throw new Error('MESSAGING_WORKER_SECRET is required');
   const got = req.headers['x-worker-secret'];
   if (got !== expected) throw new Error('Unauthorized worker');
@@ -117,11 +117,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
       }
 
-      const baseUrl = process.env.PUBLIC_APP_BASE_URL || 'https://halqa.online';
+      const baseUrl = process.env['PUBLIC_APP_BASE_URL'] || 'https://halqa.online';
       const unsubscribeUrl = `${baseUrl.replace(/\/$/, '')}/unsubscribe?token=${encodeURIComponent(token)}`;
 
       const personalized = renderTemplate(job.html_body, {
-        first_name: job.first_name || 'there',
+        first_name: job.first_name || process.env['MESSAGING_DEFAULT_FIRST_NAME'] || 'there',
         email: recipientEmail,
         role: job.role ? String(job.role) : '',
       });
