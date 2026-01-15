@@ -1,6 +1,9 @@
 import type { VercelRequest } from '@vercel/node';
 
-const BACKEND_BASE = 'https://halqa-api-k60w.onrender.com';
+function getBackendBaseUrl(): string {
+  const raw = process.env['HALQA_BACKEND_BASE_URL'] || 'https://halqa-api-k60w.onrender.com';
+  return raw.replace(/\/+$/, '');
+}
 
 async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: number): Promise<Response> {
   const controller = new AbortController();
@@ -12,6 +15,40 @@ async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs: num
   }
 }
 
+function isRetriableFetchError(err: unknown): boolean {
+  const anyErr = err as any;
+  const name = String(anyErr?.name || '');
+  const msg = String(anyErr?.message || '');
+  return (
+    name === 'AbortError' ||
+    msg.includes('fetch failed') ||
+    msg.includes('ECONNREFUSED') ||
+    msg.includes('ENOTFOUND') ||
+    msg.includes('ETIMEDOUT') ||
+    msg.includes('socket hang up')
+  );
+}
+
+async function fetchWithRetries(
+  input: string,
+  init: RequestInit,
+  timeoutMs: number,
+  attempts: number
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fetchWithTimeout(input, init, timeoutMs);
+    } catch (e) {
+      lastErr = e;
+      if (i === attempts - 1 || !isRetriableFetchError(e)) throw e;
+      // Small backoff to give upstream time to cold-start.
+      await new Promise((r) => setTimeout(r, 300 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
 export async function requireAdmin(req: VercelRequest): Promise<{ email?: string }>{
   const auth = req.headers.authorization;
   if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
@@ -19,8 +56,8 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
   }
 
   // Validate token + admin role by calling an admin-only endpoint on the existing backend.
-  const resp = await fetchWithTimeout(
-    `${BACKEND_BASE}/api/admin/statistics/quick`,
+  const resp = await fetchWithRetries(
+    `${getBackendBaseUrl()}/api/admin/statistics/quick`,
     {
       method: 'GET',
       headers: {
@@ -28,11 +65,15 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
         accept: 'application/json',
       },
     },
-    8000
+    25000,
+    2
   );
 
   if (!resp.ok) {
-    throw new Error('Unauthorized (admin required)');
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error('Unauthorized (admin required)');
+    }
+    throw new Error(`Upstream backend error (auth check): ${resp.status}`);
   }
 
   // Best-effort extraction of admin email from JWT payload (optional)
@@ -48,8 +89,8 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
 
 export async function fetchAdminUsers(req: VercelRequest): Promise<any[]> {
   const auth = req.headers.authorization;
-  const resp = await fetchWithTimeout(
-    `${BACKEND_BASE}/api/admin/users`,
+  const resp = await fetchWithRetries(
+    `${getBackendBaseUrl()}/api/admin/users`,
     {
       method: 'GET',
       headers: {
@@ -57,11 +98,12 @@ export async function fetchAdminUsers(req: VercelRequest): Promise<any[]> {
         accept: 'application/json',
       },
     },
-    15000
+    25000,
+    2
   );
 
   if (!resp.ok) {
-    throw new Error('Failed to fetch users from backend');
+    throw new Error(`Upstream backend error (users): ${resp.status}`);
   }
 
   return (await resp.json()) as any[];

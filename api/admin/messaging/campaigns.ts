@@ -215,9 +215,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return sendJson(res, 502, { message: 'Upstream backend error while fetching users' });
     }
 
+    if (msg.startsWith('Upstream backend error')) {
+      return sendJson(res, 502, { message: msg });
+    }
+
     // Network/edge errors when calling the upstream backend for auth/user list
     if (
       msg.includes('fetch failed') ||
+      msg.includes('AbortError') ||
+      msg.includes('aborted') ||
       msg.includes('ECONNREFUSED') ||
       msg.includes('ENOTFOUND') ||
       msg.includes('ETIMEDOUT')
