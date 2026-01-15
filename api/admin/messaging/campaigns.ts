@@ -44,8 +44,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') {
       await requireAdmin(req);
-      const page = Math.max(1, Number(req.query.page || 1));
-      const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || 50)));
+      const page = Math.max(1, Number(req.query['page'] || 1));
+      const pageSize = Math.min(100, Math.max(1, Number(req.query['pageSize'] || 50)));
       const offset = (page - 1) * pageSize;
 
       const rows = await dbQuery(
@@ -183,13 +183,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (msg.includes('DATABASE_URL is required')) {
       return sendJson(res, 500, { message: 'Server not configured: DATABASE_URL is missing' });
     }
-    if (msg.includes('relation') && msg.includes('messaging_')) {
+    if (
+      msg.includes('messaging_') &&
+      (msg.includes('relation') || msg.includes('column') || msg.includes('type'))
+    ) {
       return sendJson(res, 500, {
         message: 'Database schema missing: apply db/migrations/001_admin_messaging.sql',
       });
     }
     if (msg.includes('Failed to fetch users from backend')) {
       return sendJson(res, 502, { message: 'Upstream backend error while fetching users' });
+    }
+
+    // Network/edge errors when calling the upstream backend for auth/user list
+    if (
+      msg.includes('fetch failed') ||
+      msg.includes('ECONNREFUSED') ||
+      msg.includes('ENOTFOUND') ||
+      msg.includes('ETIMEDOUT')
+    ) {
+      return sendJson(res, 502, { message: 'Upstream backend unreachable (auth/user lookup)' });
     }
 
     return sendJson(res, 500, { message: 'A server error has occurred' });
