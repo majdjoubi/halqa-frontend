@@ -8,7 +8,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return sendJson(res, 405, { message: `Method ${req.method} not allowed` });
     }
 
-    const token = String(req.query.token || '');
+    const token = String(req.query['token'] || '');
     if (!token) return sendJson(res, 400, { message: 'Missing token' });
 
     const rows = await dbQuery<{ email: string }>(

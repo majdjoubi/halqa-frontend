@@ -7,7 +7,7 @@ export async function sendViaSendGrid(options: {
   unsubscribeUrl: string;
   customArgs: Record<string, string>;
 }): Promise<{ messageId: string | null }>{
-  const apiKey = process.env.SENDGRID_API_KEY;
+  const apiKey = process.env['SENDGRID_API_KEY'];
   if (!apiKey) throw new Error('SENDGRID_API_KEY is required');
 
   const listUnsubscribe = `<${options.unsubscribeUrl}>`;

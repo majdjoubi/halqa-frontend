@@ -11,7 +11,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await requireAdmin(req);
 
-    const id = String(req.query.id || '');
+    const id = String(req.query['id'] || '');
     if (!id) return sendJson(res, 400, { message: 'Missing id' });
 
     const [campaign] = await dbQuery(
