@@ -63,7 +63,7 @@ export class MessagingComponent {
     ],
   };
 
-  readonly editorPlaceholder = 'Write your message… ({{first_name}} is required)';
+  readonly editorPlaceholder = 'Write your message…';
 
   form: FormGroup<{
     audienceType: FormControl<AudienceType>;
@@ -311,11 +311,6 @@ export class MessagingComponent {
 
   private scanForSafetyIssues(html: string): string[] {
     const issues: string[] = [];
-
-    // Require personalization
-    if (!html.includes('{{first_name}}')) {
-      issues.push('Missing required personalization variable: {{first_name}}');
-    }
 
     // Block image-only (no meaningful text)
     const textOnly = html

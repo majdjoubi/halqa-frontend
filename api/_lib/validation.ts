@@ -26,12 +26,6 @@ export function scanContentOrThrow(subject: string, htmlBody: string): void {
   if (!subject?.trim()) throw new Error('Subject is required');
   if (!htmlBody?.trim()) throw new Error('HTML body is required');
 
-  if (!htmlBody.includes('{{first_name}}')) {
-    throw new Error(
-      'Missing required personalization variable: {{first_name}}. Add it once anywhere (e.g., "مرحباً {{first_name}}" / "Hi {{first_name}}"). If a recipient has no name, a default value will be used.'
-    );
-  }
-
   const hasImage = /<img\b/i.test(htmlBody);
   const textOnly = htmlBody
     .replace(/<style[\s\S]*?<\/style>/gi, '')
