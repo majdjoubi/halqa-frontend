@@ -6,6 +6,11 @@
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "dist/halqa/browser",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 60
+    }
+  },
   "routes": [
     {
       "src": "/assets/(.*)",

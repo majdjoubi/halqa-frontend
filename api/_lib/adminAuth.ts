@@ -65,8 +65,8 @@ export async function requireAdmin(req: VercelRequest): Promise<{ email?: string
         accept: 'application/json',
       },
     },
-    25000,
-    2
+    45000,
+    3
   );
 
   if (!resp.ok) {
@@ -98,8 +98,8 @@ export async function fetchAdminUsers(req: VercelRequest): Promise<any[]> {
         accept: 'application/json',
       },
     },
-    25000,
-    2
+    45000,
+    3
   );
 
   if (!resp.ok) {
