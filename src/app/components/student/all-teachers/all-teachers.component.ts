@@ -109,6 +109,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private orderingSubscription?: Subscription;
   private orderingSeq = 0;
 
+  // If the backend doesn't support the scheduling V1 availability read endpoint
+  // (GET /v1/teacher/availability), disable it to avoid repeated 404 noise.
+  private schedulingAvailabilityV1Disabled = false;
+
   // Timezone - User's IANA timezone (auto-detected)
   userIanaTimezone: string = 'UTC';
   userTimezoneDisplay: string = '';
@@ -254,73 +258,103 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private applyAvailabilityOrdering(): void {
     // SSR/Serverless rendering must not fan out into per-teacher slot calls.
     if (!this.isBrowser) return;
+    if (this.schedulingAvailabilityV1Disabled) return;
 
     const teachersSnapshot = Array.isArray(this.allTeachers) ? [...this.allTeachers] : [];
     if (teachersSnapshot.length === 0) return;
-
-    const seq = ++this.orderingSeq;
-    this.orderingSubscription?.unsubscribe();
 
     const now = DateTime.now().setZone(this.userIanaTimezone);
     const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
     const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
-    const calls = teachersSnapshot.map((t) => {
-      const teacherId = String(t.id || t.teacherId || t.userId || '');
-      if (!teacherId) {
-        return of({ teacherId: '', nextUtc: null as string | null, nextMs: null as number | null });
-      }
+    // Probe once first; if the backend returns 404 (route missing), disable V1 calls.
+    const probeTeacherId = String(
+      teachersSnapshot[0]?.id || teachersSnapshot[0]?.teacherId || teachersSnapshot[0]?.userId || ''
+    );
+    if (!probeTeacherId) return;
 
-      return this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone).pipe(
-        map((result) => {
-          const slots = (result?.slots || []) as EnrichedSlot[];
-          const bookable = (slots || []).filter((s) => s && s.isBookable);
-          bookable.sort((a, b) => Date.parse(a.startAtUtc) - Date.parse(b.startAtUtc));
-          const next = bookable.length ? bookable[0] : null;
-          const nextUtc = next?.startAtUtc || null;
-          const nextMs = nextUtc ? Date.parse(nextUtc) : null;
-          return {
-            teacherId,
-            nextUtc,
-            nextMs: nextMs !== null && Number.isFinite(nextMs) ? nextMs : null,
-          };
-        }),
-        catchError(() => of({ teacherId, nextUtc: null as string | null, nextMs: null as number | null }))
-      );
-    });
+    this.slotsService
+      .getEnrichedSlots(probeTeacherId, fromDate, toDate, 60, this.userIanaTimezone)
+      .pipe(
+        catchError((err: any) => {
+          if (err?.status === 404) {
+            this.schedulingAvailabilityV1Disabled = true;
+            this.orderingSubscription?.unsubscribe();
+          }
+          return of(null);
+        })
+      )
+      .subscribe((probe) => {
+        if (this.schedulingAvailabilityV1Disabled) return;
+        if (probe === null) return;
 
-    this.orderingSubscription = forkJoin(calls).subscribe((results) => {
-      if (seq !== this.orderingSeq) return;
+        const seq = ++this.orderingSeq;
+        this.orderingSubscription?.unsubscribe();
 
-      const nextByTeacherId = new Map<string, { nextUtc: string | null; nextMs: number | null }>();
-      for (const r of results) {
-        nextByTeacherId.set(String(r.teacherId || ''), { nextUtc: r.nextUtc ?? null, nextMs: r.nextMs ?? null });
-      }
+        const calls = teachersSnapshot.map((t) => {
+          const teacherId = String(t.id || t.teacherId || t.userId || '');
+          if (!teacherId) {
+            return of({ teacherId: '', nextUtc: null as string | null, nextMs: null as number | null });
+          }
 
-      const withNext = teachersSnapshot.map((t) => {
-        const teacherId = String(t.id || t.teacherId || t.userId || '');
-        const info = teacherId ? nextByTeacherId.get(teacherId) : undefined;
-        return {
-          ...t,
-          nextAvailabilityUtc: info?.nextUtc ?? null,
-          nextAvailabilityMs: info?.nextMs ?? null,
-        };
+          return this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone).pipe(
+            map((result) => {
+              const slots = (result?.slots || []) as EnrichedSlot[];
+              const bookable = (slots || []).filter((s) => s && s.isBookable);
+              bookable.sort((a, b) => Date.parse(a.startAtUtc) - Date.parse(b.startAtUtc));
+              const next = bookable.length ? bookable[0] : null;
+              const nextUtc = next?.startAtUtc || null;
+              const nextMs = nextUtc ? Date.parse(nextUtc) : null;
+              return {
+                teacherId,
+                nextUtc,
+                nextMs: nextMs !== null && Number.isFinite(nextMs) ? nextMs : null,
+              };
+            }),
+            catchError((err: any) => {
+              if (err?.status === 404) {
+                this.schedulingAvailabilityV1Disabled = true;
+                this.orderingSubscription?.unsubscribe();
+              }
+              return of({ teacherId, nextUtc: null as string | null, nextMs: null as number | null });
+            })
+          );
+        });
+
+        this.orderingSubscription = forkJoin(calls).subscribe((results) => {
+          if (seq !== this.orderingSeq) return;
+          if (this.schedulingAvailabilityV1Disabled) return;
+
+          const nextByTeacherId = new Map<string, { nextUtc: string | null; nextMs: number | null }>();
+          for (const r of results) {
+            nextByTeacherId.set(String(r.teacherId || ''), { nextUtc: r.nextUtc ?? null, nextMs: r.nextMs ?? null });
+          }
+
+          const withNext = teachersSnapshot.map((t) => {
+            const teacherId = String(t.id || t.teacherId || t.userId || '');
+            const info = teacherId ? nextByTeacherId.get(teacherId) : undefined;
+            return {
+              ...t,
+              nextAvailabilityUtc: info?.nextUtc ?? null,
+              nextAvailabilityMs: info?.nextMs ?? null,
+            };
+          });
+
+          this.allTeachers = withNext.sort((a: any, b: any) => {
+            const aAvail = typeof a.nextAvailabilityMs === 'number' ? a.nextAvailabilityMs : Number.POSITIVE_INFINITY;
+            const bAvail = typeof b.nextAvailabilityMs === 'number' ? b.nextAvailabilityMs : Number.POSITIVE_INFINITY;
+            if (aAvail !== bAvail) return aAvail - bAvail;
+
+            const aRating = Number(a.averageRating) || 0;
+            const bRating = Number(b.averageRating) || 0;
+            if (aRating !== bRating) return bRating - aRating;
+
+            const aStudents = Number(a.totalStudents) || 0;
+            const bStudents = Number(b.totalStudents) || 0;
+            return bStudents - aStudents;
+          });
+        });
       });
-
-      this.allTeachers = withNext.sort((a: any, b: any) => {
-        const aAvail = typeof a.nextAvailabilityMs === 'number' ? a.nextAvailabilityMs : Number.POSITIVE_INFINITY;
-        const bAvail = typeof b.nextAvailabilityMs === 'number' ? b.nextAvailabilityMs : Number.POSITIVE_INFINITY;
-        if (aAvail !== bAvail) return aAvail - bAvail;
-
-        const aRating = Number(a.averageRating) || 0;
-        const bRating = Number(b.averageRating) || 0;
-        if (aRating !== bRating) return bRating - aRating;
-
-        const aStudents = Number(a.totalStudents) || 0;
-        const bStudents = Number(b.totalStudents) || 0;
-        return bStudents - aStudents;
-      });
-    });
   }
 
 
@@ -561,6 +595,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    * Load teacher slots using V1 API with fallback to legacy API
    */
   private loadTeacherSlotsWithFallback(teacherId: string, teacher: any): void {
+    if (this.schedulingAvailabilityV1Disabled) {
+      this.loadLegacyAvailability(teacher);
+      return;
+    }
+
     const now = DateTime.now().setZone(this.userIanaTimezone);
     // Backend treats from/to as TEACHER-local anchor dates and enforces a max span of 30 days.
     // Shift the window by -1 day to avoid day-boundary mismatches (DST/zone edge cases) while keeping <= 30 days.
@@ -570,6 +609,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
       .pipe(
         catchError(err => {
+          if ((err as any)?.status === 404) {
+            this.schedulingAvailabilityV1Disabled = true;
+            this.stopSlotsPolling();
+          }
           console.warn('V1 API not available, falling back to legacy:', err);
           // Return null to trigger fallback
           return of(null);
@@ -745,13 +788,23 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
    * Refresh slots without resetting selection (for polling)
    */
   private refreshBookingSlots(teacherId: string): void {
+    if (this.schedulingAvailabilityV1Disabled) return;
+
     const now = DateTime.now().setZone(this.userIanaTimezone);
     // Keep polling window aligned with initial load (see loadTeacherSlotsWithFallback)
     const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
     const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
     this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
-      .pipe(catchError(() => of(null)))
+      .pipe(
+        catchError((err: any) => {
+          if (err?.status === 404) {
+            this.schedulingAvailabilityV1Disabled = true;
+            this.stopSlotsPolling();
+          }
+          return of(null);
+        })
+      )
       .subscribe((result: any) => {
         if (result && result.slots && result.slots.length > 0 && this.bookingTeacher) {
           // Update slots while preserving current selection
