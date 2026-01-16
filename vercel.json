@@ -6,6 +6,12 @@
   "installCommand": "npm install",
   "framework": null,
   "outputDirectory": "dist/halqa/browser",
+  "crons": [
+    {
+      "path": "/api/admin/messaging/worker/run",
+      "schedule": "*/1 * * * *"
+    }
+  ],
   "functions": {
     "api/**/*.ts": {
       "maxDuration": 60
