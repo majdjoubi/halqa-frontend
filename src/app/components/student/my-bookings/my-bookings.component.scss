@@ -207,6 +207,20 @@
   line-height: 1.5;
 }
 
+// RTL/Arabic typography fixes:
+// letter-spacing and uppercase transforms can visually break Arabic joining.
+:host-context(html[dir='rtl']) {
+  .next-label,
+  .next-countdown .countdown-label {
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  .title {
+    letter-spacing: 0;
+  }
+}
+
 .image-col img {
   width: 220px;
   max-width: 100%;
