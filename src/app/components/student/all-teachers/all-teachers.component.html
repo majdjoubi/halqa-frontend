@@ -48,7 +48,7 @@
         <div class="teacher-filter mt-4">
           <div class="filter-row">
             <div class="filter-item search-item">
-              <label class="visually-hidden" for="teacherSearch">Search</label>
+              <label class="visually-hidden" for="teacherSearch">{{ 'all_teachers.search_label' | translate }}</label>
               <div class="search-input">
                 <input
                   id="teacherSearch"
@@ -57,7 +57,7 @@
                   [(ngModel)]="searchText"
                   (ngModelChange)="onSearchChange()"
                 />
-                <button type="button" class="search-icon" aria-label="Search">
+                <button type="button" class="search-icon" [attr.aria-label]="'all_teachers.search_aria' | translate">
                   <img src="/assets/icons/search-icon.svg" alt="search" />
                 </button>
               </div>
@@ -65,7 +65,7 @@
 
             <div class="filter-item">
               <label for="languageDropdown" class="visually-hidden"
-                >Language</label
+                >{{ 'all_teachers.language_label' | translate }}</label
               >
               <div
                 class="select-wrapper custom-dropdown"
@@ -104,7 +104,7 @@
                     [class.selected]="!selectedLanguage"
                     (click)="selectLanguage(null, $event)"
                   >
-                    {{ isRtl ? 'كل اللغات' : 'All Languages' }}
+                    {{ 'all_teachers.all_languages' | translate }}
                   </li>
                   <li
                     *ngFor="let lang of languages"
@@ -200,7 +200,7 @@
                     <button
                       class="btn btn-book"
                       type="button"
-                      aria-label="Login"
+                      [attr.aria-label]="'LOGIN' | translate"
                       (click)="bookTeacher(t.id)"
                     >
                       <span class="btn-label">{{ "LOGIN" | translate }}</span>
@@ -294,7 +294,7 @@
   [backdropOpacity]="0.5"
 >
   <div slot="header">
-    <h4 *ngIf="teacherById">Teacher details</h4>
+    <h4 *ngIf="teacherById">{{ 'all_teachers.teacher_details' | translate }}</h4>
   </div>
 
   <div *ngIf="teacherById; else loadingBlock">
