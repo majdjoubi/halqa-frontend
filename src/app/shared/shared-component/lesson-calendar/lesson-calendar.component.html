@@ -6,12 +6,12 @@
   </div>
 
   <!-- Calendar -->
-  <div class="calendar-container" *ngIf="!isLoading && calendarVisible">
+  <div class="calendar-container" *ngIf="!isLoading && calendarVisible && visibleLessonsCount > 0">
     <full-calendar #calendar [options]="calendarOptions"></full-calendar>
   </div>
 
   <!-- Empty State -->
-  <div class="empty-state" *ngIf="!isLoading && lessons.length === 0">
+  <div class="empty-state" *ngIf="!isLoading && visibleLessonsCount === 0">
     <div class="empty-icon">
       <i class="fas fa-calendar-alt"></i>
     </div>
