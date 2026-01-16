@@ -163,11 +163,11 @@
 
                 <div class="teacher-meta">
                   <div class="students">
-                    {{ t.totalStudents }}
+                    {{ t.totalStudents || 0 }}
                     <span>{{ "all_teachers.students" | translate }}</span>
                   </div>
                   <div class="rating-badge mt-3">
-                    <span class="rating-value">{{ t.averageRating }}</span>
+                    <span class="rating-value">{{ t.averageRating || '-' }}</span>
                     <img
                       src="../../../../assets/icons/star-teacher.svg"
                       alt="star"

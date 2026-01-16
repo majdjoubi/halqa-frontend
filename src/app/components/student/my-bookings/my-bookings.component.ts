@@ -1,9 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, timer } from 'rxjs';
 import { RepoService } from '../../../Repositories/repo.service';
+import { NotificationService } from '../../../services/notification.service';
 import { SlotsService } from '../../../services/scheduling/slots.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
 
@@ -41,6 +43,9 @@ export class MyBookingsComponent implements OnInit {
 
   private tickSub?: Subscription;
   private nowUtcIso: string = new Date().toISOString();
+  private routeSub?: Subscription;
+  private reviewBookingIdFromUrl: number | null = null;
+  private lastEndNotificationCheckMs = 0;
 
   userIanaTimezone: string = 'UTC';
 
@@ -55,21 +60,37 @@ export class MyBookingsComponent implements OnInit {
     private slotsService: SlotsService,
     private timezoneService: TimezoneService,
     private translate: TranslateService,
-    private repo: RepoService
+    private repo: RepoService,
+    private notifications: NotificationService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
     this.userIanaTimezone = this.timezoneService.detectClientTimezone();
+
+    // Deep-link support: /my-bookings?review=<bookingId>
+    this.routeSub = this.route.queryParamMap.subscribe((params) => {
+      const raw = (params.get('review') || '').trim();
+      const n = raw ? Number(raw) : NaN;
+      this.reviewBookingIdFromUrl = Number.isFinite(n) ? n : null;
+      // If bookings already loaded, try to open the modal immediately.
+      if (this.hasLoaded) {
+        this.openReviewFromUrlIfPossible();
+      }
+    });
+
     // Update countdowns every second.
     this.tickSub = timer(0, 1000).subscribe(() => {
       this.nowUtcIso = this.timezoneService.nowUtc().toISO() ?? new Date().toISOString();
       this.refreshBookingsView();
+      this.checkLessonEndNotifications();
     });
     this.loadBookings();
   }
 
   ngOnDestroy(): void {
     this.tickSub?.unsubscribe();
+    this.routeSub?.unsubscribe();
   }
 
   loadBookings(): void {
@@ -108,7 +129,10 @@ export class MyBookingsComponent implements OnInit {
         this.hasLoaded = true;
 
         // After loading, prompt review modal if any completed booking needs review
-        setTimeout(() => this.checkForCompletedBookingsReview(), 300);
+        setTimeout(() => {
+          this.openReviewFromUrlIfPossible();
+          this.checkForCompletedBookingsReview();
+        }, 300);
       },
       error: (err) => {
         console.error('Error loading student bookings:', err);
@@ -192,7 +216,14 @@ export class MyBookingsComponent implements OnInit {
 
   isCompleted(b: StudentBookingItem): boolean {
     const normalized = this.normalizeStatus(b.status);
-    return normalized === 'completed' || b.rawStatus === 4;
+    if (normalized === 'completed' || b.rawStatus === 4) return true;
+    if (normalized === 'cancelled' || b.rawStatus === 5) return false;
+    // If backend doesn't mark completion, consider it completed after scheduled end time.
+    const startMs = this.getUtcMs(b.scheduledDateTime);
+    const durMin = Number(b.duration) || 0;
+    const endMs = startMs + durMin * 60_000;
+    const nowMs = this.getUtcMs(this.nowUtcIso);
+    return endMs > 0 && nowMs >= endMs;
   }
 
   canReview(b: StudentBookingItem): boolean {
@@ -363,5 +394,74 @@ export class MyBookingsComponent implements OnInit {
         alert(msg || this.translate.instant('COMMON.ERROR') || 'حدث خطأ');
       },
     });
+  }
+
+  private openReviewFromUrlIfPossible(): void {
+    if (!this.reviewBookingIdFromUrl) return;
+    if (this.showReviewModal) return;
+
+    const booking = this.bookings.find((b) => b.id === this.reviewBookingIdFromUrl);
+    if (!booking) return;
+    if (!this.canReview(booking)) return;
+
+    this.openReviewModal(booking);
+  }
+
+  private getLessonEndNotifiedSet(): Set<string> {
+    const raw = localStorage.getItem('halqa_lesson_end_notified');
+    try {
+      const arr = raw ? (JSON.parse(raw) as string[]) : [];
+      return new Set((Array.isArray(arr) ? arr : []).map(String));
+    } catch {
+      return new Set();
+    }
+  }
+
+  private markLessonEndNotified(bookingId: number): void {
+    const set = this.getLessonEndNotifiedSet();
+    set.add(String(bookingId));
+    localStorage.setItem('halqa_lesson_end_notified', JSON.stringify(Array.from(set)));
+  }
+
+  private checkLessonEndNotifications(): void {
+    // Avoid doing work every second.
+    const nowMs = this.getUtcMs(this.nowUtcIso);
+    if (nowMs - this.lastEndNotificationCheckMs < 15_000) return;
+    this.lastEndNotificationCheckMs = nowMs;
+
+    if (!this.bookings || this.bookings.length === 0) return;
+
+    const notified = this.getLessonEndNotifiedSet();
+
+    for (const b of this.bookings) {
+      if (!b?.id) continue;
+      if (notified.has(String(b.id))) continue;
+
+      // Don't notify cancelled bookings.
+      const normalized = this.normalizeStatus(b.status);
+      if (normalized === 'cancelled' || b.rawStatus === 5) continue;
+
+      const startMs = this.getUtcMs(b.scheduledDateTime);
+      const durMin = Number(b.duration) || 0;
+      const endMs = startMs + durMin * 60_000;
+      if (!endMs || endMs <= 0) continue;
+
+      // Notify once when the lesson has just ended (within 6 hours).
+      if (nowMs < endMs) continue;
+      if (nowMs - endMs > 6 * 60 * 60 * 1000) continue;
+
+      const title = this.translate.instant('notifications.lessonEndedTitle') || 'Lesson ended';
+      const message = this.translate.instant('notifications.lessonEndedMessage', { teacher: b.teacherName }) || `Your lesson with ${b.teacherName} has ended. Tap to rate.`;
+
+      this.notifications.pushLocalNotification({
+        type: 'lesson',
+        title,
+        message,
+        actionUrl: `/my-bookings?review=${b.id}`,
+        id: Date.now() + b.id,
+      });
+
+      this.markLessonEndNotified(b.id);
+    }
   }
 }

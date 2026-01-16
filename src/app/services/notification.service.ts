@@ -45,6 +45,33 @@ export class NotificationService implements OnDestroy {
   ) {}
 
   /**
+   * Push a local (client-side) notification into the bell dropdown.
+   * This does NOT call the backend and is useful for UX reminders like "lesson ended".
+   */
+  pushLocalNotification(input: {
+    type: string;
+    title: string;
+    message: string;
+    actionUrl?: string;
+    id?: number;
+  }): void {
+    const notification: Notification = {
+      id: input.id ?? Date.now(),
+      type: input.type,
+      title: input.title,
+      message: input.message,
+      actionUrl: input.actionUrl,
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    };
+
+    this.newNotificationSubject.next(notification);
+    this.notificationsSubject.next([notification, ...this.notificationsSubject.value]);
+    this.unreadCountSubject.next(this.unreadCountSubject.value + 1);
+    this.showBrowserNotification(notification);
+  }
+
+  /**
    * Initialize SignalR connection for real-time notifications
    */
   initializeSignalR(): void {

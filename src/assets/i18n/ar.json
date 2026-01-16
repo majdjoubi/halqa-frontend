@@ -107,7 +107,6 @@
       "available": "متاح للحجز",
       "booked": "محجوز"
     },
-    "recurring": "يتكرر أسبوعياً",
     "add_modal": {
       "title": "إضافة وقت متاح",
       "date": "التاريخ",
@@ -1165,6 +1164,8 @@
     "minutesAgo": "منذ {{count}} دقيقة",
     "hoursAgo": "منذ {{count}} ساعة",
     "daysAgo": "منذ {{count}} يوم",
+    "lessonEndedTitle": "انتهى وقت الدرس",
+    "lessonEndedMessage": "انتهى درسُك مع {{teacher}}. اضغط لتقييم المعلم.",
     "types": {
       "BookingConfirmed": "تم تأكيد الحجز",
       "BookingCancelled": "تم إلغاء الحجز",

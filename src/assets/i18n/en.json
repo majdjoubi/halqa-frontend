@@ -1,4 +1,8 @@
 {
+  "notifications": {
+    "lessonEndedTitle": "Lesson ended",
+    "lessonEndedMessage": "Your lesson with {{teacher}} has ended. Tap to rate."
+  },
   "WELCOME": "Welcome to Halqa",
   "GREETING": "Hello",
   "MY_BOOKINGS": "My Bookings",
