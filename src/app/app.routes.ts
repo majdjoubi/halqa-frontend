@@ -107,7 +107,6 @@ export const routes: Routes = [
   },
   {
     path: 'all-teachers',
-    canActivate: [StudentGuard],
     loadComponent: () =>
       import('./components/student/all-teachers/all-teachers.component').then(
         (m) => m.AllTeachersComponent

@@ -16,6 +16,7 @@ import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
 import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.service';
+import { StorageService } from '../../../services/storage.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -25,6 +26,8 @@ import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.s
   styleUrls: ['./all-teachers.component.scss'],
 })
 export class AllTeachersComponent implements OnInit, OnDestroy {
+  isAuthenticated = false;
+  isStudent = false;
   // bindings for filter controls
   searchText = '';
   selectedCourse: string | null = '';
@@ -118,10 +121,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private router: Router,
     private timezoneService: TimezoneService,
-    private slotsService: SlotsService
+    private slotsService: SlotsService,
+    private storageService: StorageService
   ) { }
 
   ngOnInit() {
+    const accessToken = this.storageService.getItem('access_token');
+    const userRole = this.storageService.getItem('user_role');
+    this.isAuthenticated = !!accessToken;
+    this.isStudent = !!accessToken && userRole === '1';
+
     // Initialize timezone - auto-detect user's IANA timezone
     this.userIanaTimezone = this.timezoneService.detectClientTimezone();
     this.userTimezoneDisplay = this.formatTimezoneDisplayIana(this.userIanaTimezone);
@@ -130,10 +139,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.loadPage(this.currentpage);
     // load specializations once on init
     this.loadSpecializations();
-    // load student's existing bookings for conflict detection
-    this.loadStudentExistingBookings();
-    // load student wallet balance
-    this.loadWalletBalance();
+
+    // Student-only data
+    if (this.isStudent) {
+      this.loadStudentExistingBookings();
+      this.loadWalletBalance();
+    }
   }
 
   /**
@@ -512,6 +523,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   // lightweight helper to start booking flow (placeholder)
   bookTeacher(teacherId: string) {
+    if (!this.isStudent) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
     // If the teacher profile side-menu is open, close it when starting booking.
     // This prevents having both the profile sidebar and booking sidebar visible.
     this.sidebarOpen = false;
