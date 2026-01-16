@@ -193,15 +193,15 @@ export class MyBookingsComponent implements OnInit {
     const s = this.normalizeStatus(b.status);
     switch (s) {
       case 'confirmed':
-        return 'BOOKING_STATUS_CONFIRMED';
+        return 'SCHEDULING.BOOKING_STATUS_CONFIRMED';
       case 'in progress':
-        return 'BOOKING_STATUS_IN_PROGRESS';
+        return 'SCHEDULING.BOOKING_STATUS_IN_PROGRESS';
       case 'completed':
-        return 'BOOKING_STATUS_COMPLETED';
+        return 'SCHEDULING.BOOKING_STATUS_COMPLETED';
       case 'cancelled':
-        return 'BOOKING_STATUS_CANCELLED';
+        return 'SCHEDULING.BOOKING_STATUS_CANCELLED';
       default:
-        return 'BOOKING_STATUS_SCHEDULED';
+        return 'SCHEDULING.BOOKING_STATUS_SCHEDULED';
     }
   }
 
@@ -274,7 +274,7 @@ export class MyBookingsComponent implements OnInit {
       error: (err) => {
         const code = err?.error?.code;
         if (code === 'TIME_NOT_YET') {
-          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 60 دقيقة.');
+          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 5 دقائق.');
           return;
         }
         // Fallback to backend message when available
@@ -375,7 +375,7 @@ export class MyBookingsComponent implements OnInit {
         }
         this.isSubmittingReview = false;
         this.closeReviewModal();
-        alert(this.translate.instant('REVIEW_THANK_YOU') || 'شكرًا لتقييمك!');
+        alert(this.translate.instant('SCHEDULING.REVIEW_THANK_YOU') || 'شكرًا لتقييمك!');
       },
       error: (err) => {
         console.error('Error submitting review', err);
