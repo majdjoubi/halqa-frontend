@@ -44,6 +44,10 @@
       "dest": "https://halqa-api-k60w.onrender.com/api/$1"
     },
     {
+      "src": "/v1/(.*)",
+      "dest": "https://halqa-api-k60w.onrender.com/v1/$1"
+    },
+    {
       "src": "/uploads/(.*)",
       "dest": "https://halqa-api-k60w.onrender.com/uploads/$1"
     },
