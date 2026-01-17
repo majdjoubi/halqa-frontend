@@ -19,15 +19,9 @@
   },
   "routes": [
     {
-      "src": "/assets/i18n/(.*)",
-      "headers": {
-        "Cache-Control": "public, max-age=0, must-revalidate"
-      }
-    },
-    {
       "src": "/assets/(.*)",
       "headers": {
-        "Cache-Control": "public, max-age=3600"
+        "Cache-Control": "public, max-age=31536000, immutable"
       }
     },
     {
@@ -59,9 +53,6 @@
     },
     {
       "src": "/(.*)",
-      "headers": {
-        "Cache-Control": "no-store"
-      },
       "dest": "/index.html"
     }
   ]
