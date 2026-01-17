@@ -105,6 +105,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private teacherSortRequestId = 0;
   private readonly TEACHERS_SORT_CONCURRENCY = 4;
   private readonly nearestAvailabilityCache = new Map<string, string | null>();
+  private readonly TEACHER_RATING_OVERRIDES_KEY = 'halqa_teacher_rating_overrides';
 
   // Timezone - User's IANA timezone (auto-detected)
   userIanaTimezone: string = 'UTC';
@@ -218,6 +219,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           // Expecting response shape { teachers: [], totalCount: number }
           this.allTeachers =
             response.teachers || response.items || response.data || [];
+
+          // Apply locally-saved rating overrides (best-effort; browser-only)
+          this.applyRatingOverridesToList(this.allTeachers);
+
           this.AllTeacherCount =
             response.totalCount ||
             response.total ||
@@ -261,6 +266,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         // Expect response shape similar to { teachers: [], totalCount }
         this.allTeachers =
           response.teachers || response.items || response.data || [];
+
+        // Apply locally-saved rating overrides (best-effort; browser-only)
+        this.applyRatingOverridesToList(this.allTeachers);
+
         this.AllTeacherCount =
           response.totalCount ||
           response.total ||
@@ -381,6 +390,40 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       });
   }
 
+  private readTeacherRatingOverrides(): Record<string, { averageRating?: number; totalReviews?: number }> {
+    if (!isPlatformBrowser(this.platformId)) return {};
+    try {
+      const raw = localStorage.getItem(this.TEACHER_RATING_OVERRIDES_KEY);
+      const map = raw ? JSON.parse(raw) : {};
+      return map && typeof map === 'object' ? map : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private applyRatingOverrideToTeacher(teacher: any): void {
+    if (!isPlatformBrowser(this.platformId) || !teacher) return;
+    const overrides = this.readTeacherRatingOverrides();
+    const teacherId = String(teacher.id || teacher.teacherId || teacher.userId || '');
+    if (!teacherId) return;
+    const o = overrides[teacherId];
+    if (!o) return;
+
+    if (typeof o.averageRating === 'number') {
+      teacher.averageRating = o.averageRating;
+    }
+    if (typeof o.totalReviews === 'number') {
+      teacher.totalReviews = o.totalReviews;
+    }
+  }
+
+  private applyRatingOverridesToList(list: any[]): void {
+    if (!isPlatformBrowser(this.platformId) || !Array.isArray(list) || list.length === 0) return;
+    for (const t of list) {
+      this.applyRatingOverrideToTeacher(t);
+    }
+  }
+
   // Load specializations once during component init
   private loadSpecializations() {
     this.coursesLoading = true;
@@ -469,6 +512,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this._getTeacher.getTeacherById(teacherId).subscribe(
       (response: any) => {
         this.teacherById = response;
+
+        // Apply locally-saved rating overrides (best-effort; browser-only)
+        this.applyRatingOverrideToTeacher(this.teacherById);
+
         console.log('Teacher Profile:', response);
         // open the reusable side-menu component
         this.sidebarOpen = true;

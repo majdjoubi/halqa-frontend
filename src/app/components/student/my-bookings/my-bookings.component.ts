@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, timer } from 'rxjs';
@@ -51,11 +51,14 @@ export class MyBookingsComponent implements OnInit {
   reviewComment = '';
   isSubmittingReview = false;
 
+  private readonly TEACHER_RATING_OVERRIDES_KEY = 'halqa_teacher_rating_overrides';
+
   constructor(
     private slotsService: SlotsService,
     private timezoneService: TimezoneService,
     private translate: TranslateService,
-    private repo: RepoService
+    private repo: RepoService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
@@ -129,13 +132,15 @@ export class MyBookingsComponent implements OnInit {
 
     const nowMs = this.getUtcMs(this.nowUtcIso);
 
+    // A booking is considered "past" only after its END time has passed.
+    // This keeps in-progress sessions in Upcoming until they finish.
     const upcoming = this.bookings
-      .filter((b) => this.getUtcMs(b.scheduledDateTime) >= nowMs)
+      .filter((b) => this.getBookingEndUtcMs(b) >= nowMs)
       .sort((a, b) => this.getUtcMs(a.scheduledDateTime) - this.getUtcMs(b.scheduledDateTime));
 
     const past = this.bookings
-      .filter((b) => this.getUtcMs(b.scheduledDateTime) < nowMs)
-      .sort((a, b) => this.getUtcMs(b.scheduledDateTime) - this.getUtcMs(a.scheduledDateTime));
+      .filter((b) => this.getBookingEndUtcMs(b) < nowMs)
+      .sort((a, b) => this.getUtcMs(a.scheduledDateTime) - this.getUtcMs(b.scheduledDateTime));
 
     this.upcomingBookings = upcoming;
     this.pastBookings = past;
@@ -152,8 +157,41 @@ export class MyBookingsComponent implements OnInit {
     }
   }
 
+  private getDurationMinutes(b: StudentBookingItem): number {
+    const n = Number((b as any)?.duration);
+    // App-wide convention: duration is minutes. Default to 60 if missing/invalid.
+    if (!Number.isFinite(n) || n <= 0) return 60;
+    return Math.round(n);
+  }
+
+  private getBookingEndUtcMs(b: StudentBookingItem): number {
+    const startMs = this.getUtcMs(b.scheduledDateTime);
+    const durationMin = this.getDurationMinutes(b);
+    return startMs + durationMin * 60_000;
+  }
+
+  private hasEndedByTime(b: StudentBookingItem): boolean {
+    const nowMs = this.getUtcMs(this.nowUtcIso);
+    return this.getBookingEndUtcMs(b) <= nowMs;
+  }
+
+  private isCancelledBooking(b: StudentBookingItem): boolean {
+    const normalized = this.normalizeStatus(b.status);
+    return normalized === 'cancelled' || b.rawStatus === 5;
+  }
+
+  private effectiveNormalizedStatus(b: StudentBookingItem): string {
+    const normalized = this.normalizeStatus(b.status);
+    if (normalized === 'cancelled') return 'cancelled';
+    if (this.isCancelledBooking(b)) return 'cancelled';
+    // Treat ended lessons as completed even if backend hasn't flipped status yet.
+    if (this.hasEndedByTime(b)) return 'completed';
+    return normalized;
+  }
+
   isUpcomingBooking(b: StudentBookingItem): boolean {
-    return this.getUtcMs(b.scheduledDateTime) >= this.getUtcMs(this.nowUtcIso);
+    // "Upcoming" includes sessions currently in progress.
+    return this.getBookingEndUtcMs(b) >= this.getUtcMs(this.nowUtcIso);
   }
 
   trackById(index: number, item: StudentBookingItem) {
@@ -171,11 +209,11 @@ export class MyBookingsComponent implements OnInit {
   }
 
   statusClass(b: StudentBookingItem): string {
-    return this.normalizeStatus(b.status);
+    return this.effectiveNormalizedStatus(b);
   }
 
   statusKey(b: StudentBookingItem): string {
-    const s = this.normalizeStatus(b.status);
+    const s = this.effectiveNormalizedStatus(b);
     switch (s) {
       case 'confirmed':
         return 'BOOKING_STATUS_CONFIRMED';
@@ -191,8 +229,9 @@ export class MyBookingsComponent implements OnInit {
   }
 
   isCompleted(b: StudentBookingItem): boolean {
+    if (this.isCancelledBooking(b)) return false;
     const normalized = this.normalizeStatus(b.status);
-    return normalized === 'completed' || b.rawStatus === 4;
+    return normalized === 'completed' || b.rawStatus === 4 || this.hasEndedByTime(b);
   }
 
   canReview(b: StudentBookingItem): boolean {
@@ -263,9 +302,18 @@ export class MyBookingsComponent implements OnInit {
   }
 
   // ===== Review helpers (local tracking) =====
+  private isBrowser(): boolean {
+    return isPlatformBrowser(this.platformId);
+  }
+
   private getReviewedBookings(): string[] {
-    const reviewed = localStorage.getItem('halqa_reviewed_bookings');
-    return reviewed ? JSON.parse(reviewed) : [];
+    if (!this.isBrowser()) return [];
+    try {
+      const reviewed = localStorage.getItem('halqa_reviewed_bookings');
+      return reviewed ? JSON.parse(reviewed) : [];
+    } catch {
+      return [];
+    }
   }
 
   private hasReviewed(bookingId: number): boolean {
@@ -274,6 +322,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   private markReviewed(bookingId: number): void {
+    if (!this.isBrowser()) return;
     const reviewed = this.getReviewedBookings();
     if (!reviewed.includes(bookingId.toString())) {
       reviewed.push(bookingId.toString());
@@ -282,6 +331,7 @@ export class MyBookingsComponent implements OnInit {
   }
 
   private savePendingReview(bookingId: number): void {
+    if (!this.isBrowser()) return;
     const pending = localStorage.getItem('halqa_pending_reviews');
     const pendingList: string[] = pending ? JSON.parse(pending) : [];
     if (!pendingList.includes(bookingId.toString())) {
@@ -291,11 +341,28 @@ export class MyBookingsComponent implements OnInit {
   }
 
   private removePendingReview(bookingId: number): void {
+    if (!this.isBrowser()) return;
     const pending = localStorage.getItem('halqa_pending_reviews');
     if (!pending) return;
     const pendingList: string[] = JSON.parse(pending);
     const filtered = pendingList.filter((id) => id !== bookingId.toString());
     localStorage.setItem('halqa_pending_reviews', JSON.stringify(filtered));
+  }
+
+  private saveTeacherRatingOverride(teacherId: string, payload: { averageRating?: number; totalReviews?: number }): void {
+    if (!this.isBrowser() || !teacherId) return;
+    try {
+      const raw = localStorage.getItem(this.TEACHER_RATING_OVERRIDES_KEY);
+      const map: Record<string, any> = raw ? JSON.parse(raw) : {};
+      map[String(teacherId)] = {
+        ...(map[String(teacherId)] || {}),
+        ...payload,
+        updatedAtUtc: new Date().toISOString(),
+      };
+      localStorage.setItem(this.TEACHER_RATING_OVERRIDES_KEY, JSON.stringify(map));
+    } catch {
+      // ignore
+    }
   }
 
   private checkForCompletedBookingsReview(): void {
@@ -348,8 +415,27 @@ export class MyBookingsComponent implements OnInit {
     this.repo.reviewTeacher(reviewData).subscribe({
       next: () => {
         if (this.currentBookingForReview) {
+          const teacherId = this.currentBookingForReview.teacherId;
           this.markReviewed(this.currentBookingForReview.id);
           this.removePendingReview(this.currentBookingForReview.id);
+
+          // Best-effort: refresh teacher rating stats so the UI can reflect it immediately.
+          // Backend should be the source of truth; this just avoids waiting for a full refresh.
+          if (this.isBrowser() && teacherId) {
+            this.repo.getTeacherById(teacherId).subscribe({
+              next: (teacher: any) => {
+                const avg = teacher?.averageRating;
+                const totalReviews = teacher?.totalReviews;
+                const payload: any = {};
+                if (typeof avg === 'number') payload.averageRating = avg;
+                if (typeof totalReviews === 'number') payload.totalReviews = totalReviews;
+                this.saveTeacherRatingOverride(teacherId, payload);
+              },
+              error: () => {
+                // ignore
+              },
+            });
+          }
         }
         this.isSubmittingReview = false;
         this.closeReviewModal();
