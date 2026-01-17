@@ -93,9 +93,6 @@ export class TimezoneService {
    * Falls back to 'UTC' if detection fails.
    */
   detectClientTimezone(): string {
-    if (!isPlatformBrowser(this.platformId)) {
-      return 'UTC';
-    }
     try {
       const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
       // Validate it's a valid IANA zone

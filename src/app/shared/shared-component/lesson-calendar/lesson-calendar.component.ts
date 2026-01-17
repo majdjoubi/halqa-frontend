@@ -83,8 +83,7 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
 
   private getInitialView(): string {
     if (this.isStudent) return 'dayGridMonth';
-    const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
-    return width < 768 ? 'timeGridDay' : 'timeGridWeek';
+    return window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek';
   }
 
   private getHeaderToolbarRight(): string {

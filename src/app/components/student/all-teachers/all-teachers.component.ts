@@ -1,6 +1,5 @@
-import { Component, HostListener, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -113,8 +112,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   userIanaTimezone: string = 'UTC';
   userTimezoneDisplay: string = '';
 
-  private readonly isBrowser: boolean;
-
   constructor(
     private translate: TranslateService,
     private _repo: RepoService,
@@ -125,11 +122,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private router: Router,
     private timezoneService: TimezoneService,
     private slotsService: SlotsService,
-    private storageService: StorageService,
-      @Inject(PLATFORM_ID) private platformId: Object
-    ) {
-      this.isBrowser = isPlatformBrowser(this.platformId);
-    }
+    private storageService: StorageService
+  ) { }
 
   ngOnInit() {
     const accessToken = this.storageService.getItem('access_token');
@@ -138,7 +132,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.isStudent = !!accessToken && userRole === '1';
 
     // Initialize timezone - auto-detect user's IANA timezone
-    this.userIanaTimezone = this.isBrowser ? this.timezoneService.detectClientTimezone() : 'UTC';
+    this.userIanaTimezone = this.timezoneService.detectClientTimezone();
     this.userTimezoneDisplay = this.formatTimezoneDisplayIana(this.userIanaTimezone);
 
     // Fetch all teachers on component initialization
@@ -252,9 +246,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   }
 
   private applyAvailabilityOrdering(): void {
-    // SSR/Serverless rendering must not fan out into per-teacher slot calls.
-    if (!this.isBrowser) return;
-
     const teachersSnapshot = Array.isArray(this.allTeachers) ? [...this.allTeachers] : [];
     if (teachersSnapshot.length === 0) return;
 
@@ -376,7 +367,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             Math.ceil(this.AllTeacherCount / this.pageSize)
           );
           this.loading = false;
-          if (this.isBrowser) this.applyAvailabilityOrdering();
+          this.applyAvailabilityOrdering();
         },
         (err) => {
           console.error('Failed to load teachers', err);
@@ -417,7 +408,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           Math.ceil(this.AllTeacherCount / this.pageSize)
         );
         this.loading = false;
-        if (this.isBrowser) this.applyAvailabilityOrdering();
+        this.applyAvailabilityOrdering();
       },
       (err) => {
         console.error('Failed to load teachers', err);
