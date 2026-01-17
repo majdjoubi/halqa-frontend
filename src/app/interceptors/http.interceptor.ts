@@ -60,16 +60,8 @@ export class HttpInterceptorService implements HttpInterceptor {
 
     return next.handle(modifiedReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        const url = req.url || '';
-        const isMissingSchedulingAvailabilityV1 =
-          error.status === 404 && url.includes('/v1/teacher/availability');
-
-        // Some deployments/backends may not expose the scheduling V1 availability read endpoint.
-        // The UI has a fallback path, so avoid flooding the console with expected 404s.
-        if (!isMissingSchedulingAvailabilityV1) {
-          console.error('HTTP Error:', error);
-          console.error('Error body:', JSON.stringify(error.error, null, 2));
-        }
+        console.error('HTTP Error:', error);
+        console.error('Error body:', JSON.stringify(error.error, null, 2));
 
         // Log detailed error information
         if (error.status === 401) {
