@@ -72,33 +72,13 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
 
   private langSubscription?: Subscription;
 
-  private get isStudent(): boolean {
-    return this.userRole === 'student';
-  }
-
-  private get hour12(): boolean {
-    // Student-facing availability is expected in 12-hour format.
-    return this.isStudent;
-  }
-
-  private getInitialView(): string {
-    if (this.isStudent) return 'dayGridMonth';
-    return window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek';
-  }
-
-  private getHeaderToolbarRight(): string {
-    // Students primarily need month -> day drilldown.
-    if (this.isStudent) return 'dayGridMonth,timeGridDay';
-    return 'dayGridMonth,timeGridWeek,timeGridDay';
-  }
-
   calendarOptions: CalendarOptions = {
     plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
-    initialView: this.getInitialView(),
+    initialView: window.innerWidth < 768 ? 'timeGridDay' : 'timeGridWeek',
     headerToolbar: {
       left: 'prev,next today',
       center: 'title',
-      right: this.getHeaderToolbarRight()
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
     },
     weekends: true,
     editable: false, // Will be updated based on role
@@ -111,18 +91,17 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
     scrollTime: '08:00:00',
     allDaySlot: false,
     nowIndicator: true,
-    // Keep "now" aligned with the user's device timezone (avoids mismatches when events are local).
-    now: () => new Date(),
+    now: () => this.getNowInSelectedTimezone(),
     height: 'auto',
     slotLabelFormat: {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: this.hour12
+      hour12: false
     },
     eventTimeFormat: {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: this.hour12
+      hour12: false
     },
     dayHeaderFormat: (date: any) => {
       const d = date.date.marker;
@@ -162,7 +141,7 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   @HostListener('window:resize', ['$event'])
   onResize(event: any) {
     const isMobile = event.target.innerWidth < 768;
-    const newView = this.isStudent ? 'dayGridMonth' : (isMobile ? 'timeGridDay' : 'timeGridWeek');
+    const newView = isMobile ? 'timeGridDay' : 'timeGridWeek';
     if (this.calendarOptions.initialView !== newView) {
       this.calendarOptions = {
         ...this.calendarOptions,
@@ -193,8 +172,6 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
     }
     if (changes['userRole']) {
       this.updateInteractivity();
-      this.applyRoleBasedOptions();
-      this.updateCalendarLocale();
     }
     if (changes['gmtOffset']) {
       // Update the now indicator when GMT offset changes
@@ -203,13 +180,25 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   /**
+   * Get current time adjusted to selected GMT offset for the now indicator
+   * Uses Luxon for DST-safe timezone handling
+   */
+  private getNowInSelectedTimezone(): Date {
+    // Use Luxon to handle timezone correctly
+    const now = DateTime.utc();
+    // Apply GMT offset (in minutes)
+    const adjusted = now.plus({ minutes: this.gmtOffset });
+    return adjusted.toJSDate();
+  }
+
+  /**
    * Force calendar to update the now indicator by recreating it
    */
   private updateNowIndicator(): void {
-    // Keep now indicator consistent with device timezone.
+    // Update the now option
     this.calendarOptions = {
       ...this.calendarOptions,
-      now: () => new Date()
+      now: () => this.getNowInSelectedTimezone()
     };
     
     // Force calendar to re-create by hiding and showing
@@ -225,21 +214,6 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
       ...this.calendarOptions,
       editable: isTeacher,
       selectable: isTeacher
-    };
-  }
-
-  private applyRoleBasedOptions(): void {
-    this.calendarOptions = {
-      ...this.calendarOptions,
-      initialView: this.getInitialView(),
-      headerToolbar: {
-        ...this.calendarOptions.headerToolbar,
-        right: this.getHeaderToolbarRight()
-      },
-      // For students, clicking a day is the primary drilldown action.
-      navLinks: this.isStudent,
-      // Month view should highlight available days without forcing time clutter.
-      displayEventTime: !this.isStudent
     };
   }
 
@@ -273,12 +247,12 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
       slotLabelFormat: {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: this.hour12
+        hour12: false
       },
       eventTimeFormat: {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: this.hour12
+        hour12: false
       }
     };
   }
@@ -373,28 +347,7 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   handleDateClick(info: any): void {
     if (this.userRole === 'teacher') {
       this.dateClick.emit(info.date);
-      return;
     }
-
-    // Student: clicking an available day should drill down to show availabilities.
-    const clicked = info?.date as Date | undefined;
-    if (!clicked || !this.calendarComponent) return;
-
-    // Only drill down if this day has at least one visible (available) lesson.
-    const hasAvailability = this.lessons
-      .filter(l => this.shouldShowLesson(l))
-      .some(l => {
-        const start = new Date(l.start);
-        return (
-          start.getFullYear() === clicked.getFullYear() &&
-          start.getMonth() === clicked.getMonth() &&
-          start.getDate() === clicked.getDate()
-        );
-      });
-    if (!hasAvailability) return;
-
-    const api = this.calendarComponent.getApi();
-    api.changeView('timeGridDay', clicked);
   }
 
   handleEventDrop(arg: EventDropArg): void {
