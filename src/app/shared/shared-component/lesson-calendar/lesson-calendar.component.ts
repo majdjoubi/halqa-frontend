@@ -70,8 +70,6 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
   // Used to force calendar re-creation when GMT offset changes
   calendarVisible = true;
 
-  visibleLessonsCount = 0;
-
   private langSubscription?: Subscription;
 
   calendarOptions: CalendarOptions = {
@@ -268,27 +266,16 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
       ...this.calendarOptions,
       events: events
     };
-
-    this.visibleLessonsCount = events.length;
-  }
-
-  private isLessonPast(lesson: LessonEvent): boolean {
-    const now = new Date();
-    const lessonEnd = lesson.end ? new Date(lesson.end) : new Date(lesson.start);
-    return lessonEnd < now;
   }
 
   private shouldShowLesson(lesson: LessonEvent): boolean {
-    // As requested: show available + booked only, hide completed and past
-    if (lesson.status === 'completed') {
-      return false;
+    if (this.userRole === 'student') {
+      // Students see available lessons only
+      return lesson.status === 'available';
+    } else {
+      // Teachers see all their lessons
+      return true;
     }
-
-    if (this.isLessonPast(lesson)) {
-      return false;
-    }
-
-    return lesson.status === 'available' || lesson.status === 'booked';
   }
 
   private mapLessonToEvent(lesson: LessonEvent): EventInput {
@@ -354,12 +341,6 @@ export class LessonCalendarComponent implements OnInit, OnChanges, OnDestroy {
 
   handleEventClick(info: any): void {
     const lesson = info.event.extendedProps.originalLesson as LessonEvent;
-
-    // Students can only pick/book available slots
-    if (this.userRole === 'student' && lesson.status !== 'available') {
-      return;
-    }
-
     this.eventClick.emit(lesson);
   }
 

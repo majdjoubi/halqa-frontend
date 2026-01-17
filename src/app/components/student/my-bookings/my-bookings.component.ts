@@ -68,12 +68,15 @@ export class MyBookingsComponent implements OnInit {
   ngOnInit(): void {
     this.userIanaTimezone = this.timezoneService.detectClientTimezone();
 
-    // Note: We intentionally do NOT auto-open the review modal on page load.
-    // Reviews should only open when the user clicks the specific lesson.
+    // Deep-link support: /my-bookings?review=<bookingId>
     this.routeSub = this.route.queryParamMap.subscribe((params) => {
       const raw = (params.get('review') || '').trim();
       const n = raw ? Number(raw) : NaN;
       this.reviewBookingIdFromUrl = Number.isFinite(n) ? n : null;
+      // If bookings already loaded, try to open the modal immediately.
+      if (this.hasLoaded) {
+        this.openReviewFromUrlIfPossible();
+      }
     });
 
     // Update countdowns every second.
@@ -124,6 +127,12 @@ export class MyBookingsComponent implements OnInit {
         this.refreshBookingsView();
         this.isLoading = false;
         this.hasLoaded = true;
+
+        // After loading, prompt review modal if any completed booking needs review
+        setTimeout(() => {
+          this.openReviewFromUrlIfPossible();
+          this.checkForCompletedBookingsReview();
+        }, 300);
       },
       error: (err) => {
         console.error('Error loading student bookings:', err);
@@ -327,7 +336,7 @@ export class MyBookingsComponent implements OnInit {
     );
 
     if (completedNeedingReview.length > 0) {
-      // Intentionally no auto-open. The user can click the Review button.
+      this.openReviewModal(completedNeedingReview[0]);
     }
   }
 
@@ -376,6 +385,7 @@ export class MyBookingsComponent implements OnInit {
         this.isSubmittingReview = false;
         this.closeReviewModal();
         alert(this.translate.instant('REVIEW_THANK_YOU') || 'شكرًا لتقييمك!');
+        setTimeout(() => this.checkForCompletedBookingsReview(), 300);
       },
       error: (err) => {
         console.error('Error submitting review', err);
