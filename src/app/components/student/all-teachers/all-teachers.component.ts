@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, forkJoin, of, interval } from 'rxjs';
-import { catchError, map, takeWhile } from 'rxjs/operators';
+import { catchError, takeWhile } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { SideMenuComponent } from '../../../shared/shared-component/side-menu/side-menu.component';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
@@ -101,10 +101,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private slotsPollingSubscription?: Subscription;
   private readonly POLLING_INTERVAL_MS = 30000; // 30 seconds
 
-  // Teacher list ordering (availability-based sorting)
-  private orderingSubscription?: Subscription;
-  private orderingSeq = 0;
-
   // Timezone - User's IANA timezone (auto-detected)
   userIanaTimezone: string = 'UTC';
   userTimezoneDisplay: string = '';
@@ -173,136 +169,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
   }
 
-  private normalizeTeacherCard(t: any): any {
-    if (!t) return t;
-
-    const profilePictureUrl =
-      t.profilePictureUrl ||
-      t.avatar ||
-      t.avatarUrl ||
-      t.picture ||
-      t.image ||
-      t.profile?.pictureUrl ||
-      '/assets/images/blank-avatar.webp';
-
-    return {
-      ...t,
-      profilePictureUrl,
-      totalStudents: this.extractTotalStudents(t),
-      averageRating: this.extractAverageRating(t),
-      hourlyRate: t.hourlyRate ?? t.pricePerHour ?? t.rate ?? 0,
-    };
-  }
-
-  private extractTotalStudents(t: any): number {
-    const candidates = [
-      t.totalStudents,
-      t.studentsCount,
-      t.studentCount,
-      t.total_students,
-      t.students_count,
-      t.totalStudentsCount,
-      t.stats?.totalStudents,
-      t.stats?.students,
-    ];
-
-    for (const c of candidates) {
-      if (c === undefined || c === null) continue;
-      if (Array.isArray(c)) return c.length;
-      const n = Number(c);
-      if (Number.isFinite(n)) return n;
-    }
-
-    if (Array.isArray(t.students)) return t.students.length;
-    if (t.students && typeof t.students === 'object') return Object.keys(t.students).length;
-    return 0;
-  }
-
-  private extractAverageRating(t: any): number {
-    const candidates = [
-      t.averageRating,
-      t.rating,
-      t.avgRating,
-      t.average_rating,
-      t.profile?.averageRating,
-    ];
-    for (const c of candidates) {
-      if (c === undefined || c === null || c === '') continue;
-      const n = Number(c);
-      if (Number.isFinite(n)) return n;
-    }
-    return 0;
-  }
-
-  private applyAvailabilityOrdering(): void {
-    const teachersSnapshot = Array.isArray(this.allTeachers) ? [...this.allTeachers] : [];
-    if (teachersSnapshot.length === 0) return;
-
-    const seq = ++this.orderingSeq;
-    this.orderingSubscription?.unsubscribe();
-
-    const now = DateTime.now().setZone(this.userIanaTimezone);
-    const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
-    const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
-
-    const calls = teachersSnapshot.map((t) => {
-      const teacherId = String(t.id || t.teacherId || t.userId || '');
-      if (!teacherId) {
-        return of({ teacherId: '', nextUtc: null as string | null, nextMs: null as number | null });
-      }
-
-      return this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone).pipe(
-        map((result) => {
-          const slots = (result?.slots || []) as EnrichedSlot[];
-          const bookable = (slots || []).filter((s) => s && s.isBookable);
-          bookable.sort((a, b) => Date.parse(a.startAtUtc) - Date.parse(b.startAtUtc));
-          const next = bookable.length ? bookable[0] : null;
-          const nextUtc = next?.startAtUtc || null;
-          const nextMs = nextUtc ? Date.parse(nextUtc) : null;
-          return {
-            teacherId,
-            nextUtc,
-            nextMs: nextMs !== null && Number.isFinite(nextMs) ? nextMs : null,
-          };
-        }),
-        catchError(() => of({ teacherId, nextUtc: null as string | null, nextMs: null as number | null }))
-      );
-    });
-
-    this.orderingSubscription = forkJoin(calls).subscribe((results) => {
-      if (seq !== this.orderingSeq) return;
-
-      const nextByTeacherId = new Map<string, { nextUtc: string | null; nextMs: number | null }>();
-      for (const r of results) {
-        nextByTeacherId.set(String(r.teacherId || ''), { nextUtc: r.nextUtc ?? null, nextMs: r.nextMs ?? null });
-      }
-
-      const withNext = teachersSnapshot.map((t) => {
-        const teacherId = String(t.id || t.teacherId || t.userId || '');
-        const info = teacherId ? nextByTeacherId.get(teacherId) : undefined;
-        return {
-          ...t,
-          nextAvailabilityUtc: info?.nextUtc ?? null,
-          nextAvailabilityMs: info?.nextMs ?? null,
-        };
-      });
-
-      this.allTeachers = withNext.sort((a: any, b: any) => {
-        const aAvail = typeof a.nextAvailabilityMs === 'number' ? a.nextAvailabilityMs : Number.POSITIVE_INFINITY;
-        const bAvail = typeof b.nextAvailabilityMs === 'number' ? b.nextAvailabilityMs : Number.POSITIVE_INFINITY;
-        if (aAvail !== bAvail) return aAvail - bAvail;
-
-        const aRating = Number(a.averageRating) || 0;
-        const bRating = Number(b.averageRating) || 0;
-        if (aRating !== bRating) return bRating - aRating;
-
-        const aStudents = Number(a.totalStudents) || 0;
-        const bStudents = Number(b.totalStudents) || 0;
-        return bStudents - aStudents;
-      });
-    });
-  }
-
 
 
   // Load student's existing bookings to check for time conflicts
@@ -345,7 +211,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         (response) => {
           // Expecting response shape { teachers: [], totalCount: number }
           this.allTeachers =
-            (response.teachers || response.items || response.data || []).map((t: any) => this.normalizeTeacherCard(t));
+            response.teachers || response.items || response.data || [];
           this.AllTeacherCount =
             response.totalCount ||
             response.total ||
@@ -356,7 +222,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             Math.ceil(this.AllTeacherCount / this.pageSize)
           );
           this.loading = false;
-          this.applyAvailabilityOrdering();
         },
         (err) => {
           console.error('Failed to load teachers', err);
@@ -386,7 +251,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       (response) => {
         // Expect response shape similar to { teachers: [], totalCount }
         this.allTeachers =
-          (response.teachers || response.items || response.data || []).map((t: any) => this.normalizeTeacherCard(t));
+          response.teachers || response.items || response.data || [];
         this.AllTeacherCount =
           response.totalCount ||
           response.total ||
@@ -397,7 +262,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           Math.ceil(this.AllTeacherCount / this.pageSize)
         );
         this.loading = false;
-        this.applyAvailabilityOrdering();
       },
       (err) => {
         console.error('Failed to load teachers', err);
@@ -1357,7 +1221,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.langSubscription?.unsubscribe();
     this.stopSlotsPolling();
-    this.orderingSubscription?.unsubscribe();
   }
 
   /**

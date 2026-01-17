@@ -13,7 +13,8 @@ export interface SlotDto {
   endAtUtc: string;
   anchorDateTeacher: string;
   durationMin: number;
-  status: 'Available' | 'Booked';
+  /** Status can be string ('Available'|'Booked') or number (1=Available, 2=Booked) */
+  status: 'Available' | 'Booked' | 1 | 2;
   teacherLocal?: {
     date: string;
     time24h: string;
@@ -141,28 +142,30 @@ export class SlotsService {
    * Get available slots for a teacher within a date range.
    * Slots are returned in UTC with HMAC-signed IDs for secure booking.
    * 
+   * Uses backend endpoint: GET /api/slots/teachers/{teacherId}
+   * 
    * @param teacherId Teacher ID to get slots for
-   * @param fromDate Start date (UTC DateTime)
-   * @param toDate End date (UTC DateTime)
-   * @param displayTimeZone Optional timezone for displaying local times
+   * @param fromAnchorDate Start date in teacher's timezone (YYYY-MM-DD)
+   * @param toAnchorDate End date in teacher's timezone (YYYY-MM-DD)
+   * @param durationMinutes Slot duration in minutes (fixed to 60)
    */
   getTeacherSlots(
     teacherId: string,
-    fromDate: string,
-    toDate: string,
-    displayTimeZone?: string
+    fromAnchorDate: string,
+    toAnchorDate: string,
+    durationMinutes: number = 60
   ): Observable<TeacherSlotsResponse> {
-    let params = new HttpParams()
-      .set('teacherId', teacherId)
-      .set('fromUtc', fromDate)
-      .set('toUtc', toDate);
-    
-    if (displayTimeZone) {
-      params = params.set('displayTimeZone', displayTimeZone);
-    }
+    // Extract date-only portion if full ISO string was passed
+    const fromDate = fromAnchorDate.split('T')[0];
+    const toDate = toAnchorDate.split('T')[0];
+
+    const params = new HttpParams()
+      .set('fromAnchorDate', fromDate)
+      .set('toAnchorDate', toDate)
+      .set('durationMinutes', String(durationMinutes));
 
     return this.http.get<TeacherSlotsResponse>(
-      `${this.schedulingBaseUrl}${this.schedulingApiPrefix}/teacher/availability`,
+      `${this.legacyBaseUrl}/api/slots/teachers/${teacherId}`,
       { params }
     );
   }
@@ -171,10 +174,13 @@ export class SlotsService {
    * Get available slots enriched with display information in the viewer's timezone.
    * This is the recommended method for UI display.
    * 
+   * Uses backend endpoint: GET /api/slots/teachers/{teacherId}
+   * Duration is fixed to 60 minutes (1 hour lessons only).
+   * 
    * @param teacherId Teacher ID to get slots for
    * @param fromAnchorDate Start date (YYYY-MM-DD in teacher's timezone)
    * @param toAnchorDate End date (YYYY-MM-DD in teacher's timezone)
-   * @param durationMinutes Slot duration (30 or 60) - now handled by backend
+   * @param durationMinutes Slot duration - fixed to 60 (ignored, kept for compatibility)
    * @param viewerIanaTimezone Viewer's IANA timezone for display
    */
   getEnrichedSlots(
@@ -186,11 +192,10 @@ export class SlotsService {
   ): Observable<{ response: TeacherSlotsResponse; slots: EnrichedSlot[] }> {
     const viewerTz = viewerIanaTimezone || this.timezoneService.detectClientTimezone();
 
-    // Convert anchor dates to UTC range for the new API
-    const fromUtc = `${fromAnchorDate}T00:00:00Z`;
-    const toUtc = `${toAnchorDate}T23:59:59Z`;
+    // Always use 60 minutes (1 hour lessons only)
+    const fixedDuration = 60;
 
-    return this.getTeacherSlots(teacherId, fromUtc, toUtc, viewerTz).pipe(
+    return this.getTeacherSlots(teacherId, fromAnchorDate, toAnchorDate, fixedDuration).pipe(
       map(response => ({
         response,
         slots: this.enrichSlots(response.slots, viewerTz)
@@ -202,18 +207,23 @@ export class SlotsService {
    * Book a slot using its HMAC-signed slot ID.
    * The slot ID contains the encoded schedule information and cannot be tampered with.
    * 
-   * @param teacherId Teacher ID (for validation, not sent to new API)
+   * Uses backend endpoint: POST /api/slots/book
+   * Backend requires: teacherId, slotId, studentIanaTimezone
+   * 
+   * @param teacherId Teacher ID (required by backend)
    * @param slotId HMAC-signed slot ID from getTeacherSlots
-   * @param studentNote Optional note from student
+   * @param studentNote Optional note from student (not currently used by backend)
    */
   bookSlot(teacherId: string, slotId: string, studentNote?: string): Observable<SlotBookingResponse> {
-    const request: BookSlotRequest = {
-      slotId,
-      studentNote
+    // Build request matching backend BookSlotRequestDto
+    const request = {
+      teacherId: teacherId,
+      slotId: slotId,
+      studentIanaTimezone: this.timezoneService.detectClientTimezone()
     };
 
     return this.http.post<SlotBookingResponse>(
-      `${this.schedulingBaseUrl}${this.schedulingApiPrefix}/bookings`,
+      `${this.legacyBaseUrl}/api/slots/book`,
       request
     );
   }
@@ -245,11 +255,13 @@ export class SlotsService {
   /**
    * Get meeting token for a booking (only available 15 min before session).
    * 
-   * @param bookingId The booking ID (GUID)
+   * Uses backend endpoint: POST /api/slots/{bookingId}/meeting/token
+   * 
+   * @param bookingId The booking ID (number)
    */
   getMeetingToken(bookingId: string | number): Observable<MeetingTokenResponse> {
     return this.http.post<MeetingTokenResponse>(
-      `${this.schedulingBaseUrl}${this.schedulingApiPrefix}/bookings/${bookingId}/meeting-token`,
+      `${this.legacyBaseUrl}/api/slots/${bookingId}/meeting/token`,
       {}
     );
   }
@@ -266,7 +278,9 @@ export class SlotsService {
       
       const slotTime = this.timezoneService.utcToLocal(slot.startAtUtc, 'UTC');
       const isPast = slotTime < now;
-      const isBookable = slot.status === 'Available' && !isPast;
+      // Handle both string ('Available') and number (1) status from backend
+      const isAvailableStatus = slot.status === 'Available' || slot.status === 1;
+      const isBookable = isAvailableStatus && !isPast;
 
       return {
         ...slot,

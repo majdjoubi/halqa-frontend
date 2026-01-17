@@ -251,9 +251,9 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
         const fromDate = now.toISOString().split('T')[0];
         const toDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
-        this.slotsService.getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone).subscribe({
-          next: ({ slots }) => {
-            this.availabilitySlots = slots.map(slot => {
+        this.slotsService.getTeacherSlots(teacherId, fromDate, toDate, 60).subscribe({
+          next: (slotsResponse) => {
+            this.availabilitySlots = slotsResponse.slots.map(slot => {
               const localStart = this.timezoneService.utcToLocal(slot.startAtUtc, this.userIanaTimezone);
               return {
                 id: slot.slotId,
