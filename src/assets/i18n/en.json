@@ -893,11 +893,6 @@
   },
   "all_teachers": {
     "title": "All Teachers",
-    "teacher_details": "Teacher details",
-    "search_label": "Search",
-    "search_aria": "Search",
-    "language_label": "Language",
-    "all_languages": "All Languages",
     "search_placeholder": "Search in your teachers...",
     "all_courses": "All Courses",
     "all_teachers": "All Teachers",

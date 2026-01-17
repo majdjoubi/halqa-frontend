@@ -888,11 +888,6 @@
   },
   "all_teachers": {
     "title": "جميع المعلمين",
-    "teacher_details": "تفاصيل المعلم",
-    "search_label": "بحث",
-    "search_aria": "بحث",
-    "language_label": "اللغة",
-    "all_languages": "كل اللغات",
     "search_placeholder": "ابحث في معلميك...",
     "all_courses": "جميع الدورات",
     "all_teachers": "جميع المعلمين",

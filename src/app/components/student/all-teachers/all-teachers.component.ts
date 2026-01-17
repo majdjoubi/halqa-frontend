@@ -1247,10 +1247,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   getLanguageLabel(): string {
     if (!this.selectedLanguage) {
-      return (
-        this.translate.instant('all_teachers.all_languages') ||
-        (this.isRtl ? 'كل اللغات' : 'All Languages')
-      );
+      return this.isRtl ? 'كل اللغات' : 'All Languages';
     }
     // selectedLanguage is sent as-is to API (string/number). Display it as string.
     return String(this.selectedLanguage);
