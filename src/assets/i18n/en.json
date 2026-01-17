@@ -13,7 +13,7 @@
   "STARTS_IN": "Starts in",
   "SESSION_STARTED": "Session started",
   "JOIN": "Join",
-  "JOIN_AVAILABLE_5_MIN": "Available 5 min before start",
+  "JOIN_AVAILABLE_5_MIN": "Available 60 min before start",
   "NO_BOOKINGS": "No bookings yet",
   "LOADING": "Loading...",
   "maintenance": {
@@ -1054,7 +1054,7 @@
     "MY_BOOKINGS_NEXT_LESSON": "Next Lesson",
     "MY_BOOKINGS_UPCOMING": "Upcoming Lessons",
     "MY_BOOKINGS_PAST": "Past Lessons",
-    "JOIN_AVAILABLE_5_MIN": "Available 5 minutes before start",
+    "JOIN_AVAILABLE_5_MIN": "Available 60 minutes before start",
     "BOOKING_STATUS_CONFIRMED": "Confirmed",
     "BOOKING_STATUS_IN_PROGRESS": "In progress",
     "BOOKING_STATUS_COMPLETED": "Completed",
