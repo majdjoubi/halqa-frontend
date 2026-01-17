@@ -1,10 +1,10 @@
-import { Component, HostListener, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subscription, forkJoin, of, interval } from 'rxjs';
-import { catchError, takeWhile } from 'rxjs/operators';
+import { Subscription, forkJoin, of, interval, from } from 'rxjs';
+import { catchError, takeWhile, mergeMap, map, toArray } from 'rxjs/operators';
 import { DateTime } from 'luxon';
 import { SideMenuComponent } from '../../../shared/shared-component/side-menu/side-menu.component';
 import { SimpleDatePickerComponent } from '../../../shared/shared-component/simple-date-picker/simple-date-picker.component';
@@ -101,11 +101,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private slotsPollingSubscription?: Subscription;
   private readonly POLLING_INTERVAL_MS = 30000; // 30 seconds
 
+  // Nearest-availability sorting (list view)
+  private teacherSortRequestId = 0;
+  private readonly TEACHERS_SORT_CONCURRENCY = 4;
+  private readonly nearestAvailabilityCache = new Map<string, string | null>();
+
   // Timezone - User's IANA timezone (auto-detected)
   userIanaTimezone: string = 'UTC';
   userTimezoneDisplay: string = '';
 
   constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
     private translate: TranslateService,
     private _repo: RepoService,
     private _getTeacher: GetTeacherByIDService,
@@ -222,6 +228,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             Math.ceil(this.AllTeacherCount / this.pageSize)
           );
           this.loading = false;
+
+          // Sort teachers by nearest availability (best-effort; no-op on SSR or if API fails)
+          this.sortTeachersByNearestAvailability();
         },
         (err) => {
           console.error('Failed to load teachers', err);
@@ -262,6 +271,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           Math.ceil(this.AllTeacherCount / this.pageSize)
         );
         this.loading = false;
+
+        // Sort teachers by nearest availability (best-effort; no-op on SSR or if API fails)
+        this.sortTeachersByNearestAvailability();
       },
       (err) => {
         console.error('Failed to load teachers', err);
@@ -270,6 +282,103 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     );
 
     // ...existing code...
+  }
+
+  /**
+   * Best-effort: sort current page teachers by earliest upcoming available slot.
+   *
+   * Safety:
+   * - Runs only in browser (avoid SSR triggering many HTTP calls)
+   * - Limits concurrency
+   * - Stable fallback order (keeps original order for teachers with no availability / errors)
+   * - Ignores stale results if user changes page/filters mid-flight
+   */
+  private sortTeachersByNearestAvailability(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!Array.isArray(this.allTeachers) || this.allTeachers.length < 2) return;
+
+    const requestId = ++this.teacherSortRequestId;
+    const teachersSnapshot = [...this.allTeachers];
+
+    // Keep stable original order as fallback
+    for (let i = 0; i < teachersSnapshot.length; i++) {
+      const t: any = teachersSnapshot[i];
+      if (t && t.__origIndex === undefined) {
+        t.__origIndex = i;
+      } else if (t) {
+        t.__origIndex = i;
+      }
+      // reset computed field to avoid showing stale values across pages
+      if (t) t.__nextAvailableAtUtc = null;
+    }
+
+    const now = DateTime.now().setZone(this.userIanaTimezone);
+    const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
+
+    const teacherIds: string[] = teachersSnapshot
+      .map((t: any) => (t?.id || t?.userId) as string)
+      .filter((id: any) => typeof id === 'string' && id.length > 0);
+
+    from(teacherIds)
+      .pipe(
+        mergeMap(
+          (teacherId: string) => {
+            if (this.nearestAvailabilityCache.has(teacherId)) {
+              return of({ teacherId, nextAtUtc: this.nearestAvailabilityCache.get(teacherId) ?? null });
+            }
+
+            return this.slotsService
+              .getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
+              .pipe(
+                map((result: any) => {
+                  const slots: EnrichedSlot[] = (result?.slots || []) as EnrichedSlot[];
+                  let nextAtUtc: string | null = null;
+                  for (const s of slots) {
+                    if (!s || !s.isBookable || !s.startAtUtc) continue;
+                    if (nextAtUtc === null || s.startAtUtc < nextAtUtc) {
+                      nextAtUtc = s.startAtUtc;
+                    }
+                  }
+                  this.nearestAvailabilityCache.set(teacherId, nextAtUtc);
+                  return { teacherId, nextAtUtc };
+                }),
+                catchError(() => {
+                  this.nearestAvailabilityCache.set(teacherId, null);
+                  return of({ teacherId, nextAtUtc: null });
+                })
+              );
+          },
+          this.TEACHERS_SORT_CONCURRENCY
+        ),
+        toArray()
+      )
+      .subscribe((rows: Array<{ teacherId: string; nextAtUtc: string | null }>) => {
+        if (requestId !== this.teacherSortRequestId) return;
+
+        const byId = new Map<string, string | null>(rows.map(r => [r.teacherId, r.nextAtUtc]));
+        for (const t of teachersSnapshot as any[]) {
+          const id = (t?.id || t?.userId) as string;
+          t.__nextAvailableAtUtc = id ? (byId.get(id) ?? null) : null;
+        }
+
+        teachersSnapshot.sort((a: any, b: any) => {
+          const aNext: string | null = a?.__nextAvailableAtUtc ?? null;
+          const bNext: string | null = b?.__nextAvailableAtUtc ?? null;
+          if (aNext && bNext) {
+            const cmp = aNext.localeCompare(bNext);
+            return cmp !== 0 ? cmp : (a?.__origIndex ?? 0) - (b?.__origIndex ?? 0);
+          }
+          if (aNext && !bNext) return -1;
+          if (!aNext && bNext) return 1;
+          return (a?.__origIndex ?? 0) - (b?.__origIndex ?? 0);
+        });
+
+        // Apply sorted list only if the underlying list hasn't changed shape
+        if (this.allTeachers.length === teachersSnapshot.length) {
+          this.allTeachers = teachersSnapshot;
+        }
+      });
   }
 
   // Load specializations once during component init
