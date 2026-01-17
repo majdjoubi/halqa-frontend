@@ -144,8 +144,7 @@ Built with ❤️ using Angular
 - `DATABASE_URL` (Required) PostgreSQL connection string
 - `HALQA_PHYSICAL_ADDRESS` (Required) مثال: `Street, City, Country`
 - `PUBLIC_APP_BASE_URL` (Optional) default `https://halqa.online`
-- `CRON_SECRET` (Required) secret used by Vercel Cron (sent as `Authorization: Bearer <CRON_SECRET>`)
-- `MESSAGING_WORKER_SECRET` (Optional) secret for manual worker runs via `POST` (header `x-worker-secret`)
+- `MESSAGING_WORKER_SECRET` (Required) secret for cron/worker endpoint
 - `HALQA_DOMAIN_CREATED_AT` (Optional) ISO date مثل: `2025-12-01`
 - `SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY_PEM` (Recommended) للتحقق من Webhook signature
 
@@ -156,13 +155,7 @@ Built with ❤️ using Angular
 
 ### 🧰 Worker (Queue Processor)
 
-- الإرسال الفعلي يتم عبر Worker يقرأ من الـ Queue في قاعدة البيانات.
-
-- **Vercel Cron (Recommended):**
-	- ينادي Vercel تلقائياً: `GET /api/admin/messaging/worker/run`
-	- يجب ضبط `CRON_SECRET` في Vercel (سيتم إرسالها تلقائياً كـ `Authorization: Bearer <CRON_SECRET>`)
-
-- **تشغيل يدوي (اختياري):**
+- أنشئ Vercel Cron Job يستدعي:
 	- `POST /api/admin/messaging/worker/run`
 	- Header: `x-worker-secret: <MESSAGING_WORKER_SECRET>`
 

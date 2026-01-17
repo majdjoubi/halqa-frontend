@@ -10,40 +10,20 @@ import {
 } from '../../../_lib/validation';
 import { sendViaSendGrid } from '../../../_lib/sendgrid';
 
-function getHeaderValue(value: string | string[] | undefined): string | undefined {
-  if (!value) return undefined;
-  if (Array.isArray(value)) return value[0];
-  return value;
-}
-
 function requireWorkerSecret(req: VercelRequest): void {
   const expected = process.env['MESSAGING_WORKER_SECRET'];
   if (!expected) throw new Error('MESSAGING_WORKER_SECRET is required');
-  const got = getHeaderValue(req.headers['x-worker-secret'] as any);
+  const got = req.headers['x-worker-secret'];
   if (got !== expected) throw new Error('Unauthorized worker');
-}
-
-function requireCronSecret(req: VercelRequest): void {
-  const expected = process.env['CRON_SECRET'];
-  if (!expected) throw new Error('CRON_SECRET is required');
-
-  const auth = getHeaderValue(req.headers['authorization'] as any);
-  if (!auth) throw new Error('Unauthorized cron');
-
-  const match = auth.match(/^\s*Bearer\s+(.+?)\s*$/i);
-  const token = match?.[1];
-  if (!token || token !== expected) throw new Error('Unauthorized cron');
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    if (req.method === 'GET') {
-      requireCronSecret(req);
-    } else if (req.method === 'POST') {
-      requireWorkerSecret(req);
-    } else {
+    if (req.method !== 'POST') {
       return sendJson(res, 405, { message: `Method ${req.method} not allowed` });
     }
+
+    requireWorkerSecret(req);
 
     const limitPerMinute = 50;
     const limitPerDay = dailyDomainLimit();
