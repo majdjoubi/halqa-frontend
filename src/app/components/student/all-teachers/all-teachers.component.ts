@@ -687,27 +687,32 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     // Map enriched slots to the format expected by the template
     const mappedSlots = bookableSlots.map((slot: EnrichedSlot) => {
-      const startTime = slot.viewerLocal12h;
-      const endTime = this._calculateEndTime(startTime, slot.durationMin);
+      const startUtcIso = slot.startAtUtc;
+      const endUtcIso = this._computeEndUtcIso(startUtcIso, slot.durationMin);
+      const viewerLocalDate = this.timezoneService.getLocalDate(startUtcIso, this.userIanaTimezone);
+      const startTime = this.timezoneService.formatUtcAs12Hour(startUtcIso, this.userIanaTimezone);
+      const endTime = this.timezoneService.formatUtcAs12Hour(endUtcIso, this.userIanaTimezone);
       return {
         ...slot,
         // Map properties for template compatibility
         startTime,
         endTime,
+        displayTimeRange: this._formatTimeRange(startTime, endTime),
         price: teacher.hourlyRate, // Use teacher's hourly rate
         isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
 
         // Date handling
-        date: slot.viewerLocalDate,
-        displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-        adjustedDateKey: slot.viewerLocalDate,
+        date: viewerLocalDate,
+        displayDate: DateTime.fromISO(viewerLocalDate).toFormat('MMM d'),
+        adjustedDateKey: viewerLocalDate,
 
         // Calculate day of week (0-6) from date
-        dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+        dayOfWeek: DateTime.fromISO(viewerLocalDate).weekday % 7,
 
         // Preserve original slotId for booking
         id: slot.slotId, // Ensure ID is mapped correctly
-        startIsoUtc: slot.startAtUtc
+        startIsoUtc: startUtcIso,
+        endIsoUtc: endUtcIso
       };
     });
 
@@ -762,13 +767,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           endTime12h = localEnd.toFormat('h:mm a');
         } catch {
           // Use raw values if conversion fails
-          startTime12h = slot.startTime || '';
-          endTime12h = slot.endTime || '';
+          startTime12h = this._formatTimeAs12Hour(slot.startTime || '');
+          endTime12h = this._formatTimeAs12Hour(slot.endTime || '');
         }
       } else {
         // Legacy format without datetime
-        startTime12h = slot.startTime || '';
-        endTime12h = slot.endTime || '';
+        startTime12h = this._formatTimeAs12Hour(slot.startTime || '');
+        endTime12h = this._formatTimeAs12Hour(slot.endTime || '');
       }
 
       return {
@@ -859,20 +864,25 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           const currentDate = this.selectedCalendarDate;
           
           const mappedSlots = result.slots.map((slot: EnrichedSlot) => {
-            const startTime = slot.viewerLocal12h;
-            const endTime = this._calculateEndTime(startTime, slot.durationMin);
+            const startUtcIso = slot.startAtUtc;
+            const endUtcIso = this._computeEndUtcIso(startUtcIso, slot.durationMin);
+            const viewerLocalDate = this.timezoneService.getLocalDate(startUtcIso, this.userIanaTimezone);
+            const startTime = this.timezoneService.formatUtcAs12Hour(startUtcIso, this.userIanaTimezone);
+            const endTime = this.timezoneService.formatUtcAs12Hour(endUtcIso, this.userIanaTimezone);
             return {
               ...slot,
               startTime,
               endTime,
+              displayTimeRange: this._formatTimeRange(startTime, endTime),
               price: this.bookingTeacher.hourlyRate,
               isAvailable: slot.isBookable,
-              date: slot.viewerLocalDate,
-              displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-              adjustedDateKey: slot.viewerLocalDate,
-              dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+              date: viewerLocalDate,
+              displayDate: DateTime.fromISO(viewerLocalDate).toFormat('MMM d'),
+              adjustedDateKey: viewerLocalDate,
+              dayOfWeek: DateTime.fromISO(viewerLocalDate).weekday % 7,
               id: slot.slotId,
-              startIsoUtc: slot.startAtUtc
+              startIsoUtc: startUtcIso,
+              endIsoUtc: endUtcIso
             };
           });
 

@@ -502,7 +502,7 @@
               [disabled]="!slot.isAvailable"
               (click)="selectSlot(getSlotOriginalIndex(slot))"
             >
-              <span class="slot-time">{{ slot.startTime }} - {{ slot.endTime }}</span>
+              <span class="slot-time">{{ slot.displayTimeRange || (slot.startTime + ' - ' + slot.endTime) }}</span>
             </button>
           </div>
         </div>
