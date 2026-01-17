@@ -258,7 +258,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private applyAvailabilityOrdering(): void {
     // SSR/Serverless rendering must not fan out into per-teacher slot calls.
     if (!this.isBrowser) return;
-    if (this.schedulingAvailabilityV1Disabled) return;
+    if (this.schedulingAvailabilityV1Disabled) {
+      this.applyFallbackTeacherOrdering();
+      return;
+    }
 
     const teachersSnapshot = Array.isArray(this.allTeachers) ? [...this.allTeachers] : [];
     if (teachersSnapshot.length === 0) return;
@@ -278,8 +281,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       .pipe(
         catchError((err: any) => {
           if (err?.status === 404) {
-            this.schedulingAvailabilityV1Disabled = true;
-            this.orderingSubscription?.unsubscribe();
+            if (!this.schedulingAvailabilityV1Disabled) {
+              this.schedulingAvailabilityV1Disabled = true;
+              this.orderingSubscription?.unsubscribe();
+              this.applyFallbackTeacherOrdering(teachersSnapshot);
+            }
           }
           return of(null);
         })
@@ -313,8 +319,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             }),
             catchError((err: any) => {
               if (err?.status === 404) {
-                this.schedulingAvailabilityV1Disabled = true;
-                this.orderingSubscription?.unsubscribe();
+                if (!this.schedulingAvailabilityV1Disabled) {
+                  this.schedulingAvailabilityV1Disabled = true;
+                  this.orderingSubscription?.unsubscribe();
+                  this.applyFallbackTeacherOrdering(teachersSnapshot);
+                }
               }
               return of({ teacherId, nextUtc: null as string | null, nextMs: null as number | null });
             })
@@ -355,6 +364,45 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           });
         });
       });
+  }
+
+  private applyFallbackTeacherOrdering(snapshot?: any[]): void {
+    const base = Array.isArray(snapshot)
+      ? snapshot
+      : Array.isArray(this.allTeachers)
+        ? [...this.allTeachers]
+        : [];
+
+    if (!base.length) return;
+
+    const hasAnyAvailability = (t: any): boolean => {
+      const a = t?.availability;
+      if (Array.isArray(a)) return a.length > 0;
+      return !!a;
+    };
+
+    this.allTeachers = base.sort((a: any, b: any) => {
+      // Prefer teachers that seem to have availability data at all.
+      const aHasAvail = hasAnyAvailability(a) ? 1 : 0;
+      const bHasAvail = hasAnyAvailability(b) ? 1 : 0;
+      if (aHasAvail !== bHasAvail) return bHasAvail - aHasAvail;
+
+      const aRating = this.extractAverageRating(a);
+      const bRating = this.extractAverageRating(b);
+      if (aRating !== bRating) return bRating - aRating;
+
+      const aStudents = this.extractTotalStudents(a);
+      const bStudents = this.extractTotalStudents(b);
+      if (aStudents !== bStudents) return bStudents - aStudents;
+
+      const aName = `${String(a?.firstName || '')} ${String(a?.lastName || '')}`.trim().toLowerCase();
+      const bName = `${String(b?.firstName || '')} ${String(b?.lastName || '')}`.trim().toLowerCase();
+      if (aName && bName && aName !== bName) return aName.localeCompare(bName);
+
+      const aId = String(a?.id || a?.teacherId || a?.userId || '');
+      const bId = String(b?.id || b?.teacherId || b?.userId || '');
+      return aId.localeCompare(bId);
+    });
   }
 
 
@@ -639,8 +687,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     // Map enriched slots to the format expected by the template
     const mappedSlots = bookableSlots.map((slot: EnrichedSlot) => {
-      const startTime = slot.viewerLocal12h;
-      const endTime = this._calculateEndTime(startTime, slot.durationMin);
+      const startUtcIso = slot.startAtUtc;
+      const endUtcIso = this._computeEndUtcIso(startUtcIso, slot.durationMin);
+      const viewerLocalDate = this.timezoneService.getLocalDate(startUtcIso, this.userIanaTimezone);
+      const startTime = this.timezoneService.formatUtcAs12Hour(startUtcIso, this.userIanaTimezone);
+      const endTime = this.timezoneService.formatUtcAs12Hour(endUtcIso, this.userIanaTimezone);
       return {
         ...slot,
         // Map properties for template compatibility
@@ -651,16 +702,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         isAvailable: slot.isBookable, // Use isBookable from EnrichedSlot
 
         // Date handling
-        date: slot.viewerLocalDate,
-        displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-        adjustedDateKey: slot.viewerLocalDate,
+        date: viewerLocalDate,
+        displayDate: DateTime.fromISO(viewerLocalDate).toFormat('MMM d'),
+        adjustedDateKey: viewerLocalDate,
 
         // Calculate day of week (0-6) from date
-        dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+        dayOfWeek: DateTime.fromISO(viewerLocalDate).weekday % 7,
 
         // Preserve original slotId for booking
         id: slot.slotId, // Ensure ID is mapped correctly
-        startIsoUtc: slot.startAtUtc
+        startIsoUtc: startUtcIso,
+        endIsoUtc: endUtcIso
       };
     });
 
@@ -715,13 +767,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           endTime12h = localEnd.toFormat('h:mm a');
         } catch {
           // Use raw values if conversion fails
-          startTime12h = slot.startTime || '';
-          endTime12h = slot.endTime || '';
+          startTime12h = this._formatTimeAs12Hour(slot.startTime || '');
+          endTime12h = this._formatTimeAs12Hour(slot.endTime || '');
         }
       } else {
         // Legacy format without datetime
-        startTime12h = slot.startTime || '';
-        endTime12h = slot.endTime || '';
+        startTime12h = this._formatTimeAs12Hour(slot.startTime || '');
+        endTime12h = this._formatTimeAs12Hour(slot.endTime || '');
       }
 
       return {
@@ -812,8 +864,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           const currentDate = this.selectedCalendarDate;
           
           const mappedSlots = result.slots.map((slot: EnrichedSlot) => {
-            const startTime = slot.viewerLocal12h;
-            const endTime = this._calculateEndTime(startTime, slot.durationMin);
+            const startUtcIso = slot.startAtUtc;
+            const endUtcIso = this._computeEndUtcIso(startUtcIso, slot.durationMin);
+            const viewerLocalDate = this.timezoneService.getLocalDate(startUtcIso, this.userIanaTimezone);
+            const startTime = this.timezoneService.formatUtcAs12Hour(startUtcIso, this.userIanaTimezone);
+            const endTime = this.timezoneService.formatUtcAs12Hour(endUtcIso, this.userIanaTimezone);
             return {
               ...slot,
               startTime,
@@ -821,12 +876,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
               displayTimeRange: this._formatTimeRange(startTime, endTime),
               price: this.bookingTeacher.hourlyRate,
               isAvailable: slot.isBookable,
-              date: slot.viewerLocalDate,
-              displayDate: DateTime.fromISO(slot.viewerLocalDate).toFormat('MMM d'),
-              adjustedDateKey: slot.viewerLocalDate,
-              dayOfWeek: DateTime.fromISO(slot.viewerLocalDate).weekday % 7,
+              date: viewerLocalDate,
+              displayDate: DateTime.fromISO(viewerLocalDate).toFormat('MMM d'),
+              adjustedDateKey: viewerLocalDate,
+              dayOfWeek: DateTime.fromISO(viewerLocalDate).weekday % 7,
               id: slot.slotId,
-              startIsoUtc: slot.startAtUtc
+              startIsoUtc: startUtcIso,
+              endIsoUtc: endUtcIso
             };
           });
 
@@ -848,6 +904,61 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           }
         }
       });
+  }
+
+  private _computeEndUtcIso(startUtcIso: string, durationMin: number): string {
+    try {
+      const startUtc = DateTime.fromISO(startUtcIso, { zone: 'UTC' });
+      if (!startUtc.isValid) return startUtcIso;
+      return startUtc.plus({ minutes: Number(durationMin) || 0 }).toUTC().toISO() || startUtcIso;
+    } catch {
+      return startUtcIso;
+    }
+  }
+
+  private _formatTimeAs12Hour(value: string): string {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+
+    // If already contains AM/PM, normalize spacing/case.
+    if (/[ap]m\s*$/i.test(raw)) {
+      return raw
+        .replace(/\s+/g, ' ')
+        .replace(/\s*([ap]m)$/i, ' $1')
+        .replace(/\s*([ap]m)$/i, (m) => m.toUpperCase())
+        .trim();
+    }
+
+    const m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (!m) return raw;
+
+    const hour24 = Number(m[1]);
+    const minute = m[2];
+    if (!Number.isFinite(hour24) || hour24 < 0 || hour24 > 23) return raw;
+
+    const { hour12, period } = this.timezoneService.formatHour24ToAmPm(hour24);
+    return `${hour12}:${minute} ${period}`;
+  }
+
+  private _parseTimeToMinutes(value: string): number | null {
+    const raw = (value || '').trim();
+    if (!raw) return null;
+
+    // 12-hour: "h:mm AM/PM"
+    if (/[ap]m\s*$/i.test(raw)) {
+      const dt = DateTime.fromFormat(raw.replace(/\s+/g, ' ').toUpperCase(), 'h:mm a');
+      if (!dt.isValid) return null;
+      return dt.hour * 60 + dt.minute;
+    }
+
+    // 24-hour: "HH:mm" or "HH:mm:ss"
+    const m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (!m) return null;
+    const hour = Number(m[1]);
+    const minute = Number(m[2]);
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+    if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+    return hour * 60 + minute;
   }
 
   private _calculateEndTime(startTime12h: string, durationMin: number): string {
@@ -1393,9 +1504,18 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     // Sort slots within each group by startTime
     for (const group of sortedGroups) {
       group.slots.sort((a, b) => {
-        const aTime = a.startTime?.replace(':', '') || '0000';
-        const bTime = b.startTime?.replace(':', '') || '0000';
-        return aTime.localeCompare(bTime);
+        const aIso = String(a?.startIsoUtc || a?.startDateTime || '');
+        const bIso = String(b?.startIsoUtc || b?.startDateTime || '');
+
+        const aMs = aIso ? Date.parse(aIso) : NaN;
+        const bMs = bIso ? Date.parse(bIso) : NaN;
+        const aHasMs = Number.isFinite(aMs);
+        const bHasMs = Number.isFinite(bMs);
+        if (aHasMs && bHasMs) return aMs - bMs;
+
+        const aMin = this._parseTimeToMinutes(String(a?.startTime || '')) ?? 0;
+        const bMin = this._parseTimeToMinutes(String(b?.startTime || '')) ?? 0;
+        return aMin - bMin;
       });
     }
 
