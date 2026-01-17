@@ -44,7 +44,25 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-12 col-md-12 mb-4">
-        <h5>{{ "all_teachers.title" | translate }} ({{ AllTeacherCount }})</h5>
+        <h5 class="page-title-row">
+          {{ "all_teachers.title" | translate }} ({{ AllTeacherCount }})
+          <span
+            *ngIf="availableLessonsEnabled"
+            class="available-lessons-badge"
+            [class.has-lessons]="availableLessonsAvailable > 0"
+            [class.no-lessons]="availableLessonsAvailable <= 0"
+            (click)="openAvailableLessonsModal()"
+            role="button"
+            tabindex="0"
+          >
+            {{
+              (availableLessonsAvailable > 0
+                ? 'available_lessons.badge.has'
+                : 'available_lessons.badge.none')
+                | translate: { count: availableLessonsAvailable }
+            }}
+          </span>
+        </h5>
         <div class="teacher-filter mt-4">
           <div class="filter-row">
             <div class="filter-item search-item">
@@ -275,6 +293,84 @@
     </div>
   </div>
 </section>
+
+<!-- Available Lessons (Credits) Purchase Modal -->
+<div
+  class="available-lessons-overlay"
+  *ngIf="showAvailableLessonsModal"
+  (click)="closeAvailableLessonsModal()"
+>
+  <div
+    class="available-lessons-container"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="available-lessons-header">
+      <h3 class="available-lessons-title">
+        {{ 'available_lessons.modal.title' | translate }}
+      </h3>
+      <button
+        class="available-lessons-close"
+        type="button"
+        (click)="closeAvailableLessonsModal()"
+        aria-label="Close"
+      >
+        &times;
+      </button>
+    </div>
+
+    <div class="available-lessons-body">
+      <p class="available-lessons-message">
+        {{ 'available_lessons.modal.body' | translate }}
+      </p>
+
+      <div class="available-lessons-balance" *ngIf="availableLessonsEnabled">
+        <span class="label">{{ 'available_lessons.label' | translate }}:</span>
+        <span class="value" [class.zero]="availableLessonsAvailable <= 0">
+          {{ availableLessonsAvailable }}
+        </span>
+      </div>
+
+      <h4 class="packages-title">{{ 'available_lessons.modal.packages_title' | translate }}</h4>
+
+      <div *ngIf="availableLessonsPackagesLoading" class="packages-loading">
+        {{ 'common.loading' | translate }}
+      </div>
+
+      <div *ngIf="!availableLessonsPackagesLoading && availableLessonsPackages.length === 0" class="packages-empty">
+        {{ 'available_lessons.modal.no_packages' | translate }}
+      </div>
+
+      <div class="packages" *ngIf="!availableLessonsPackagesLoading && availableLessonsPackages.length > 0">
+        <div class="package" *ngFor="let p of availableLessonsPackages">
+          <div class="package-left">
+            <div class="package-lessons">{{ 'available_lessons.modal.package_lessons' | translate: { lessons: p.lessons } }}</div>
+            <div class="package-price">${{ p.priceUsd }}</div>
+          </div>
+          <div class="package-right">
+            <button
+              class="btn btn-primary"
+              type="button"
+              (click)="buyAvailableLessonsWithWallet(p.id)"
+              [disabled]="buyingPackageId === p.id"
+            >
+              <span *ngIf="buyingPackageId !== p.id">{{ 'available_lessons.modal.cta_buy' | translate }}</span>
+              <span *ngIf="buyingPackageId === p.id" class="btn-spinner" aria-hidden="true"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="available-lessons-footer">
+      <button class="btn btn-outline-primary" type="button" (click)="goToWalletTopUp()">
+        {{ 'available_lessons.modal.cta_topup' | translate }}
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="closeAvailableLessonsModal()">
+        {{ 'common.close' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Reusable side menu — shows selected teacher profile -->
 <app-side-menu
@@ -536,8 +632,22 @@
   </ng-template>
 
   <div slot="footer" class="booking-footer">
-    <!-- Wallet Balance Display -->
-    <div class="wallet-balance-info" *ngIf="!walletLoading && groupedAvailability.length > 0">
+    <!-- Available Lessons (Credits) Display (v2, feature-flagged) -->
+    <div
+      class="available-lessons-info"
+      *ngIf="availableLessonsEnabled && !availableLessonsLoading && groupedAvailability.length > 0"
+      (click)="openAvailableLessonsModal()"
+      role="button"
+      tabindex="0"
+    >
+      <span class="label">{{ 'available_lessons.label' | translate }}:</span>
+      <span class="value" [class.zero]="availableLessonsAvailable <= 0">
+        {{ availableLessonsAvailable }}
+      </span>
+    </div>
+
+    <!-- Wallet Balance Display (legacy) -->
+    <div class="wallet-balance-info" *ngIf="!availableLessonsEnabled && !walletLoading && groupedAvailability.length > 0">
       <span class="wallet-label">{{ 'wallet.your_balance' | translate }}:</span>
       <span class="wallet-amount" [class.low-balance]="selectedSlotIndex !== null && bookingTeacher?.availability && bookingTeacher.availability[selectedSlotIndex]?.price > walletBalance">
         ${{ walletBalance | number:'1.2-2' }}

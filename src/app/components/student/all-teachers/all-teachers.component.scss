@@ -4,6 +4,37 @@
   display: block;
 }
 
+.page-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.available-lessons-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+
+  &.has-lessons {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #0b8043;
+  }
+
+  &.no-lessons {
+    background: #fff1f2;
+    border-color: #fecdd3;
+    color: #be123c;
+  }
+}
+
 .teacher-cards {
   .teacher-cards-grid {
     display: flex;
@@ -985,6 +1016,35 @@
       }
     }
   }
+
+  .available-lessons-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    user-select: none;
+
+    .label {
+      font-size: 14px;
+      color: #374151;
+      font-weight: 500;
+    }
+
+    .value {
+      font-size: 16px;
+      font-weight: 800;
+      color: $primary-color;
+
+      &.zero {
+        color: #dc2626;
+      }
+    }
+  }
   
   .booking-actions {
     display: flex;
@@ -1027,6 +1087,129 @@
     text-align: center;
     color: #6b7280;
   }
+}
+
+/* Available Lessons purchase modal */
+.available-lessons-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2100;
+}
+
+.available-lessons-container {
+  background: #fff;
+  border-radius: 12px;
+  width: 92%;
+  max-width: 560px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+}
+
+.available-lessons-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.available-lessons-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.available-lessons-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.available-lessons-body {
+  padding-top: 8px;
+}
+
+.available-lessons-message {
+  margin: 0 0 10px 0;
+  color: #374151;
+}
+
+.available-lessons-balance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 12px;
+
+  .label {
+    color: #374151;
+    font-weight: 600;
+  }
+  .value {
+    font-weight: 900;
+    color: $primary-color;
+
+    &.zero {
+      color: #dc2626;
+    }
+  }
+}
+
+.packages-title {
+  margin: 10px 0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.packages-loading,
+.packages-empty {
+  color: #6b7280;
+  padding: 10px 0;
+}
+
+.packages {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.package {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+
+  .package-lessons {
+    font-weight: 800;
+    color: #111827;
+  }
+  .package-price {
+    color: #6b7280;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+}
+
+.available-lessons-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 /* Simple popup/modal used for errors in AllTeachers component */

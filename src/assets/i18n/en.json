@@ -12,6 +12,22 @@
   "JOIN_AVAILABLE_5_MIN": "Available 60 min before start",
   "NO_BOOKINGS": "No bookings yet",
   "LOADING": "Loading...",
+  "available_lessons": {
+    "label": "Available lessons",
+    "badge": {
+      "has": "You have {{count}} available lessons",
+      "none": "No available lessons"
+    },
+    "modal": {
+      "title": "No available lessons",
+      "body": "To book, you need at least 1 available lesson.",
+      "cta_buy": "Buy available lessons",
+      "cta_topup": "Top up wallet",
+      "packages_title": "Choose a package",
+      "no_packages": "No packages available right now.",
+      "package_lessons": "{{lessons}} lessons"
+    }
+  },
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },

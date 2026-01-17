@@ -16,6 +16,7 @@ import { LuxonDateService } from '../../../services/common/luxon-date.service';
 import { LanguageService } from '../../../services/language.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
 import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.service';
+import { AvailableLessonsService, AvailableLessonsPackage } from '../../../services/v2/available-lessons.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -69,6 +70,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   walletBalance: number = 0;
   walletLoading: boolean = false;
 
+  // v2 Available Lessons (Credits)
+  availableLessonsEnabled = false;
+  availableLessonsLoading = false;
+  availableLessonsAvailable = 0;
+  availableLessonsReserved = 0;
+  showAvailableLessonsModal = false;
+  availableLessonsPackages: AvailableLessonsPackage[] = [];
+  availableLessonsPackagesLoading = false;
+  buyingPackageId: string | null = null;
+
   // Group session modal controls
   showGroupSessionModal = false;
   selectedGroupSession: any = null;
@@ -121,7 +132,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private router: Router,
     private timezoneService: TimezoneService,
-    private slotsService: SlotsService
+    private slotsService: SlotsService,
+    private availableLessonsService: AvailableLessonsService
   ) { }
 
   ngOnInit() {
@@ -137,6 +149,111 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.loadStudentExistingBookings();
     // load student wallet balance
     this.loadWalletBalance();
+
+    // load available lessons (feature-flagged)
+    this.availableLessonsEnabled = this.availableLessonsService.isEnabled();
+    if (this.availableLessonsEnabled) {
+      this.refreshAvailableLessonsBalance();
+    }
+  }
+
+  private refreshAvailableLessonsBalance(): void {
+    if (!this.availableLessonsEnabled) return;
+
+    this.availableLessonsLoading = true;
+    this.availableLessonsService.getBalance().subscribe({
+      next: (bal) => {
+        this.availableLessonsAvailable = Number((bal as any)?.available || 0);
+        this.availableLessonsReserved = Number((bal as any)?.reserved || 0);
+        this.availableLessonsLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading available lessons balance:', err);
+        this.availableLessonsAvailable = 0;
+        this.availableLessonsReserved = 0;
+        this.availableLessonsLoading = false;
+      }
+    });
+  }
+
+  openAvailableLessonsModal(): void {
+    if (!this.availableLessonsEnabled) return;
+    this.showAvailableLessonsModal = true;
+    this.refreshAvailableLessonsBalance();
+    this.loadAvailableLessonsPackages();
+  }
+
+  closeAvailableLessonsModal(): void {
+    this.showAvailableLessonsModal = false;
+    this.buyingPackageId = null;
+  }
+
+  private loadAvailableLessonsPackages(): void {
+    if (!this.availableLessonsEnabled) return;
+    this.availableLessonsPackagesLoading = true;
+    this.availableLessonsService.getPackages().subscribe({
+      next: (pkgs) => {
+        this.availableLessonsPackages = Array.isArray(pkgs) ? pkgs : [];
+        this.availableLessonsPackagesLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading available lessons packages:', err);
+        this.availableLessonsPackages = [];
+        this.availableLessonsPackagesLoading = false;
+      }
+    });
+  }
+
+  buyAvailableLessonsWithWallet(packageId: string): void {
+    if (!this.availableLessonsEnabled || !packageId || this.buyingPackageId) return;
+
+    this.buyingPackageId = packageId;
+    this.availableLessonsService.buyWithWallet(packageId).subscribe({
+      next: () => {
+        // Wallet may change due to purchase; refresh best-effort
+        this.loadWalletBalance();
+
+        this.availableLessonsService.getBalance().subscribe({
+          next: (bal) => {
+            this.availableLessonsAvailable = Number((bal as any)?.available || 0);
+            this.availableLessonsReserved = Number((bal as any)?.reserved || 0);
+            this.buyingPackageId = null;
+            this.closeAvailableLessonsModal();
+
+            this.showModal = true;
+            this.modalType = 'success';
+            this.modalMessage = this.translate.instant('available_lessons.badge.has', {
+              count: this.availableLessonsAvailable,
+            });
+          },
+          error: () => {
+            this.buyingPackageId = null;
+            this.closeAvailableLessonsModal();
+
+            this.showModal = true;
+            this.modalType = 'success';
+            this.modalMessage = this.translate.instant('common.success');
+          }
+        });
+      },
+      error: (err) => {
+        const msg =
+          (err && err.error && (err.error.message || err.error.msg)) ||
+          err.message ||
+          'Purchase failed';
+
+        const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
+        this.isInsufficientBalance = isBalanceError;
+        this.buyingPackageId = null;
+        this.closeAvailableLessonsModal();
+
+        this.showModal = true;
+        this.modalType = 'error';
+        this.modalMessage = isBalanceError
+          ? this.translate.instant('booking.errors.insufficient_balance')
+          : msg;
+      }
+    });
   }
 
   /**
@@ -550,6 +667,11 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         this.loadingBookId = null;
       }
     });
+
+    // Refresh available lessons when starting booking (best-effort)
+    if (this.availableLessonsEnabled) {
+      this.refreshAvailableLessonsBalance();
+    }
   }
 
   /**
@@ -907,10 +1029,55 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   payNow() {
     if (this.selectedSlotIndex === null || !this.bookingTeacher) return;
     const slot = this.bookingTeacher.availability[this.selectedSlotIndex];
+
+    // v2 credits gate: require >= 1 available lesson, otherwise show purchase modal.
+    // Keep scheduling/time logic unchanged; only gate the action.
+    if (this.availableLessonsEnabled) {
+      if (this.payProcessing) return;
+      this.payProcessing = true;
+
+      this.availableLessonsService.getBalance().subscribe({
+        next: (bal) => {
+          const available = Number((bal as any)?.available || 0);
+          const reserved = Number((bal as any)?.reserved || 0);
+          this.availableLessonsAvailable = available;
+          this.availableLessonsReserved = reserved;
+
+          if (available <= 0) {
+            this.payProcessing = false;
+            this.openAvailableLessonsModal();
+            return;
+          }
+
+          // UX: hide the booking sidebar immediately after clicking Book/Pay Now.
+          // Confirmation/error will be shown via the modal.
+          this.closeBookingSidebar();
+          this._bookSelectedSlot(slot);
+        },
+        error: (err) => {
+          console.error('Error checking available lessons balance:', err);
+          this.payProcessing = false;
+          this.showModal = true;
+          this.modalType = 'error';
+          this.modalMessage = err?.message || 'Failed to check available lessons';
+        }
+      });
+      return;
+    }
+
     this.payProcessing = true;
     // UX: hide the booking sidebar immediately after clicking Book/Pay Now.
     // Confirmation/error will be shown via the modal.
     this.closeBookingSidebar();
+
+    this._bookSelectedSlot(slot);
+  }
+
+  private _bookSelectedSlot(slot: any): void {
+    if (!slot || !this.bookingTeacher) {
+      this.payProcessing = false;
+      return;
+    }
 
     // Use the secure bookSlot method from SlotsService
     // We just need teacherId and the secure slotId
@@ -923,15 +1090,17 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Frontend wallet balance check
-    const slotPrice = slot.price || this.bookingTeacher.hourlyRate || 0;
-    if (slotPrice > this.walletBalance) {
-      this.payProcessing = false;
-      this.isInsufficientBalance = true;
-      this.showModal = true;
-      this.modalType = 'error';
-      this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
-      return;
+    // Frontend wallet balance check (legacy flow only).
+    if (!this.availableLessonsEnabled) {
+      const slotPrice = slot.price || this.bookingTeacher.hourlyRate || 0;
+      if (slotPrice > this.walletBalance) {
+        this.payProcessing = false;
+        this.isInsufficientBalance = true;
+        this.showModal = true;
+        this.modalType = 'error';
+        this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
+        return;
+      }
     }
 
     this.slotsService.bookSlot(teacherId, slotId).subscribe({
@@ -944,6 +1113,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         // (The backend response for bookSlot matches what we need for confirmation)
 
         this.loadStudentExistingBookings();
+        if (this.availableLessonsEnabled) {
+          this.refreshAvailableLessonsBalance();
+        }
         this.showModal = true;
         this.modalType = 'success';
         this.modalMessage = this.translate.instant('booking.request_sent_message');
