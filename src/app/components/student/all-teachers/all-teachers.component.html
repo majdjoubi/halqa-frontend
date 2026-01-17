@@ -183,29 +183,20 @@
                 </div>
                 <div class="buttons-group">
                   <button
-                    *ngIf="isStudent; else loginToBook"
                     class="btn btn-book"
                     type="button"
                     aria-label="Book"
                     (click)="bookTeacher(t.id)"
                   >
-                    <span class="btn-label">{{ "all_teachers.book" | translate }}</span>
+                    <span class="btn-label">{{
+                      "all_teachers.book" | translate
+                    }}</span>
                     <span
                       *ngIf="loadingBookId === t.id"
                       class="btn-spinner"
                       aria-hidden="true"
                     ></span>
                   </button>
-                  <ng-template #loginToBook>
-                    <button
-                      class="btn btn-book"
-                      type="button"
-                      aria-label="Login"
-                      (click)="bookTeacher(t.id)"
-                    >
-                      <span class="btn-label">{{ "LOGIN" | translate }}</span>
-                    </button>
-                  </ng-template>
                   <button
                     (click)="viewTeacherProfile(t.id)"
                     class="btn btn-view"
