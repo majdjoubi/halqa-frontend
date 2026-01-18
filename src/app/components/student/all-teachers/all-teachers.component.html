@@ -195,9 +195,14 @@
               </div>
 
               <div class="teacher-right">
-                <div class="hourly-rate">
+                <div class="hourly-rate" *ngIf="!availableLessonsEnabled">
                   ${{ t.hourlyRate }}
                   <span>/{{ "all_teachers.per_hour" | translate }}</span>
+                </div>
+
+                <div class="hourly-rate" *ngIf="availableLessonsEnabled">
+                  {{ 'pricing.one_lesson' | translate }}
+                  <span>/{{ 'pricing.per_60_min' | translate }}</span>
                 </div>
                 <div class="buttons-group">
                   <button
@@ -423,10 +428,19 @@
           </div>
 
           <div class="rate-row">
-            <span class="rate-amount">${{ teacherById.hourlyRate }}</span>
-            <span class="rate-unit"
-              >/ {{ "all_teachers.per_hour" | translate }}</span
-            >
+            <ng-container *ngIf="!availableLessonsEnabled">
+              <span class="rate-amount">${{ teacherById.hourlyRate }}</span>
+              <span class="rate-unit"
+                >/ {{ "all_teachers.per_hour" | translate }}</span
+              >
+            </ng-container>
+
+            <ng-container *ngIf="availableLessonsEnabled">
+              <span class="rate-amount">{{ 'pricing.one_lesson' | translate }}</span>
+              <span class="rate-unit"
+                >/ {{ 'pricing.per_60_min' | translate }}</span
+              >
+            </ng-container>
           </div>
         </div>
       </div>
@@ -654,6 +668,11 @@
       </span>
     </div>
     <div class="booking-actions" *ngIf="groupedAvailability.length > 0">
+      <div class="booking-cost" *ngIf="availableLessonsEnabled && selectedSlotIndex !== null">
+        <span class="label">{{ 'pricing.cost' | translate }}:</span>
+        <span class="value">{{ 'pricing.one_lesson' | translate }}</span>
+      </div>
+
       <button
         class="btn btn-primary btn-book-now"
         type="button"

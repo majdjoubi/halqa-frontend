@@ -38,6 +38,11 @@
       "cta": "Pay ${{fee}} and book trial"
     }
   },
+  "pricing": {
+    "one_lesson": "1 lesson",
+    "per_60_min": "60 min",
+    "cost": "Cost"
+  },
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },

@@ -1127,6 +1127,20 @@
   justify-content: space-between;
   gap: 12px;
 }
+.booking-cost {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+.booking-cost .label {
+  opacity: 0.9;
+}
+.booking-cost .value {
+  font-weight: 600;
+  color: #fff;
+}
 
 .trial-title {
   margin: 0;
