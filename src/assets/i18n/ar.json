@@ -9,7 +9,7 @@
   "STARTS_IN": "يبدأ بعد",
   "SESSION_STARTED": "بدأت الجلسة",
   "JOIN": "انضم",
-  "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 60 دقيقة",
+  "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 5 دقائق",
   "NO_BOOKINGS": "لا توجد حجوزات بعد",
   "LOADING": "جاري التحميل...",
   "available_lessons": {
@@ -1106,7 +1106,7 @@
     "MY_BOOKINGS_NEXT_LESSON": "الدرس القادم",
     "MY_BOOKINGS_UPCOMING": "الدروس القادمة",
     "MY_BOOKINGS_PAST": "الدروس السابقة",
-    "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 60 دقيقة",
+    "JOIN_AVAILABLE_5_MIN": "متاح قبل الموعد بـ 5 دقائق",
     "BOOKING_STATUS_CONFIRMED": "مؤكد",
     "BOOKING_STATUS_IN_PROGRESS": "قيد التنفيذ",
     "BOOKING_STATUS_COMPLETED": "مكتمل",

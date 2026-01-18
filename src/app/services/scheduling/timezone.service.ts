@@ -228,11 +228,11 @@ export class TimezoneService {
   }
 
   /**
-   * Check if a session is joinable (within 15 minutes of start).
+   * Check if a session is joinable.
    */
   isSessionJoinable(utcIsoString: string): boolean {
     const minutes = this.getMinutesUntil(utcIsoString);
-    return minutes <= 60 && minutes >= -30; // 60 min before to 30 min after
+    return minutes <= 5 && minutes >= -30; // 5 min before to 30 min after
   }
 
   /**

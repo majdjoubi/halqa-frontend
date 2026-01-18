@@ -288,7 +288,7 @@ export class MyBookingsComponent implements OnInit {
       error: (err) => {
         const code = err?.error?.code;
         if (code === 'TIME_NOT_YET') {
-          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 60 دقيقة.');
+          alert('الوقت لم يحن بعد. يمكنك الدخول قبل الموعد بـ 5 دقائق.');
           return;
         }
         // Fallback to backend message when available
