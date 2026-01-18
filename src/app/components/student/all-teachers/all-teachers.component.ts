@@ -591,9 +591,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             Math.ceil(this.AllTeacherCount / this.pageSize)
           );
           this.loading = false;
-
-          // Sort teachers by nearest availability (best-effort; no-op on SSR or if API fails)
-          this.sortTeachersByNearestAvailability();
         },
         (err) => {
           console.error('Failed to load teachers', err);
@@ -638,9 +635,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           Math.ceil(this.AllTeacherCount / this.pageSize)
         );
         this.loading = false;
-
-        // Sort teachers by nearest availability (best-effort; no-op on SSR or if API fails)
-        this.sortTeachersByNearestAvailability();
       },
       (err) => {
         console.error('Failed to load teachers', err);
