@@ -348,6 +348,7 @@
       <div class="packages" *ngIf="!availableLessonsPackagesLoading && availableLessonsPackages.length > 0">
         <div class="package" *ngFor="let p of availableLessonsPackages">
           <div class="package-left">
+            <div class="package-name" *ngIf="getAvailableLessonsPackageNameKey(p.lessons) as nameKey">{{ nameKey | translate }}</div>
             <div class="package-lessons">{{ 'available_lessons.modal.package_lessons' | translate: { lessons: p.lessons } }}</div>
             <div class="package-price">${{ p.priceUsd }}</div>
           </div>

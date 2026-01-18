@@ -210,6 +210,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   startTrialBooking(): void {
     if (!this.trialEnabled || !this.bookingTeacher || this.selectedSlotIndex === null) return;
 
+    // UX: close booking sidebar immediately when user clicks Book Trial.
+    this.closeBookingSidebar();
+
     if (!this.trialEligibleForBookingTeacher) {
       this.showModal = true;
       this.modalType = 'error';
@@ -1217,6 +1220,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   // Simple pay flow placeholder — replace with real payment integration
   payNow() {
     if (this.selectedSlotIndex === null || !this.bookingTeacher) return;
+
+    // UX: close booking sidebar immediately when user clicks Book Now.
+    this.closeBookingSidebar();
     const slot = this.bookingTeacher.availability[this.selectedSlotIndex];
 
     // v2 credits gate: require >= 1 available lesson, otherwise show purchase modal.
@@ -1237,10 +1243,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             this.openAvailableLessonsModal();
             return;
           }
-
-          // UX: hide the booking sidebar immediately after clicking Book/Pay Now.
-          // Confirmation/error will be shown via the modal.
-          this.closeBookingSidebar();
           this._bookSelectedSlot(slot);
         },
         error: (err) => {
@@ -1255,11 +1257,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     }
 
     this.payProcessing = true;
-    // UX: hide the booking sidebar immediately after clicking Book/Pay Now.
-    // Confirmation/error will be shown via the modal.
-    this.closeBookingSidebar();
-
     this._bookSelectedSlot(slot);
+  }
+
+  getAvailableLessonsPackageNameKey(lessons: number): string | null {
+    if (lessons === 1 || lessons === 3 || lessons === 6 || lessons === 10) {
+      return `available_lessons.modal.package_names.${lessons}`;
+    }
+    return null;
   }
 
   private _bookSelectedSlot(slot: any): void {

@@ -13,19 +13,25 @@
   "NO_BOOKINGS": "No bookings yet",
   "LOADING": "Loading...",
   "available_lessons": {
-    "label": "Available lessons",
+    "label": "Lesson tickets in your wallet",
     "badge": {
-      "has": "You have {{count}} available lessons",
-      "none": "No available lessons"
+      "has": "You have {{count}} lesson ticket(s) in your wallet",
+      "none": "No lesson tickets in your wallet"
     },
     "modal": {
-      "title": "No available lessons",
-      "body": "To book, you need at least 1 available lesson.",
-      "cta_buy": "Buy available lessons",
+      "title": "No lesson tickets in your wallet",
+      "body": "To book, you need at least 1 lesson ticket in your wallet.",
+      "cta_buy": "Buy lesson tickets",
       "cta_topup": "Top up wallet",
-      "packages_title": "Choose a package",
+      "packages_title": "Packages",
       "no_packages": "No packages available right now.",
-      "package_lessons": "{{lessons}} lessons"
+      "package_lessons": "{{lessons}} lesson ticket(s)",
+      "package_names": {
+        "1": "Single Ticket",
+        "3": "Starter Pack",
+        "6": "Value Pack",
+        "10": "Best Value Pack"
+      }
     }
   },
   "trial": {
@@ -49,6 +55,7 @@
     "tooltip": {
       "aria": "Pricing details",
       "title": "Pricing details",
+      "price_reduced_note": "Price used to be higher — now reduced to $10 / 60 min.",
       "fee": "Platform fee: 20%",
       "teacher_net": "Teacher receives: 80% (=$8 per lesson)",
       "packages_title": "Packages",
