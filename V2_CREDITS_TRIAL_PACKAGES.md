@@ -4,6 +4,8 @@ This document defines the production-oriented architecture, backend contract, an
 
 > Scope note: This repo is the Angular frontend. Backend changes are described as an API contract + data model spec to be implemented in the API service.
 
+Backend engineers: see [BACKEND_V2_IMPLEMENTATION_PACK.md](BACKEND_V2_IMPLEMENTATION_PACK.md) for a ready-to-implement endpoint checklist + PostgreSQL migration.
+
 ## 1) Goals / Non-goals
 
 ### Goals
