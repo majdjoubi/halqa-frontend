@@ -7,8 +7,18 @@ import { environment } from '../../environment/environment';
 export interface TrialEligibilityResponse {
   eligible: boolean;
   verificationFeeUsd?: number;
-  reason?: string | null;
   verificationStatus?: 'unpaid' | 'paid' | 'not_required' | string;
+  reason?: string | null;
+  lockedTeacherId?: string | null;
+  constraints?: {
+    onePerStudent?: boolean;
+    oneTeacherOnly?: boolean;
+  };
+}
+
+export interface TrialVerifyResponse {
+  verificationStatus?: 'unpaid' | 'paid' | 'not_required' | string;
+  verificationFeeUsd?: number;
 }
 
 @Injectable({
@@ -28,7 +38,13 @@ export class TrialService {
 
   getEligibility(teacherId: string): Observable<TrialEligibilityResponse> {
     if (!this.isEnabled() || !isPlatformBrowser(this.platformId) || !teacherId) {
-      return of({ eligible: false, verificationFeeUsd: 0, reason: null, verificationStatus: 'unpaid' });
+      return of({
+        eligible: false,
+        verificationFeeUsd: 0,
+        verificationStatus: 'unpaid',
+        reason: null,
+        lockedTeacherId: null,
+      });
     }
 
     return this.http.get<TrialEligibilityResponse>(
@@ -36,11 +52,11 @@ export class TrialService {
     );
   }
 
-  verify(method: 'wallet' | 'stripe' = 'wallet', idempotencyKey?: string): Observable<any> {
+  verify(method: 'wallet' | 'stripe' = 'wallet', idempotencyKey?: string): Observable<TrialVerifyResponse | null> {
     if (!this.isEnabled() || !isPlatformBrowser(this.platformId)) {
       return of(null);
     }
 
-    return this.http.post<any>(`${this.baseUrl}/v2/trial/verify`, { method, idempotencyKey });
+    return this.http.post<TrialVerifyResponse>(`${this.baseUrl}/v2/trial/verify`, { method, idempotencyKey });
   }
 }

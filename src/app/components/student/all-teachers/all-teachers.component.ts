@@ -295,7 +295,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
         const errCode = err?.error?.error?.code || err?.error?.code;
         const isNotEligible = errCode === 'TRIAL_NOT_ELIGIBLE';
+        const isVerificationRequired = errCode === 'TRIAL_VERIFICATION_REQUIRED';
         const isSlotTakenError = err.status === 409 || (msg && msg.toLowerCase().includes('already been booked'));
+
+        if (isVerificationRequired) {
+          this.payProcessing = false;
+          this.openTrialVerificationModal();
+          return;
+        }
 
         this.showModal = true;
         this.modalType = 'error';
