@@ -242,7 +242,7 @@
       </button>
       <button class="btn-submit" (click)="submitReview()" [disabled]="isSubmittingReview" type="button">
         <span *ngIf="!isSubmittingReview">{{ 'REVIEW_MODAL_BTN_SUBMIT' | translate }}</span>
-        <span *ngIf="isSubmittingReview">{{ 'LOADING' | translate }}...</span>
+        <span *ngIf="isSubmittingReview">{{ 'LOADING' | translate }}</span>
       </button>
     </div>
   </div>
