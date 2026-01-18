@@ -109,9 +109,6 @@ export class MyBookingsComponent implements OnInit {
         this.refreshBookingsView();
         this.isLoading = false;
         this.hasLoaded = true;
-
-        // After loading, prompt review modal if any completed booking needs review
-        setTimeout(() => this.checkForCompletedBookingsReview(), 300);
       },
       error: (err) => {
         console.error('Error loading student bookings:', err);
@@ -365,17 +362,6 @@ export class MyBookingsComponent implements OnInit {
     }
   }
 
-  private checkForCompletedBookingsReview(): void {
-    const reviewed = this.getReviewedBookings();
-    const completedNeedingReview = this.bookings.filter(
-      (b) => this.isCompleted(b) && !reviewed.includes(b.id.toString())
-    );
-
-    if (completedNeedingReview.length > 0) {
-      this.openReviewModal(completedNeedingReview[0]);
-    }
-  }
-
   openReviewModal(b: StudentBookingItem): void {
     this.currentBookingForReview = b;
     this.reviewRating = 5;
@@ -440,7 +426,6 @@ export class MyBookingsComponent implements OnInit {
         this.isSubmittingReview = false;
         this.closeReviewModal();
         alert(this.translate.instant('REVIEW_THANK_YOU') || 'شكرًا لتقييمك!');
-        setTimeout(() => this.checkForCompletedBookingsReview(), 300);
       },
       error: (err) => {
         console.error('Error submitting review', err);
