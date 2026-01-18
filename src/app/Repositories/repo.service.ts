@@ -671,11 +671,18 @@ export class RepoService {
     );
   }
 
-  // Credit student wallet directly (admin/teacher action)
-  creditStudentWallet(studentId: string, amount: number, reason: string): Observable<any> {
-    return this.http.post<any>(
-      `${this.base_url}/api/payment/wallet/credit`,
-      { studentId, amount, reason }
-    );
+  // Admin - credit wallet (student or teacher) by email
+  adminCreditWalletByEmail(
+    email: string,
+    amount: number,
+    target: 'auto' | 'student' | 'teacher' = 'auto',
+    description?: string
+  ): Observable<any> {
+    return this.http.post<any>(`${this.base_url}/api/admin/wallet/credit`, {
+      email,
+      amount,
+      target,
+      description,
+    });
   }
 }

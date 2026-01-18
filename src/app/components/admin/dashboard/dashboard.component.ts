@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DashBoardCardsComponent,
@@ -61,7 +62,7 @@ interface StudentWallet {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, TranslateModule, DashBoardCardsComponent, SplineChartComponent, BarChartComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, DashBoardCardsComponent, SplineChartComponent, BarChartComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -76,6 +77,15 @@ export class DashboardComponent implements OnInit {
   hasError = false;
   errorMessage = '';
 
+  // Admin wallet credit tool
+  creditEmail = '';
+  creditTarget: 'auto' | 'student' | 'teacher' = 'auto';
+  creditAmount: number | null = 100;
+  creditDescription = '';
+  isCrediting = false;
+  creditSuccessMessage = '';
+  creditErrorMessage = '';
+
   constructor(
     private repoService: RepoService,
     private translate: TranslateService
@@ -83,6 +93,55 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadDashboardData();
+  }
+
+  creditWallet(): void {
+    if (this.isCrediting) return;
+
+    this.creditSuccessMessage = '';
+    this.creditErrorMessage = '';
+
+    const email = (this.creditEmail || '').trim();
+    const amount = Number(this.creditAmount);
+
+    if (!email || !email.includes('@')) {
+      this.creditErrorMessage = this.translate.instant('admin_wallet_credit.errors.invalid_email');
+      return;
+    }
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      this.creditErrorMessage = this.translate.instant('admin_wallet_credit.errors.invalid_amount');
+      return;
+    }
+
+    this.isCrediting = true;
+
+    this.repoService
+      .adminCreditWalletByEmail(email, amount, this.creditTarget, this.creditDescription || undefined)
+      .subscribe({
+        next: (res) => {
+          const before = Number(res?.balanceBefore ?? 0);
+          const after = Number(res?.balanceAfter ?? 0);
+          const targetResolved = String(res?.targetResolved || this.creditTarget);
+
+          this.creditSuccessMessage = this.translate.instant('admin_wallet_credit.success', {
+            email,
+            target: targetResolved,
+            before: before.toFixed(2),
+            after: after.toFixed(2),
+          });
+
+          // Refresh student wallet ranking list (best-effort)
+          this.loadStudentsByWallet();
+          this.isCrediting = false;
+        },
+        error: (err) => {
+          console.error('Failed to credit wallet:', err);
+          const apiMsg = err?.error?.message || err?.message;
+          this.creditErrorMessage = apiMsg || this.translate.instant('admin_wallet_credit.errors.failed');
+          this.isCrediting = false;
+        },
+      });
   }
 
   private loadDashboardData(): void {
@@ -128,13 +187,17 @@ export class DashboardComponent implements OnInit {
     });
 
     // Load students by wallet balance
-    this.repoService.getStudentsByWalletBalance(20).subscribe({
+    this.loadStudentsByWallet();
+  }
+
+  private loadStudentsByWallet(): void {
+    this.repoService.getStudentsByWalletBalance().subscribe({
       next: (res) => {
-        this.studentsByWallet = res;
+        this.studentsByWallet = res || [];
       },
       error: (err) => {
         console.error('Failed to load students by wallet:', err);
-      }
+      },
     });
   }
 

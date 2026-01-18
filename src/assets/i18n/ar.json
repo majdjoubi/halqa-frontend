@@ -66,9 +66,6 @@
   "maintenance": {
     "message": "⚠️ الموقع يخضع حالياً لأعمال الصيانة والتحسينات. نرجو منكم العودة في وقت لاحق. شكراً لتفهمكم."
   },
-  "wallet": {
-    "insufficient_balance_detailed": "رصيد محفظتك ${{currentBalance}} وتحتاج ${{shortfall}} إضافية."
-  },
   "HOME": "الرئيسية",
   "ABOUT_US": "من نحن",
   "BENEFITS": "الفوائد",
@@ -1190,6 +1187,7 @@
     "OPTIONAL": "اختياري"
   },
   "wallet": {
+    "insufficient_balance_detailed": "رصيد محفظتك ${{currentBalance}} وتحتاج ${{shortfall}} إضافية.",
     "your_balance": "رصيدك",
     "current_balance": "الرصيد الحالي",
     "top_up": "شحن"
@@ -1293,6 +1291,27 @@
     },
     "charts": {
       "platform_growth": "نمو المنصة"
+    }
+  },
+
+  "admin_wallet_credit": {
+    "title": "إضافة رصيد للمحفظة",
+    "email": "البريد الإلكتروني",
+    "target": "النوع",
+    "amount": "المبلغ (دولار)",
+    "description": "الوصف (اختياري)",
+    "submit": "إضافة رصيد",
+    "submitting": "جاري الإضافة...",
+    "targets": {
+      "auto": "تلقائي (تحديد الدور)",
+      "student": "محفظة الطالب",
+      "teacher": "محفظة المعلم"
+    },
+    "success": "تمت إضافة رصيد لـ {{email}} ({{target}}): {{before}} → {{after}}",
+    "errors": {
+      "invalid_email": "يرجى إدخال بريد إلكتروني صحيح.",
+      "invalid_amount": "يرجى إدخال مبلغ صحيح.",
+      "failed": "فشل إضافة الرصيد للمحفظة."
     }
   },
   "admin_payments": {

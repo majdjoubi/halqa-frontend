@@ -66,9 +66,6 @@
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },
-  "wallet": {
-    "insufficient_balance_detailed": "Your wallet balance is ${{currentBalance}}. You need ${{shortfall}} more."
-  },
   "HOME": "Home",
   "ABOUT_US": "About us",
   "BENEFITS": "Benefits",
@@ -1191,6 +1188,7 @@
     "OPTIONAL": "Optional"
   },
   "wallet": {
+    "insufficient_balance_detailed": "Your wallet balance is ${{currentBalance}}. You need ${{shortfall}} more.",
     "your_balance": "Your Balance",
     "current_balance": "Current Balance",
     "top_up": "Top Up"
@@ -1294,6 +1292,27 @@
     },
     "charts": {
       "platform_growth": "Platform Growth"
+    }
+  },
+
+  "admin_wallet_credit": {
+    "title": "Credit Wallet",
+    "email": "User Email",
+    "target": "Target",
+    "amount": "Amount (USD)",
+    "description": "Description (optional)",
+    "submit": "Add Funds",
+    "submitting": "Adding...",
+    "targets": {
+      "auto": "Auto (detect role)",
+      "student": "Student wallet",
+      "teacher": "Teacher wallet"
+    },
+    "success": "Credited {{email}} ({{target}}): {{before}} → {{after}}",
+    "errors": {
+      "invalid_email": "Please enter a valid email.",
+      "invalid_amount": "Please enter a valid amount.",
+      "failed": "Failed to credit wallet."
     }
   },
   "admin_payments": {

@@ -371,3 +371,58 @@
     }
   }
 }
+
+// Admin Wallet Credit Tool
+.wallet-credit {
+  .section-title {
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+
+    i {
+      color: #f59e0b;
+    }
+  }
+
+  .wallet-credit-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    padding: 1.25rem;
+  }
+
+  .wallet-credit-form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .form-label {
+    font-size: 0.875rem;
+    color: #374151;
+    font-weight: 600;
+  }
+
+  .actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .wallet-credit {
+    .wallet-credit-form {
+      grid-template-columns: 1fr;
+    }
+  }
+}
