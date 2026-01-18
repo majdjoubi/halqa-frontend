@@ -507,16 +507,12 @@
             <div class="cert-item" *ngFor="let c of teacherById.certifications">
               <div class="cert-icon">
                 <img
-                  [src]="c.icon || '/assets/icons/certtificate.svg'"
+                  src="/assets/icons/certtificate.svg"
                   alt="cert"
                 />
               </div>
               <div class="cert-meta">
                 <div class="cert-title">{{ c.title }}</div>
-                <div class="cert-sub">{{ c.institution }}</div>
-                <div class="cert-years">
-                  {{ c.from }}{{ c.to ? " - " + c.to : "" }}
-                </div>
               </div>
             </div>
           </ng-container>
