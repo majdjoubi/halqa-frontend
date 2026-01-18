@@ -66,7 +66,7 @@ Verification fee policy:
 - No cancellation (or, if cancellation exists in legacy, credits are not restored automatically in v2).
 - No-show is treated according to policy; v2 default:
   - if student no-shows → counts as consumed/completed (credits consumed)
-  - teacher payout depends on finalized policy (recommended: pay teacher if teacher attended/available; otherwise manual)
+  - teacher is paid **as if the lesson happened** (no difference)
 - Disputes handled manually via `info@halqa.online`.
 
 ## 4) High-level Architecture

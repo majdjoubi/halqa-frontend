@@ -17,6 +17,7 @@ import { LanguageService } from '../../../services/language.service';
 import { TimezoneService } from '../../../services/scheduling/timezone.service';
 import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.service';
 import { AvailableLessonsService, AvailableLessonsPackage } from '../../../services/v2/available-lessons.service';
+import { V2BookingService } from '../../../services/v2/v2-booking.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -133,7 +134,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private router: Router,
     private timezoneService: TimezoneService,
     private slotsService: SlotsService,
-    private availableLessonsService: AvailableLessonsService
+    private availableLessonsService: AvailableLessonsService,
+    private v2BookingService: V2BookingService
   ) { }
 
   ngOnInit() {
@@ -1103,19 +1105,67 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       }
     }
 
+    // V2 path (credits/trial) uses /v2/slots/book to avoid wallet deduction.
+    if (this.availableLessonsEnabled) {
+      const idempotencyKey = this._generateIdempotencyKey();
+      this.v2BookingService.bookSlot({ teacherId, slotId, method: 'credit', idempotencyKey }).subscribe({
+        next: (res) => {
+          console.log('Booking created successfully via V2BookingService', res);
+          this.payProcessing = false;
+
+          this.loadStudentExistingBookings();
+          if (res?.balance) {
+            this.availableLessonsAvailable = Number((res.balance as any).available || 0);
+            this.availableLessonsReserved = Number((res.balance as any).reserved || 0);
+          } else {
+            this.refreshAvailableLessonsBalance();
+          }
+
+          this.showModal = true;
+          this.modalType = 'success';
+          this.modalMessage = this.translate.instant('booking.request_sent_message');
+        },
+        error: (err) => {
+          const msg =
+            (err && err.error && (err.error.message || err.error.msg)) ||
+            err.message || 'Booking failed';
+
+          const errCode = err?.error?.error?.code || err?.error?.code;
+          const isCreditsError = errCode === 'INSUFFICIENT_CREDITS' || (msg && msg.toLowerCase().includes('available lesson'));
+          const isSlotTakenError = err.status === 409 || (msg && msg.toLowerCase().includes('already been booked'));
+
+          if (isCreditsError) {
+            this.payProcessing = false;
+            this.openAvailableLessonsModal();
+            return;
+          }
+
+          this.showModal = true;
+          this.modalType = 'error';
+
+          if (isSlotTakenError) {
+            this.modalMessage =
+              this.translate.instant('booking.errors.slot_already_booked') ||
+              'This slot has already been booked. Please select a different time.';
+            if (this.bookingTeacher?.id) {
+              this.loadTeacherSlotsWithFallback(this.bookingTeacher.id, this.bookingTeacher);
+            }
+          } else {
+            this.modalMessage = msg;
+          }
+
+          this.payProcessing = false;
+        }
+      });
+      return;
+    }
+
+    // Legacy wallet-based booking
     this.slotsService.bookSlot(teacherId, slotId).subscribe({
       next: (res) => {
         console.log('Booking created successfully via SlotsService', res);
         this.payProcessing = false;
-        // Sidebar already closed on click
-
-        // Convert response to compatible format if needed for displaying confirmation
-        // (The backend response for bookSlot matches what we need for confirmation)
-
         this.loadStudentExistingBookings();
-        if (this.availableLessonsEnabled) {
-          this.refreshAvailableLessonsBalance();
-        }
         this.showModal = true;
         this.modalType = 'success';
         this.modalMessage = this.translate.instant('booking.request_sent_message');
@@ -1136,7 +1186,6 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           this.modalMessage = this.translate.instant('booking.errors.insufficient_balance');
         } else if (isSlotTakenError) {
           this.modalMessage = this.translate.instant('booking.errors.slot_already_booked') || 'This slot has already been booked. Please select a different time.';
-          // Refresh slots to show updated availability
           if (this.bookingTeacher?.id) {
             this.loadTeacherSlotsWithFallback(this.bookingTeacher.id, this.bookingTeacher);
           }
@@ -1147,6 +1196,20 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         this.payProcessing = false;
       }
     });
+  }
+
+  private _generateIdempotencyKey(): string {
+    try {
+      const anyCrypto: any = (globalThis as any)?.crypto;
+      if (anyCrypto && typeof anyCrypto.randomUUID === 'function') {
+        return anyCrypto.randomUUID();
+      }
+    } catch {
+      // ignore
+    }
+
+    // Fallback
+    return `idem_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   }
 
 
