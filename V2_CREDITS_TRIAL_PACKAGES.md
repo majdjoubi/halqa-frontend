@@ -209,6 +209,22 @@ Stored on booking for auditability.
 }
 ```
 
+### Common conventions
+- **Auth**: all endpoints assume an authenticated student context (JWT/session).
+- **Idempotency**:
+  - Endpoints that change money/credits/bookings accept `idempotencyKey`.
+  - If the same `idempotencyKey` is re-used with the **same effective request**, return the original success response.
+  - If re-used with a **different effective request**, return `DUPLICATE_IDEMPOTENCY_KEY`.
+  - Recommended: also accept `Idempotency-Key` header as an alternative; body field is fine.
+- **Status codes (recommended)**:
+  - `200` success
+  - `400` validation errors
+  - `401` unauthenticated
+  - `403` unauthorized
+  - `409` conflicts (slot already booked, idempotency conflicts)
+  - `422` business-rule failures (trial not eligible, insufficient credits, etc.)
+  - `500` unexpected
+
 ### 6.1 Available lessons
 
 #### `GET /v2/available-lessons/balance`
@@ -248,13 +264,19 @@ Response:
 {
   "eligible": true,
   "verificationFeeUsd": 1,
+  "verificationStatus": "unpaid",
   "reason": null,
+  "lockedTeacherId": null,
   "constraints": {
     "onePerStudent": true,
     "oneTeacherOnly": true
   }
 }
 ```
+
+Notes:
+- `lockedTeacherId` is set when the student has already taken a trial (or has a trial booking created) and indicates the only teacher allowed for trial.
+- If `eligible=false`, `reason` should be a stable string usable for UX, and/or the error code should be returned from booking.
 
 #### `POST /v2/trial/verify`
 Used to charge the verification fee (wallet or Stripe checkout depends on product decision).
@@ -264,8 +286,13 @@ Request:
 ```
 Response:
 ```json
-{ "verificationStatus": "paid" }
+{ "verificationStatus": "paid", "verificationFeeUsd": 1 }
 ```
+
+Errors:
+- `INSUFFICIENT_WALLET`
+- `DUPLICATE_IDEMPOTENCY_KEY`
+- `TRIAL_ALREADY_USED` (optional; if you choose to prevent verification after trial used)
 
 ### 6.3 Booking (recommended contract)
 
@@ -281,7 +308,8 @@ Request:
   "teacherId": "t_9",
   "slotId": "slot_123",
   "method": "credit",
-  "idempotencyKey": "uuid"
+  "idempotencyKey": "uuid",
+  "studentIanaTimezone": "Asia/Riyadh"
 }
 ```
 
@@ -291,7 +319,8 @@ Alternative for trial:
   "teacherId": "t_9",
   "slotId": "slot_123",
   "method": "trial",
-  "idempotencyKey": "uuid"
+  "idempotencyKey": "uuid",
+  "studentIanaTimezone": "Asia/Riyadh"
 }
 ```
 
@@ -307,8 +336,17 @@ Response:
 Errors:
 - `INSUFFICIENT_CREDITS`
 - `TRIAL_NOT_ELIGIBLE`
+- `TRIAL_VERIFICATION_REQUIRED` (if `trialVerificationFeeUsd > 0` and `verificationStatus != paid`)
 - `SLOT_ALREADY_BOOKED`
 - `DUPLICATE_IDEMPOTENCY_KEY`
+
+Enforcement rules (backend):
+- **Atomic**: validate entitlement + reserve/consume + create booking in one transaction.
+- **Trial**:
+  - if student already used trial → `TRIAL_NOT_ELIGIBLE`
+  - if trial is locked to a different teacher → `TRIAL_NOT_ELIGIBLE`
+  - if verification fee is enabled and unpaid → `TRIAL_VERIFICATION_REQUIRED`
+- **No-show policy** (final): no-show is treated as completed for payout purposes; settlement should pay the teacher the same as a completed lesson.
 
 ### 6.4 Completion + settlement
 
