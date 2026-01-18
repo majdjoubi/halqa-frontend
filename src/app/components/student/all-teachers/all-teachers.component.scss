@@ -1050,6 +1050,8 @@
     display: flex;
     justify-content: center;
     padding-top: 0;
+    flex-direction: column;
+    gap: 10px;
     
     .btn-book-now {
       width: 100%;
@@ -1080,6 +1082,13 @@
         cursor: not-allowed;
       }
     }
+
+    .btn-trial {
+      width: 100%;
+      min-height: 46px;
+      border-radius: 12px;
+      font-weight: 800;
+    }
   }
   
   .muted {
@@ -1087,6 +1096,66 @@
     text-align: center;
     color: #6b7280;
   }
+}
+
+/* Trial verification modal */
+.trial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2200;
+}
+
+.trial-container {
+  background: #fff;
+  border-radius: 12px;
+  width: 92%;
+  max-width: 520px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+}
+
+.trial-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trial-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.trial-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.trial-body {
+  padding-top: 8px;
+}
+
+.trial-message {
+  margin: 0;
+  color: #374151;
+}
+
+.trial-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
 }
 
 /* Available Lessons purchase modal */

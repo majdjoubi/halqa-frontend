@@ -28,6 +28,16 @@
       "package_lessons": "{{lessons}} lessons"
     }
   },
+  "trial": {
+    "cta": "Book trial",
+    "success": "Trial booked successfully.",
+    "not_eligible": "Trial is not available for this teacher/account.",
+    "verify": {
+      "title": "Verify to unlock trial",
+      "body": "A one-time verification fee of ${{fee}} is required. This fee is non-refundable.",
+      "cta": "Pay ${{fee}} and book trial"
+    }
+  },
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },
@@ -223,7 +233,6 @@
       "delete_all_recurring": "Delete all recurring slots",
       "delete_all_recurring_desc": "All slots at this time on this day will be removed"
     },
-    "recurring": "Recurring weekly",
     "recurring_confirm": {
       "title": "Recurring Availability",
       "message": "This time slot will repeat every week automatically. Students will be able to book this slot on this day of the week.",

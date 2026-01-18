@@ -669,10 +669,57 @@
           aria-hidden="true"
         ></span>
       </button>
+
+      <button
+        *ngIf="trialEnabled && trialEligibleForBookingTeacher"
+        class="btn btn-outline-secondary btn-trial"
+        type="button"
+        [disabled]="selectedSlotIndex === null || payProcessing || trialEligibilityLoading"
+        (click)="startTrialBooking()"
+      >
+        {{ 'trial.cta' | translate }}
+      </button>
     </div>
     <small class="muted" *ngIf="groupedAvailability.length === 0">{{ "all_teachers.booking_footer" | translate }}</small>
   </div>
 </app-side-menu>
+
+<!-- Trial verification modal (v2Trial) -->
+<div
+  class="trial-overlay"
+  *ngIf="showTrialVerificationModal"
+  (click)="closeTrialVerificationModal()"
+>
+  <div class="trial-container" (click)="$event.stopPropagation()">
+    <div class="trial-header">
+      <h3 class="trial-title">{{ 'trial.verify.title' | translate }}</h3>
+      <button class="trial-close" type="button" (click)="closeTrialVerificationModal()" aria-label="Close">
+        &times;
+      </button>
+    </div>
+
+    <div class="trial-body">
+      <p class="trial-message">
+        {{ 'trial.verify.body' | translate: { fee: trialVerificationFeeUsd } }}
+      </p>
+    </div>
+
+    <div class="trial-footer">
+      <button
+        class="btn btn-primary"
+        type="button"
+        (click)="confirmTrialVerificationAndBook()"
+        [disabled]="trialVerifying"
+      >
+        <span *ngIf="!trialVerifying">{{ 'trial.verify.cta' | translate: { fee: trialVerificationFeeUsd } }}</span>
+        <span *ngIf="trialVerifying" class="btn-spinner" aria-hidden="true"></span>
+      </button>
+      <button class="btn btn-secondary" type="button" (click)="closeTrialVerificationModal()">
+        {{ 'common.close' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Group Session Details Modal -->
 <div class="group-session-modal-overlay" *ngIf="showGroupSessionModal" (click)="closeGroupSessionModal()">

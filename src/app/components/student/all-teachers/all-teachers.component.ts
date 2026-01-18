@@ -18,6 +18,7 @@ import { TimezoneService } from '../../../services/scheduling/timezone.service';
 import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.service';
 import { AvailableLessonsService, AvailableLessonsPackage } from '../../../services/v2/available-lessons.service';
 import { V2BookingService } from '../../../services/v2/v2-booking.service';
+import { TrialService, TrialEligibilityResponse } from '../../../services/v2/trial.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -81,6 +82,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   availableLessonsPackagesLoading = false;
   buyingPackageId: string | null = null;
 
+  // v2 Trial
+  trialEnabled = false;
+  trialEligibilityLoading = false;
+  trialEligibleForBookingTeacher = false;
+  trialVerificationFeeUsd = 0;
+  trialVerificationStatus: 'unpaid' | 'paid' | 'not_required' | string = 'unpaid';
+  trialEligibilityReason: string | null = null;
+  showTrialVerificationModal = false;
+  trialVerifying = false;
+
   // Group session modal controls
   showGroupSessionModal = false;
   selectedGroupSession: any = null;
@@ -135,7 +146,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private timezoneService: TimezoneService,
     private slotsService: SlotsService,
     private availableLessonsService: AvailableLessonsService,
-    private v2BookingService: V2BookingService
+    private v2BookingService: V2BookingService,
+    private trialService: TrialService
   ) { }
 
   ngOnInit() {
@@ -157,6 +169,153 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     if (this.availableLessonsEnabled) {
       this.refreshAvailableLessonsBalance();
     }
+
+    // trial (feature-flagged)
+    this.trialEnabled = this.trialService.isEnabled();
+  }
+
+  private refreshTrialEligibilityForBookingTeacher(): void {
+    if (!this.trialEnabled) return;
+    const teacherId = this.bookingTeacher?.id;
+    if (!teacherId) return;
+
+    this.trialEligibilityLoading = true;
+    this.trialService.getEligibility(teacherId).subscribe({
+      next: (res: TrialEligibilityResponse) => {
+        this.trialEligibleForBookingTeacher = !!res?.eligible;
+        this.trialVerificationFeeUsd = Number(res?.verificationFeeUsd || 0);
+        this.trialVerificationStatus = (res?.verificationStatus as any) || (this.trialVerificationFeeUsd > 0 ? 'unpaid' : 'not_required');
+        this.trialEligibilityReason = (res?.reason as any) ?? null;
+        this.trialEligibilityLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading trial eligibility:', err);
+        this.trialEligibleForBookingTeacher = false;
+        this.trialVerificationFeeUsd = 0;
+        this.trialEligibilityReason = null;
+        this.trialEligibilityLoading = false;
+      }
+    });
+  }
+
+  openTrialVerificationModal(): void {
+    this.showTrialVerificationModal = true;
+  }
+
+  closeTrialVerificationModal(): void {
+    this.showTrialVerificationModal = false;
+    this.trialVerifying = false;
+  }
+
+  startTrialBooking(): void {
+    if (!this.trialEnabled || !this.bookingTeacher || this.selectedSlotIndex === null) return;
+
+    if (!this.trialEligibleForBookingTeacher) {
+      this.showModal = true;
+      this.modalType = 'error';
+      this.modalMessage = this.trialEligibilityReason || this.translate.instant('trial.not_eligible');
+      return;
+    }
+
+    const fee = Number(this.trialVerificationFeeUsd || 0);
+    const verified = this.trialVerificationStatus === 'paid' || this.trialVerificationStatus === 'not_required' || fee === 0;
+
+    if (!verified) {
+      this.openTrialVerificationModal();
+      return;
+    }
+
+    this._bookTrialSelectedSlot();
+  }
+
+  confirmTrialVerificationAndBook(): void {
+    if (!this.trialEnabled || this.trialVerifying) return;
+
+    this.trialVerifying = true;
+    const idempotencyKey = this._generateIdempotencyKey();
+    this.trialService.verify('wallet', idempotencyKey).subscribe({
+      next: () => {
+        this.trialVerifying = false;
+        this.closeTrialVerificationModal();
+        this.trialVerificationStatus = 'paid';
+        this._bookTrialSelectedSlot();
+      },
+      error: (err) => {
+        const msg =
+          (err && err.error && (err.error.message || err.error.msg)) ||
+          err.message ||
+          'Trial verification failed';
+
+        const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
+        this.isInsufficientBalance = isBalanceError;
+
+        this.trialVerifying = false;
+        this.closeTrialVerificationModal();
+
+        this.showModal = true;
+        this.modalType = 'error';
+        this.modalMessage = isBalanceError
+          ? this.translate.instant('booking.errors.insufficient_balance')
+          : msg;
+      }
+    });
+  }
+
+  private _bookTrialSelectedSlot(): void {
+    if (!this.bookingTeacher || this.selectedSlotIndex === null) return;
+
+    const slot = this.bookingTeacher.availability[this.selectedSlotIndex];
+    const teacherId = this.bookingTeacher.id;
+    const slotId = slot?.slotId || slot?.id;
+
+    if (!teacherId || !slotId) return;
+
+    if (this.payProcessing) return;
+    this.payProcessing = true;
+
+    // Match existing UX: close sidebar immediately.
+    this.closeBookingSidebar();
+
+    const idempotencyKey = this._generateIdempotencyKey();
+    this.v2BookingService.bookSlot({ teacherId, slotId, method: 'trial', idempotencyKey }).subscribe({
+      next: () => {
+        this.payProcessing = false;
+        this.loadStudentExistingBookings();
+        this.refreshTrialEligibilityForBookingTeacher();
+
+        this.showModal = true;
+        this.modalType = 'success';
+        this.modalMessage = this.translate.instant('trial.success');
+      },
+      error: (err) => {
+        const msg =
+          (err && err.error && (err.error.message || err.error.msg)) ||
+          err.message ||
+          'Trial booking failed';
+
+        const errCode = err?.error?.error?.code || err?.error?.code;
+        const isNotEligible = errCode === 'TRIAL_NOT_ELIGIBLE';
+        const isSlotTakenError = err.status === 409 || (msg && msg.toLowerCase().includes('already been booked'));
+
+        this.showModal = true;
+        this.modalType = 'error';
+
+        if (isNotEligible) {
+          this.modalMessage = this.translate.instant('trial.not_eligible');
+        } else if (isSlotTakenError) {
+          this.modalMessage =
+            this.translate.instant('booking.errors.slot_already_booked') ||
+            'This slot has already been booked. Please select a different time.';
+          if (this.bookingTeacher?.id) {
+            this.loadTeacherSlotsWithFallback(this.bookingTeacher.id, this.bookingTeacher);
+          }
+        } else {
+          this.modalMessage = msg;
+        }
+
+        this.payProcessing = false;
+      }
+    });
   }
 
   private refreshAvailableLessonsBalance(): void {
@@ -750,6 +909,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.selectedCalendarDate = null;
     this.loadingBookId = null;
 
+    // Trial eligibility (best-effort)
+    this.refreshTrialEligibilityForBookingTeacher();
+
     // Start polling for availability updates
     this.startSlotsPolling(teacher.id || teacher.userId);
   }
@@ -828,6 +990,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     this.selectedSlotIndex = null;
     this.selectedCalendarDate = null;
     this.loadingBookId = null;
+
+    // Trial eligibility (best-effort)
+    this.refreshTrialEligibilityForBookingTeacher();
 
     // Start polling for availability updates
     this.startSlotsPolling(teacher.id || teacher.userId);
