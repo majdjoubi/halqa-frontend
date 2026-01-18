@@ -707,6 +707,7 @@
     "specialization_qiraat_twentyseven": "القراءات السبع والعشرين",
     "specialization_tafseer": "التفسير (تفسير القرآن)",
     "specialization_hadith_explanation": "شروح الحديث",
+    "specialization_arabic_language": "تعليم اللغة العربية",
     "specialization_quran_memorization_desc": "تدريس طرق وتقنيات تحفيظ القرآن بفعالية.",
     "specialization_tajweed_desc": "تقديم دروس في أحكام التجويد لتحسين النطق والتلاوة.",
     "specialization_qiraat_seven_desc": "إرشاد الطلاب عبر القراءات السبع وفهم فروقها.",
@@ -714,6 +715,7 @@
     "specialization_qiraat_twentyseven_desc": "استكشاف القراءات المتقدمة عبر القراءات السبع والعشرين عند الحاجة.",
     "specialization_tafseer_desc": "شرح معاني الآيات وسياقاتها بوضوح.",
     "specialization_hadith_explanation_desc": "مناقشة نصوص الحديث وتفسيرها وسياقاتها للمتعلمين.",
+    "specialization_arabic_language_desc": "تدريس مهارات اللغة العربية مثل القراءة والكتابة والقواعد والمحادثة.",
     "validation": {
       "experience_required": "يرجى اختيار سنوات الخبرة",
       "hourly_rate_required": "يرجى إدخال السعر بالساعة",
@@ -961,6 +963,7 @@
     "of": "من",
     "page_size_label": "العناصر في الصفحة",
     "certifications": "الشهادات",
+    "no_certifications": "لا توجد شهادات لعرضها",
     "book_with": "احجز مع",
     "no_availability": "لا توجد مواعيد متاحة",
     "available": "متاح",

@@ -169,6 +169,16 @@
       box-shadow: 0 4px 10px rgba(31, 45, 61, 0.03);
     }
 
+    .cert-empty {
+      grid-column: 1 / -1;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f8fafc;
+      border: 1px dashed rgba(15, 23, 42, 0.14);
+      color: #64748b;
+      font-size: 13px;
+    }
+
     .cert-icon {
       width: 44px;
       height: 44px;

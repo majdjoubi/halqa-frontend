@@ -134,6 +134,16 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   userIanaTimezone: string = 'UTC';
   userTimezoneDisplay: string = '';
 
+  private readonly specializationTranslationKeyBySlug: Record<string, string> = {
+    'quran-memorization': 'teacher_create_profile.specialization_quran_memorization',
+    tajweed: 'teacher_create_profile.specialization_tajweed',
+    'qiraat-seven': 'teacher_create_profile.specialization_qiraat_seven',
+    'qiraat-ten': 'teacher_create_profile.specialization_qiraat_ten',
+    tafseer: 'teacher_create_profile.specialization_tafseer',
+    'hadith-explanation': 'teacher_create_profile.specialization_hadith_explanation',
+    'arabic-language': 'teacher_create_profile.specialization_arabic_language',
+  };
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private translate: TranslateService,
@@ -172,6 +182,51 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     // trial (feature-flagged)
     this.trialEnabled = this.trialService.isEnabled();
+  }
+
+  specializationLabel(value: any): string {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    const slug = this.normalizeSpecializationSlug(raw);
+    const key = this.specializationTranslationKeyBySlug[slug];
+    if (!key) return raw;
+
+    const translated = this.translate.instant(key);
+    return translated && translated !== key ? translated : raw;
+  }
+
+  private normalizeSpecializationSlug(value: string): string {
+    const raw = String(value ?? '').trim();
+    if (!raw) return '';
+
+    const lowered = raw.toLowerCase();
+    const normalized = lowered
+      .replace(/_/g, '-')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+
+    // Handle common non-slug inputs (best-effort)
+    const aliases: Record<string, string> = {
+      'quran-memorization': 'quran-memorization',
+      'quran memorization': 'quran-memorization',
+      'tajweed': 'tajweed',
+      'qiraat-seven': 'qiraat-seven',
+      'qiraat-seven-qiraat': 'qiraat-seven',
+      'qiraat-ten': 'qiraat-ten',
+      'tafseer': 'tafseer',
+      'tafsir': 'tafseer',
+      'hadith-explanation': 'hadith-explanation',
+      'hadith explanation': 'hadith-explanation',
+      'arabic-language': 'arabic-language',
+      'arabic language': 'arabic-language',
+      'arabic-language-teaching': 'arabic-language',
+      'تعليم-اللغة-العربية': 'arabic-language',
+      'تعليم اللغة العربية': 'arabic-language',
+    };
+
+    return aliases[normalized] || normalized;
   }
 
   private refreshTrialEligibilityForBookingTeacher(): void {

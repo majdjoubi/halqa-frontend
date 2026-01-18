@@ -706,6 +706,7 @@
     "specialization_qiraat_twentyseven": "Twenty-Seven Qira'at",
     "specialization_tafseer": "Tafseer (Quran Interpretation)",
     "specialization_hadith_explanation": "Hadith Explanation",
+    "specialization_arabic_language": "Arabic Language Teaching",
     "specialization_quran_memorization_desc": "Teach students methods and techniques for memorizing the Quran effectively.",
     "specialization_tajweed_desc": "Provide instruction on Tajweed rules to improve recitation accuracy and fluency.",
     "specialization_qiraat_seven_desc": "Guide students through the seven canonical readings and their nuances.",
@@ -713,6 +714,7 @@
     "specialization_qiraat_twentyseven_desc": "Explore advanced readings across the twenty-seven qira'at where applicable.",
     "specialization_tafseer_desc": "Explain the meanings and contexts of Quranic verses with clarity.",
     "specialization_hadith_explanation_desc": "Discuss hadith texts, their interpretations, and contexts for learners.",
+    "specialization_arabic_language_desc": "Teach Arabic language skills such as reading, writing, grammar, and conversation.",
     "validation": {
       "experience_required": "Please select years of experience",
       "hourly_rate_required": "Please enter hourly rate",
@@ -961,6 +963,7 @@
     "of": "of",
     "page_size_label": "Items per page",
     "certifications": "Certifications",
+    "no_certifications": "No certifications",
     "book_with": "Book with",
     "no_availability": "No available slots",
     "available": "Available",

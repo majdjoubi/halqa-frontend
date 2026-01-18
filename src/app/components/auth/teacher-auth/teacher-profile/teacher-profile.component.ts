@@ -156,6 +156,12 @@ export class TeacherProfileComponent implements OnInit, OnDestroy {
         'teacher_create_profile.specialization_hadith_explanation_desc',
       icon: 'fas fa-quote-right',
     },
+    {
+      value: 'arabic-language',
+      label: 'teacher_create_profile.specialization_arabic_language',
+      description: 'teacher_create_profile.specialization_arabic_language_desc',
+      icon: 'fas fa-language',
+    },
   ];
 
   // File upload
