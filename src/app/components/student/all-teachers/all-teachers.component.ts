@@ -410,16 +410,31 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           err.message ||
           'Purchase failed';
 
-        const isBalanceError = msg && msg.toLowerCase().includes('insufficient');
-        this.isInsufficientBalance = isBalanceError;
+        const errCode = err?.error?.error?.code || err?.error?.code;
+        const isInsufficientWallet = errCode === 'INSUFFICIENT_WALLET';
+        const isBalanceError = isInsufficientWallet || (msg && msg.toLowerCase().includes('insufficient'));
+        this.isInsufficientBalance = !!isBalanceError;
         this.buyingPackageId = null;
         this.closeAvailableLessonsModal();
 
         this.showModal = true;
         this.modalType = 'error';
-        this.modalMessage = isBalanceError
-          ? this.translate.instant('booking.errors.insufficient_balance')
-          : msg;
+
+        if (isInsufficientWallet) {
+          const details = err?.error?.error?.details || {};
+          const requiredAmount = Number(details?.requiredAmount ?? 0);
+          const currentBalance = Number(details?.currentBalance ?? this.walletBalance ?? 0);
+          const shortfall = Number(details?.shortfall ?? Math.max(0, requiredAmount - currentBalance));
+
+          this.modalMessage = this.translate.instant('wallet.insufficient_balance_detailed', {
+            currentBalance,
+            shortfall,
+          });
+        } else {
+          this.modalMessage = isBalanceError
+            ? this.translate.instant('booking.errors.insufficient_balance')
+            : msg;
+        }
       }
     });
   }

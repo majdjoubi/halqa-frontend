@@ -59,6 +59,9 @@
   "maintenance": {
     "message": "⚠️ الموقع يخضع حالياً لأعمال الصيانة والتحسينات. نرجو منكم العودة في وقت لاحق. شكراً لتفهمكم."
   },
+  "wallet": {
+    "insufficient_balance_detailed": "رصيد محفظتك ${{currentBalance}} وتحتاج ${{shortfall}} إضافية."
+  },
   "HOME": "الرئيسية",
   "ABOUT_US": "من نحن",
   "BENEFITS": "الفوائد",

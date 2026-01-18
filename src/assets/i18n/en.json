@@ -59,6 +59,9 @@
   "maintenance": {
     "message": "⚠️ The website is currently undergoing maintenance and improvements. Please check back later. Thank you for your understanding."
   },
+  "wallet": {
+    "insufficient_balance_detailed": "Your wallet balance is ${{currentBalance}}. You need ${{shortfall}} more."
+  },
   "HOME": "Home",
   "ABOUT_US": "About us",
   "BENEFITS": "Benefits",
