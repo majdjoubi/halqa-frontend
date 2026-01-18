@@ -1,7 +1,7 @@
 import { Component, HostListener, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, forkJoin, of, interval, from } from 'rxjs';
 import { catchError, takeWhile, mergeMap, map, toArray } from 'rxjs/operators';
@@ -153,6 +153,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private luxonDate: LuxonDateService,
     private languageService: LanguageService,
     private router: Router,
+    private route: ActivatedRoute,
     private timezoneService: TimezoneService,
     private slotsService: SlotsService,
     private availableLessonsService: AvailableLessonsService,
@@ -182,6 +183,23 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
     // trial (feature-flagged)
     this.trialEnabled = this.trialService.isEnabled();
+
+    // Check query param to open available lessons modal
+    this.route.queryParams.subscribe(params => {
+      if (params['openAvailableLessons'] === '1' && this.availableLessonsEnabled) {
+        // Small delay to ensure component is ready
+        setTimeout(() => {
+          this.openAvailableLessonsModal();
+          // Clear the query param to avoid reopening on navigation
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: { openAvailableLessons: null },
+            queryParamsHandling: 'merge',
+            replaceUrl: true
+          });
+        }, 500);
+      }
+    });
   }
 
   specializationLabel(value: any): string {

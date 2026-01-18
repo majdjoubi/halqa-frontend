@@ -548,6 +548,21 @@
     "paragraph": "At the heart of our mission is the belief that the Quran should be accessible to everyone. We provide modern tools, structured lessons, and expert guidance to make learning not only simple but also spiritually enriching. Whether you are starting your journey or aiming to perfect your recitation, we are here to support you every step of the way."
   },
 
+  "home": {
+    "packages": {
+      "badge": "Lesson Packages",
+      "title": "Choose Your Learning Journey",
+      "description": "Select the package that fits your goals and start learning today.",
+      "economy": "Economy",
+      "popular": "Most Popular",
+      "best_value": "Best Value",
+      "per_lesson": "${{price}} per lesson",
+      "benefit": "Valid for all teachers",
+      "buy_now": "Buy Now",
+      "view_teachers": "Browse Teachers"
+    }
+  },
+
   "student_register": {
     "title": "Register Your Data",
     "description": "Fill in the following information",

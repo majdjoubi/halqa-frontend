@@ -6,8 +6,8 @@
 }
 
 :root {
-  /* use a very large z-index so the side-menu appears above everything else */
-  --side-menu-z: 2147483647; /* max signed 32-bit int */
+  /* Use unified z-index scale from global tokens */
+  --side-menu-z: var(--z-drawer, 1080);
   --side-menu-radius: 12px !important;
   --side-menu-shadow: 0 10px 40px rgba(0, 0, 0, 0.1),
     0 4px 16px rgba(0, 0, 0, 0.08);

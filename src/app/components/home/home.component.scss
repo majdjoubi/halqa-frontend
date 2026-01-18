@@ -1327,3 +1327,326 @@
     }
   }
 }
+
+/* ===== PACKAGES SECTION ===== */
+.packages-section {
+  padding: 80px 0;
+  background: linear-gradient(180deg, #f0fdf4 0%, #ffffff 100%);
+
+  .packages-header {
+    text-align: center;
+    margin-bottom: 50px;
+
+    .packages-badge {
+      display: inline-block;
+      background: $primary-color;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    .packages-title {
+      font-size: clamp(28px, 5vw, 42px);
+      font-weight: 700;
+      color: #1e1e1e;
+      margin-bottom: 12px;
+      font-family: "IBM Plex Sans Arabic", sans-serif;
+    }
+
+    .packages-description {
+      font-size: 16px;
+      color: #6b7280;
+      max-width: 500px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+  }
+
+  .packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+
+  .package-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 40px rgba(1, 104, 54, 0.15);
+      border-color: rgba(1, 104, 54, 0.2);
+    }
+
+    &.featured {
+      border-color: $primary-color;
+      background: linear-gradient(180deg, #fff 0%, #f0fdf4 100%);
+      transform: scale(1.05);
+      box-shadow: 0 8px 30px rgba(1, 104, 54, 0.2);
+
+      &:hover {
+        transform: scale(1.05) translateY(-8px);
+      }
+
+      .package-badge {
+        background: linear-gradient(135deg, $primary-color 0%, #02a35c 100%);
+      }
+    }
+
+    .package-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #6b7280;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 14px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+
+      &.best {
+        background: linear-gradient(135deg, $primary-color 0%, #02a35c 100%);
+      }
+    }
+
+    .package-lessons {
+      margin-top: 8px;
+      margin-bottom: 8px;
+
+      .lessons-count {
+        display: block;
+        font-size: 56px;
+        font-weight: 700;
+        color: $primary-color;
+        line-height: 1;
+      }
+
+      .lessons-label {
+        display: block;
+        font-size: 14px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+    }
+
+    .package-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e1e1e;
+      margin-bottom: 16px;
+    }
+
+    .package-price {
+      margin-bottom: 4px;
+
+      .currency {
+        font-size: 24px;
+        font-weight: 500;
+        color: #1e1e1e;
+        vertical-align: super;
+      }
+
+      .amount {
+        font-size: 48px;
+        font-weight: 700;
+        color: #1e1e1e;
+      }
+    }
+
+    .package-unit-price {
+      font-size: 13px;
+      color: #6b7280;
+      margin-bottom: 16px;
+    }
+
+    .package-benefit {
+      font-size: 14px;
+      color: $primary-color;
+      margin-bottom: 24px;
+      padding: 8px 12px;
+      background: rgba(1, 104, 54, 0.08);
+      border-radius: 8px;
+    }
+
+    .package-cta {
+      width: 100%;
+      padding: 14px 24px;
+      background: $primary-color;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: darken($primary-color, 8%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(1, 104, 54, 0.3);
+      }
+    }
+
+    // Skeleton loading styles
+    &.skeleton {
+      .skeleton-badge,
+      .skeleton-title,
+      .skeleton-price,
+      .skeleton-benefit,
+      .skeleton-btn {
+        background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+        border-radius: 8px;
+      }
+
+      .skeleton-badge {
+        width: 80px;
+        height: 24px;
+        margin: 0 auto 20px;
+      }
+
+      .skeleton-title {
+        width: 60%;
+        height: 60px;
+        margin: 0 auto 16px;
+      }
+
+      .skeleton-price {
+        width: 100px;
+        height: 50px;
+        margin: 0 auto 16px;
+      }
+
+      .skeleton-benefit {
+        width: 80%;
+        height: 36px;
+        margin: 0 auto 24px;
+      }
+
+      .skeleton-btn {
+        width: 100%;
+        height: 48px;
+      }
+    }
+  }
+
+  .packages-empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: #f9fafb;
+    border-radius: 16px;
+    max-width: 500px;
+    margin: 0 auto;
+
+    p {
+      color: #6b7280;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    .packages-cta-fallback {
+      padding: 12px 32px;
+      background: $primary-color;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: darken($primary-color, 8%);
+      }
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Responsive adjustments for packages section
+@media (max-width: 991.98px) {
+  .packages-section {
+    padding: 60px 0;
+
+    .packages-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .package-card.featured {
+      transform: scale(1);
+      order: -1;
+
+      &:hover {
+        transform: translateY(-8px);
+      }
+    }
+  }
+}
+
+@media (max-width: 575.98px) {
+  .packages-section {
+    padding: 50px 16px;
+
+    .packages-header {
+      margin-bottom: 40px;
+
+      .packages-title {
+        font-size: 28px;
+      }
+    }
+
+    .packages-grid {
+      grid-template-columns: 1fr;
+      max-width: 340px;
+    }
+
+    .package-card {
+      padding: 28px 20px;
+
+      .package-lessons .lessons-count {
+        font-size: 48px;
+      }
+
+      .package-price .amount {
+        font-size: 40px;
+      }
+    }
+  }
+}
+
+/* RTL Support for packages */
+[dir="rtl"] {
+  .packages-section {
+    .packages-header,
+    .package-card {
+      text-align: center;
+    }
+  }
+}

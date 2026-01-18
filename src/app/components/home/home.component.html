@@ -175,3 +175,72 @@
     </div>
   </div>
 </section>
+
+<!-- Packages Section -->
+<section class="packages-section">
+  <div class="container">
+    <div class="packages-header">
+      <span class="packages-badge">{{ "home.packages.badge" | translate }}</span>
+      <h2 class="packages-title">{{ "home.packages.title" | translate }}</h2>
+      <p class="packages-description">{{ "home.packages.description" | translate }}</p>
+    </div>
+
+    <!-- Loading State -->
+    <div class="packages-grid" *ngIf="packagesLoading">
+      <div class="package-card skeleton" *ngFor="let i of [1, 2, 3]">
+        <div class="skeleton-badge"></div>
+        <div class="skeleton-title"></div>
+        <div class="skeleton-price"></div>
+        <div class="skeleton-benefit"></div>
+        <div class="skeleton-btn"></div>
+      </div>
+    </div>
+
+    <!-- Packages Grid -->
+    <div class="packages-grid" *ngIf="!packagesLoading && packages.length > 0">
+      <div 
+        class="package-card" 
+        *ngFor="let pkg of packages; let i = index"
+        [class.featured]="i === 1"
+      >
+        <div class="package-badge" *ngIf="i === 0">{{ "home.packages.economy" | translate }}</div>
+        <div class="package-badge best" *ngIf="i === 1">{{ "home.packages.popular" | translate }}</div>
+        <div class="package-badge" *ngIf="i === 2">{{ "home.packages.best_value" | translate }}</div>
+        
+        <div class="package-lessons">
+          <span class="lessons-count">{{ pkg.lessons }}</span>
+          <span class="lessons-label">{{ "available_lessons.modal.package_lessons" | translate: { lessons: pkg.lessons } }}</span>
+        </div>
+        
+        <div class="package-name">
+          {{ "available_lessons.modal.package_names." + pkg.lessons | translate }}
+        </div>
+        
+        <div class="package-price">
+          <span class="currency">$</span>
+          <span class="amount">{{ pkg.priceUsd }}</span>
+        </div>
+        
+        <div class="package-unit-price" *ngIf="pkg.unitPriceUsd">
+          {{ "home.packages.per_lesson" | translate: { price: pkg.unitPriceUsd | number:'1.2-2' } }}
+        </div>
+        
+        <div class="package-benefit">
+          {{ "home.packages.benefit" | translate }}
+        </div>
+        
+        <button class="package-cta" (click)="buyPackage(pkg)">
+          {{ "home.packages.buy_now" | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="packages-empty" *ngIf="!packagesLoading && packages.length === 0">
+      <p>{{ "available_lessons.modal.no_packages" | translate }}</p>
+      <button class="packages-cta-fallback" (click)="goToAllTeachers()">
+        {{ "home.packages.view_teachers" | translate }}
+      </button>
+    </div>
+  </div>
+</section>
