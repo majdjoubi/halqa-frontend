@@ -14,7 +14,7 @@ export const environment = {
 
   // Feature flags (V2 - Available Lessons / Trial / Credits-only booking)
   features: {
-    v2AvailableLessons: false,
-    v2Trial: false,
+    v2AvailableLessons: true,
+    v2Trial: true,
   },
 };
