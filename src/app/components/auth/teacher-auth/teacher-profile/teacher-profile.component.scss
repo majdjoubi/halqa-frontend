@@ -37,6 +37,68 @@
   background: transparent;
   padding: 4px 6px;
 }
+
+.pricing-widget {
+  .pricing-tooltip-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    cursor: help;
+    background: rgba(0, 0, 0, 0.04);
+    outline: none;
+
+    &:hover,
+    &:focus {
+      background: rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  .pricing-tooltip {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    left: auto;
+    min-width: 260px;
+    max-width: 340px;
+    background: rgba(15, 23, 42, 0.95);
+    color: #fff;
+    padding: 0.75rem 0.85rem;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+    z-index: 30;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    pointer-events: none;
+
+    .pricing-tooltip-divider {
+      display: block;
+      height: 1px;
+      margin: 0.5rem 0;
+      background: rgba(255, 255, 255, 0.18);
+    }
+  }
+
+  :host-context([dir="rtl"]) .pricing-tooltip {
+    right: auto;
+    left: 0;
+  }
+
+  .pricing-tooltip-trigger:hover .pricing-tooltip,
+  .pricing-tooltip-trigger:focus .pricing-tooltip,
+  .pricing-tooltip-trigger:focus-within .pricing-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+}
 .rate-input-wrapper {
   display: flex;
   align-items: center;

@@ -675,22 +675,70 @@ $bg-white: #ffffff;
       font-weight: 700;
     }
 
-    .btn-edit-rate-sm {
-      width: 26px;
-      height: 26px;
-      border-radius: 6px;
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.7rem;
-      transition: all 0.2s;
+    &.pricing-widget {
+      .pricing-tooltip-trigger {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        cursor: help;
+        outline: none;
 
-      &:hover {
-        background: rgba(255, 255, 255, 0.35);
+        &:hover,
+        &:focus {
+          background: rgba(255, 255, 255, 0.35);
+        }
+      }
+
+      .pricing-tooltip {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        left: auto;
+        min-width: 260px;
+        max-width: 340px;
+        background: rgba(15, 23, 42, 0.95);
+        color: #fff;
+        padding: 0.75rem 0.85rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        line-height: 1.35;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.25);
+        z-index: 30;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+        pointer-events: none;
+
+        strong {
+          font-weight: 700;
+        }
+
+        .pricing-tooltip-divider {
+          display: block;
+          height: 1px;
+          margin: 0.5rem 0;
+          background: rgba(255, 255, 255, 0.18);
+        }
+      }
+
+      :host-context([dir="rtl"]) .pricing-tooltip {
+        right: auto;
+        left: 0;
+      }
+
+      .pricing-tooltip-trigger:hover .pricing-tooltip,
+      .pricing-tooltip-trigger:focus .pricing-tooltip,
+      .pricing-tooltip-trigger:focus-within .pricing-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
       }
     }
   }

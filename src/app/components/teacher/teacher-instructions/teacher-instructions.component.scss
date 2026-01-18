@@ -2,6 +2,51 @@
   max-width: 1100px;
 }
 
+.pricing-section {
+  .pricing-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem;
+  }
+
+  .pricing-subtitle {
+    margin: 0 0 0.75rem;
+    opacity: 0.9;
+  }
+
+  .pricing-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .pricing-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    margin-bottom: 0.75rem;
+  }
+
+  .pricing-label {
+    font-weight: 700;
+  }
+
+  .pricing-value {
+    font-weight: 800;
+  }
+
+  .pricing-list {
+    margin: 0;
+    padding-inline-start: 1.1rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+}
+
 .video-wrapper {
   width: 100%;
   aspect-ratio: 16 / 9;

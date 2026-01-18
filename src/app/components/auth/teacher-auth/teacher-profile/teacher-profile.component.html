@@ -76,19 +76,21 @@
       </div>
 
       <div class="profile-actions flex flex-column">
-        <div class="rate-widget-inline">
-          <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
-          <span class="rate-value">
-            ${{
-              UserData?.profile?.hourlyRate !== null &&
-              UserData?.profile?.hourlyRate !== undefined
-                ? UserData?.profile?.hourlyRate
-                : 0
-            }}
+        <div class="rate-widget-inline pricing-widget" role="note" tabindex="0">
+          <span class="rate-label">{{ 'pricing_widget.label' | translate }}</span>
+          <span class="rate-value">{{ 'pricing_widget.value' | translate }}</span>
+          <span class="pricing-tooltip-trigger" tabindex="0" [attr.aria-label]="'pricing_widget.tooltip.aria' | translate">
+            <i class="fas fa-info-circle" aria-hidden="true"></i>
+            <span class="pricing-tooltip" role="tooltip">
+              <strong>{{ 'pricing_widget.tooltip.title' | translate }}</strong><br />
+              {{ 'pricing_widget.tooltip.fee' | translate }}<br />
+              {{ 'pricing_widget.tooltip.teacher_net' | translate }}<br />
+              <span class="pricing-tooltip-divider"></span>
+              <strong>{{ 'pricing_widget.tooltip.packages_title' | translate }}</strong><br />
+              {{ 'pricing_widget.tooltip.packages_prices' | translate }}<br />
+              {{ 'pricing_widget.tooltip.packages_net' | translate }}
+            </span>
           </span>
-          <button class="btn-edit-rate-sm" type="button" (click)="openHourlyRateModal()">
-            <i class="fas fa-edit"></i>
-          </button>
         </div>
 
         <button class="edit-profile-btn mb-2" (click)="openProfileEdit()">

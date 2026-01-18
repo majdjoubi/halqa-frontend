@@ -84,12 +84,21 @@
                 </p>
               </div>
               <!-- Hourly Rate Widget (top right) -->
-              <div class="rate-widget-inline">
-                <span class="rate-label">{{ 'my_calendar_page.hourly_rate' | translate }}</span>
-                <span class="rate-value">${{ hourlyRate }}</span>
-                <button class="btn-edit-rate-sm" (click)="openRateModal()">
-                  <i class="fas fa-edit"></i>
-                </button>
+              <div class="rate-widget-inline pricing-widget" role="note" tabindex="0">
+                <span class="rate-label">{{ 'pricing_widget.label' | translate }}</span>
+                <span class="rate-value">{{ 'pricing_widget.value' | translate }}</span>
+                <span class="pricing-tooltip-trigger" tabindex="0" [attr.aria-label]="'pricing_widget.tooltip.aria' | translate">
+                  <i class="fas fa-info-circle" aria-hidden="true"></i>
+                  <span class="pricing-tooltip" role="tooltip">
+                    <strong>{{ 'pricing_widget.tooltip.title' | translate }}</strong><br />
+                    {{ 'pricing_widget.tooltip.fee' | translate }}<br />
+                    {{ 'pricing_widget.tooltip.teacher_net' | translate }}<br />
+                    <span class="pricing-tooltip-divider"></span>
+                    <strong>{{ 'pricing_widget.tooltip.packages_title' | translate }}</strong><br />
+                    {{ 'pricing_widget.tooltip.packages_prices' | translate }}<br />
+                    {{ 'pricing_widget.tooltip.packages_net' | translate }}
+                  </span>
+                </span>
               </div>
             </div>
 
