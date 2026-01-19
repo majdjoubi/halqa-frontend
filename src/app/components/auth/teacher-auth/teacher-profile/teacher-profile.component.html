@@ -589,31 +589,6 @@
           </div>
         </div>
 
-        <!-- Phone Number -->
-        <div class="form-group">
-          <label class="form-label required">{{
-            "teacher_profile.phone_number" | translate
-          }}</label>
-          <input
-            type="tel"
-            class="form-control"
-            formControlName="phoneNumber"
-            [placeholder]="'teacher_profile.phone_placeholder' | translate"
-            [class.invalid]="
-              profileForm.get('phoneNumber')?.invalid &&
-              profileForm.get('phoneNumber')?.touched
-            "
-            [class.valid]="
-              profileForm.get('phoneNumber')?.valid &&
-              profileForm.get('phoneNumber')?.touched
-            "
-          />
-          <app-form-validation
-            [control]="profileForm.get('phoneNumber')"
-            fieldType="text"
-          ></app-form-validation>
-        </div>
-
         <!-- Bio -->
         <div class="bio">
           <p class="bio-text" *ngIf="!menuOpen">
