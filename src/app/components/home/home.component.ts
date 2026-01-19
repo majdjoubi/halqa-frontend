@@ -3,6 +3,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AvailableLessonsService, AvailableLessonsPackage } from '../../services/v2/available-lessons.service';
+import { FacadeAuthService } from '../../services/auth/facade-auth.service';
 
 @Component({
   selector: 'app-home',
@@ -15,10 +16,17 @@ export class HomeComponent implements OnInit {
   packages: AvailableLessonsPackage[] = [];
   packagesLoading = false;
 
+  private readonly fallbackPackages: AvailableLessonsPackage[] = [
+    { id: 'pkg-3', lessons: 3, priceUsd: 27, unitPriceUsd: 27 / 3, active: true },
+    { id: 'pkg-6', lessons: 6, priceUsd: 51, unitPriceUsd: 51 / 6, active: true },
+    { id: 'pkg-10', lessons: 10, priceUsd: 80, unitPriceUsd: 80 / 10, active: true },
+  ];
+
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
-    private availableLessonsService: AvailableLessonsService
+    private availableLessonsService: AvailableLessonsService,
+    private facadeAuthService: FacadeAuthService
   ) {}
 
   ngOnInit(): void {
@@ -27,6 +35,11 @@ export class HomeComponent implements OnInit {
 
   private loadPackages(): void {
     if (!isPlatformBrowser(this.platformId)) return;
+
+    // Always show packages to visitors (fallback values), even if v2 is disabled
+    this.packages = [...this.fallbackPackages];
+
+    // If v2 is enabled, attempt to replace fallback with API-provided packages
     if (!this.availableLessonsService.isEnabled()) return;
 
     this.packagesLoading = true;
@@ -53,18 +66,51 @@ export class HomeComponent implements OnInit {
         this.packagesLoading = false;
       },
       error: () => {
-        this.packages = [];
+        // Keep fallback packages for guests if API is unavailable/unauthorized
+        this.packages = [...this.fallbackPackages];
         this.packagesLoading = false;
       }
     });
   }
 
   buyPackage(pkg: AvailableLessonsPackage): void {
+    const returnUrl = '/all-teachers?openAvailableLessons=1';
+
+    if (!this.facadeAuthService.isAuthenticated()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      return;
+    }
+
+    // Student-only route
+    const role = this.getBrowserStoredRole();
+    if (role && role !== '1') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     // Navigate to all-teachers with query param to open purchase modal
     this.router.navigate(['/all-teachers'], { queryParams: { openAvailableLessons: '1' } });
   }
 
   goToAllTeachers(): void {
+    const returnUrl = '/all-teachers';
+
+    if (!this.facadeAuthService.isAuthenticated()) {
+      this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      return;
+    }
+
+    const role = this.getBrowserStoredRole();
+    if (role && role !== '1') {
+      this.router.navigate(['/home']);
+      return;
+    }
+
     this.router.navigate(['/all-teachers']);
+  }
+
+  private getBrowserStoredRole(): string | null {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    return localStorage.getItem('user_role');
   }
 }

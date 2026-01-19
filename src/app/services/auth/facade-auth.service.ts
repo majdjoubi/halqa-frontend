@@ -66,7 +66,7 @@ export class FacadeAuthService {
   }
 
   // login
-  sendLoginRequest(data: LoginRequest) {
+  sendLoginRequest(data: LoginRequest, returnUrl?: string) {
     this._loginLoading.next(true);
     this._loginError.next(null); // Clear previous errors
 
@@ -80,7 +80,18 @@ export class FacadeAuthService {
         }
         this._loginResponse.next(res);
         this._userRole.next(res.user.role);
-        this._router.navigate(['/home']);
+        const safeReturnUrl = (returnUrl || '').trim();
+        const shouldUseReturnUrl =
+          !!safeReturnUrl &&
+          safeReturnUrl.startsWith('/') &&
+          // Only auto-redirect students to student-only routes like /all-teachers
+          res?.user?.role === 1;
+
+        if (shouldUseReturnUrl) {
+          this._router.navigateByUrl(safeReturnUrl);
+        } else {
+          this._router.navigate(['/home']);
+        }
       }),
       this._errorHandler.createErrorHandler({
         customErrorMessages: {

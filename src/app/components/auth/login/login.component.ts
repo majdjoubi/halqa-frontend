@@ -5,7 +5,7 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 import { SideImageComponent } from '../../../shared/shared-component/side-image/side-image.component';
@@ -33,15 +33,22 @@ export class LoginComponent implements OnInit {
   showPassword = false;
   isLoading = false;
   errorMessage = '';
+  private returnUrl = '/home';
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private facadeAuthService: FacadeAuthService
   ) {}
 
   ngOnInit(): void {
     this.initializeForm();
+
+    const qpReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (qpReturnUrl) {
+      this.returnUrl = qpReturnUrl;
+    }
 
     // Subscribe to loading state
     this.facadeAuthService.loginLoading$.subscribe((loading) => {
@@ -83,7 +90,7 @@ export class LoginComponent implements OnInit {
 
       console.log('Sending login request with data:', formData);
 
-      this.facadeAuthService.sendLoginRequest(formData).subscribe({
+      this.facadeAuthService.sendLoginRequest(formData, this.returnUrl).subscribe({
         next: (response) => {
           console.log('Login successful:', response);
         },
