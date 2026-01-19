@@ -588,6 +588,7 @@
     "email_placeholder": "me@email.com",
     "email_required": "البريد الإلكتروني مطلوب",
     "email_invalid": "البريد الإلكتروني غير صحيح",
+    "email_already_registered": "هذا البريد الإلكتروني مسجل بالفعل. برجاء تسجيل الدخول.",
     "phone": "رقم الهاتف",
     "phone_placeholder": "مثال: +201234567890",
     "phone_required": "رقم الهاتف مطلوب",

@@ -588,6 +588,7 @@
     "email_placeholder": "me@email.com",
     "email_required": "Email is required",
     "email_invalid": "Email is invalid",
+    "email_already_registered": "This email is already registered. Please log in instead.",
     "phone": "Phone Number",
     "phone_placeholder": "(country code) 1234567890",
     "phone_required": "Phone number is required",

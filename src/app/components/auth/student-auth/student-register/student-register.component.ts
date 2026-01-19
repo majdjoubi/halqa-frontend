@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
   AbstractControl,
 } from '@angular/forms';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { RouterModule } from '@angular/router';
 import { SideImageComponent } from '../../../../shared/shared-component/side-image/side-image.component';
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
@@ -53,10 +53,19 @@ export class StudentRegisterComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private _facadeAuth: FacadeAuthService,
-    private _uploadService: UploadFilesService
+    private _uploadService: UploadFilesService,
+    private translate: TranslateService
   ) {
     this.generateAgeOptions();
     this.generateYearOptions();
+  }
+
+  private markEmailAlreadyRegistered(): void {
+    const emailControl = this.step1Form?.get('email');
+    if (!emailControl) return;
+    const existing = emailControl.errors || {};
+    emailControl.setErrors({ ...existing, emailTaken: true });
+    emailControl.markAsTouched();
   }
 
   ngOnInit(): void {
@@ -271,9 +280,21 @@ export class StudentRegisterComponent implements OnInit {
       return;
     }
     
-    // Email-related errors
+    // Email already registered
+    if (
+      errorMsgLower.includes('already registered') ||
+      errorMsgLower.includes('email is already registered')
+    ) {
+      this.markEmailAlreadyRegistered();
+      this.errorMessage = this.translate.instant(
+        'student_register.email_already_registered'
+      );
+      this.currentStep = 1;
+      return;
+    }
+
+    // Other email-related errors
     if (errorMsgLower.includes('email') || error.status === 409) {
-      this.errorMessage = 'This email is already registered. Please use a different email or login.';
       this.currentStep = 1;
       return;
     }
