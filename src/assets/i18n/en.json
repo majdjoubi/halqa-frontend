@@ -713,6 +713,7 @@
     "hourly_rate": "Hourly Rate (USD)",
     "hourly_rate_placeholder": " $25",
     "hourly_rate_currency": "USD/hour",
+    "ijazah_hint": "If you have an Ijazah (Quran certification), please mention it here.",
     "bio": "Bio",
     "bio_placeholder": "Write a bio about yourself and your teaching experience, specializations, and what makes you unique as a teacher...",
     "bio_character_count": "characters",

@@ -91,7 +91,7 @@
 
               <div class="row g-3">
                 <!-- Years of Experience -->
-                <div class="col-md-6">
+                <div class="col-12">
                   <div class="form-group">
                     <label class="form-label required">{{
                       "teacher_create_profile.years_experience" | translate
@@ -115,37 +115,6 @@
                       class="invalid-feedback"
                     >
                       {{ getFieldError("yearsOfExperience") | translate }}
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Hourly Rate -->
-                <div class="col-md-6">
-                  <div class="form-group">
-                    <label class="form-label required">{{
-                      "teacher_create_profile.hourly_rate" | translate
-                    }}</label>
-                    <div class="input-group">
-                      <input
-                        type="number"
-                        class="form-control"
-                        formControlName="hourlyRate"
-                        min="0"
-                        step="0.5"
-                        placeholder="{{
-                          'teacher_create_profile.hourly_rate_placeholder'
-                            | translate
-                        }}"
-                        [class.is-invalid]="isFieldInvalid('hourlyRate')"
-                        [class.is-valid]="isFieldValid('hourlyRate')"
-                      />
-                    </div>
-
-                    <div
-                      *ngIf="isFieldInvalid('hourlyRate')"
-                      class="invalid-feedback"
-                    >
-                      {{ getFieldError("hourlyRate") | translate }}
                     </div>
                   </div>
                 </div>
@@ -277,10 +246,11 @@
             <div class="form-section">
               <h3 class="section-title">
                 {{ "teacher_create_profile.certifications" | translate }}
-                <span class="ms-2 text-muted" style="font-size: 0.9em">
-                  ({{ "teacher_create_profile.optional" | translate }})
-                </span>
               </h3>
+
+              <div class="alert alert-info mb-3">
+                {{ "teacher_create_profile.ijazah_hint" | translate }}
+              </div>
 
               <div
                 class="certifications-container"

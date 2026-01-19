@@ -55,6 +55,9 @@ export class TeacherCreateProfileComponent implements OnInit {
   profileForm!: FormGroup;
   selectedFile: File | null = null;
   previewUrl: string | null = null;
+  private existingProfilePictureUrl: string | null = null;
+  private existingHourlyRate: number | null = null;
+  readonly defaultHourlyRate = 25;
   isSubmitting = false;
   selectedLanguages: string[] = [];
   selectedSpecializations: string[] = [];
@@ -161,6 +164,33 @@ export class TeacherCreateProfileComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
+    this.prefillFromExistingProfile();
+  }
+
+  private toAbsoluteAssetUrl(url: string): string {
+    const trimmed = String(url || '').trim();
+    if (!trimmed) return '';
+    if (/^https?:\/\//i.test(trimmed)) return trimmed;
+    if (trimmed.startsWith('/')) return trimmed;
+    return `/${trimmed}`;
+  }
+
+  private prefillFromExistingProfile(): void {
+    // If the teacher already has a profile, show their stored avatar immediately.
+    // This also fixes relative URLs like "uploads/..." which break on nested routes.
+    this._facadeProfilesService.getTeacherProfile().subscribe((resp: any) => {
+      const storedUrl = resp?.profile?.profilePictureUrl;
+      if (storedUrl) {
+        const normalized = this.toAbsoluteAssetUrl(storedUrl);
+        this.existingProfilePictureUrl = normalized;
+        if (!this.previewUrl) this.previewUrl = normalized;
+      }
+
+      const storedRate = resp?.profile?.hourlyRate;
+      if (typeof storedRate === 'number' && !Number.isNaN(storedRate)) {
+        this.existingHourlyRate = storedRate;
+      }
+    });
   }
 
   private initializeForm(): void {
@@ -172,15 +202,6 @@ export class TeacherCreateProfileComponent implements OnInit {
           Validators.min(0),
           Validators.max(50),
           Validators.pattern('^[0-9]+$'),
-        ],
-      ],
-      hourlyRate: [
-        '',
-        [
-          Validators.required,
-          Validators.min(0),
-          Validators.max(200),
-          Validators.pattern('^[0-9]+(\\.[0-9]{1,2})?$'),
         ],
       ],
       languages: [
@@ -395,16 +416,20 @@ export class TeacherCreateProfileComponent implements OnInit {
   private prepareFormData(profilePictureUrl?: string): any {
     const formValue = this.profileForm.value;
 
+    const hourlyRate =
+      this.existingHourlyRate ?? this.defaultHourlyRate;
+
     const data: any = {
       specializations: this.selectedSpecializations,
       yearsOfExperience: parseInt(formValue.yearsOfExperience),
-      hourlyRate: parseFloat(formValue.hourlyRate),
+      hourlyRate,
       bio: formValue.bio.trim(),
     };
 
     // Add profile picture URL only if we have one
-    if (profilePictureUrl) {
-      data.profilePictureUrl = profilePictureUrl;
+    const finalPictureUrl = profilePictureUrl || this.existingProfilePictureUrl;
+    if (finalPictureUrl) {
+      data.profilePictureUrl = this.toAbsoluteAssetUrl(finalPictureUrl);
     }
 
     // Log for debugging
@@ -437,8 +462,18 @@ export class TeacherCreateProfileComponent implements OnInit {
               const uploadedImageUrl =
                 uploadResponse.data?.url || uploadResponse.url;
 
+              const normalizedUploadedUrl = uploadedImageUrl
+                ? this.toAbsoluteAssetUrl(uploadedImageUrl)
+                : '';
+
+              if (normalizedUploadedUrl) {
+                this.previewUrl = normalizedUploadedUrl;
+                this.existingProfilePictureUrl = normalizedUploadedUrl;
+                this.selectedFile = null;
+              }
+
               // Prepare form data with the uploaded image URL
-              const formData = this.prepareFormData(uploadedImageUrl);
+              const formData = this.prepareFormData(normalizedUploadedUrl);
 
               // Submit profile data
               this.submitProfile(formData);
