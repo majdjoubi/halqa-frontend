@@ -73,6 +73,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return sendJson(res, 200, { processed: 0, message: 'Rate limit reached' });
     }
 
+    // Backwards-compat repair: older rows may have NULL scheduled_at.
+    // Treat them as immediately due (or fallback to campaign schedule/created_at).
+    await dbQuery(
+      `update messaging_send_jobs j
+       set scheduled_at = coalesce(j.scheduled_at, c.scheduled_at, c.created_at)
+       from messaging_campaigns c
+       where c.id = j.campaign_id
+         and j.status = 'queued'
+         and j.scheduled_at is null`,
+      []
+    );
+
     const jobs = await dbQuery<any>(
       `select
          j.id as job_id,
@@ -82,13 +94,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
          r.first_name,
          r.role,
          c.subject,
-         c.html_body
+         c.html_body,
+         coalesce(j.scheduled_at, c.scheduled_at, c.created_at) as effective_scheduled_at
        from messaging_send_jobs j
        join messaging_recipients r on r.id = j.recipient_id
        join messaging_campaigns c on c.id = j.campaign_id
        where j.status = 'queued'
-         and j.scheduled_at <= now()
-       order by j.scheduled_at asc
+         and coalesce(j.scheduled_at, c.scheduled_at, c.created_at) <= now()
+       order by coalesce(j.scheduled_at, c.scheduled_at, c.created_at) asc
        limit $1`,
       [take]
     );
@@ -216,6 +229,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         );
       }
     }
+
+    // Status sweep: if a campaign is still marked queued/sending but has no queued jobs,
+    // mark it completed (covers old campaigns that were already sent earlier).
+    await dbQuery(
+      `update messaging_campaigns c
+       set status = 'completed'
+       where c.status in ('queued','sending')
+         and not exists (
+           select 1 from messaging_send_jobs j
+           where j.campaign_id = c.id and j.status = 'queued'
+         )`,
+      []
+    );
 
     return sendJson(res, 200, {
       processed,
