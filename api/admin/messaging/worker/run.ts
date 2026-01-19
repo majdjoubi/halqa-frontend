@@ -1,6 +1,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { dbQuery } from '../../../_lib/db';
 import { sendJson } from '../../../_lib/http';
+import { requireAdmin } from '../../../_lib/adminAuth';
 import {
   buildFooterHtml,
   dailyDomainLimit,
@@ -17,13 +18,25 @@ function requireWorkerSecret(req: VercelRequest): void {
   if (got !== expected) throw new Error('Unauthorized worker');
 }
 
+async function authorizeWorkerOrAdmin(req: VercelRequest): Promise<void> {
+  // Prefer worker secret (for automation).
+  // Fallback to admin auth to allow manual runs from the admin UI.
+  try {
+    requireWorkerSecret(req);
+    return;
+  } catch {
+    // ignore and try admin auth
+  }
+  await requireAdmin(req);
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== 'POST') {
       return sendJson(res, 405, { message: `Method ${req.method} not allowed` });
     }
 
-    requireWorkerSecret(req);
+    await authorizeWorkerOrAdmin(req);
 
     const limitPerMinute = 50;
     const limitPerDay = dailyDomainLimit();
@@ -193,6 +206,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return sendJson(res, 200, { processed, sent, failed });
   } catch (e: any) {
     console.error(e);
-    return sendJson(res, 400, { message: e?.message || 'Bad Request' });
+
+    const msg = String(e?.message || 'Bad Request');
+    if (msg.includes('Missing Authorization header') || msg.includes('Unauthorized')) {
+      return sendJson(res, 401, { message: msg });
+    }
+
+    return sendJson(res, 400, { message: msg });
   }
 }

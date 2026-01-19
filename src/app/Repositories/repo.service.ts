@@ -253,6 +253,13 @@ export class RepoService {
       `${this.base_url}/api/admin/messaging/campaigns/${campaignId}`
     );
   }
+
+  adminMessagingRunWorker(): Observable<any> {
+    return this.http.post<any>(
+      `${this.base_url}/api/admin/messaging/worker/run`,
+      {}
+    );
+  }
   // get quick status counts for admin dashboard
   getAdminStatusCounts(): Observable<any> {
     return this.http.get<any>(`${this.base_url}/api/admin/statistics/quick`);

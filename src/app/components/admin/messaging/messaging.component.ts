@@ -39,6 +39,7 @@ interface AdminUserLite {
 export class MessagingComponent {
   readonly loading = signal(false);
   readonly sending = signal(false);
+  readonly workerRunning = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
 
@@ -160,6 +161,33 @@ export class MessagingComponent {
       )
       .subscribe((resp) => {
         this.campaigns.set(resp?.campaigns || []);
+      });
+  }
+
+  runWorker(): void {
+    this.error.set(null);
+    this.success.set(null);
+
+    this.workerRunning.set(true);
+    this.repo
+      .adminMessagingRunWorker()
+      .pipe(
+        catchError((err) => {
+          console.error(err);
+          this.error.set(err?.error?.message || 'Failed to process queue.');
+          return of(null);
+        }),
+        finalize(() => this.workerRunning.set(false))
+      )
+      .subscribe((resp) => {
+        if (!resp) return;
+        this.success.set(
+          `Queue processed. Jobs: ${resp.processed}, sent: ${resp.sent}, failed: ${resp.failed}.`
+        );
+
+        const selectedId = this.selectedCampaign()?.id;
+        this.refreshCampaigns();
+        if (selectedId) this.selectCampaign(selectedId);
       });
   }
 

@@ -1,13 +1,24 @@
 <div class="container py-4 custom-container">
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h2 class="m-0">Messaging</h2>
-    <button
-      class="btn btn-primary"
-      (click)="send()"
-      [disabled]="sending() || loading()"
-    >
-      {{ sending() ? 'Sending…' : 'Send / Queue' }}
-    </button>
+    <div class="d-flex gap-2">
+      <button
+        class="btn btn-outline-secondary"
+        type="button"
+        (click)="runWorker()"
+        [disabled]="workerRunning() || sending() || loading()"
+      >
+        {{ workerRunning() ? 'Processing…' : 'Process Queue' }}
+      </button>
+
+      <button
+        class="btn btn-primary"
+        (click)="send()"
+        [disabled]="sending() || loading()"
+      >
+        {{ sending() ? 'Sending…' : 'Send / Queue' }}
+      </button>
+    </div>
   </div>
 
   <div *ngIf="error()" class="alert alert-danger">{{ error() }}</div>
