@@ -553,7 +553,7 @@
       "badge": "Lesson Packages",
       "title": "Choose Your Learning Journey",
       "description": "Select the package that fits your goals and start learning today.",
-      "economy": "Economy",
+      "starter": "Starter Pack",
       "popular": "Most Popular",
       "best_value": "Best Value",
       "per_lesson": "${{price}} per lesson",

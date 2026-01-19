@@ -203,7 +203,7 @@
         *ngFor="let pkg of packages; let i = index"
         [class.featured]="i === 1"
       >
-        <div class="package-badge" *ngIf="i === 0">{{ "home.packages.economy" | translate }}</div>
+        <div class="package-badge" *ngIf="i === 0">{{ "home.packages.starter" | translate }}</div>
         <div class="package-badge best" *ngIf="i === 1">{{ "home.packages.popular" | translate }}</div>
         <div class="package-badge" *ngIf="i === 2">{{ "home.packages.best_value" | translate }}</div>
         

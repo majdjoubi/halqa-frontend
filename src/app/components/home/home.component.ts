@@ -32,17 +32,24 @@ export class HomeComponent implements OnInit {
     this.packagesLoading = true;
     this.availableLessonsService.getPackages().subscribe({
       next: (pkgs) => {
-        // Sort by lessons count and take 3 (economy, popular, best value)
+        // Sort by lessons count and pick: 3, 6, 10 lessons packages
         const sorted = (Array.isArray(pkgs) ? pkgs : [])
           .filter(p => p.active !== false)
           .sort((a, b) => a.lessons - b.lessons);
         
-        // Pick 3: smallest, middle, largest (or adapt if fewer)
-        if (sorted.length >= 3) {
-          this.packages = [sorted[0], sorted[Math.floor(sorted.length / 2)], sorted[sorted.length - 1]];
-        } else {
+        // Find specific packages: 3 lessons (popular), 6 lessons (value), 10 lessons (best value)
+        const pkg3 = sorted.find(p => p.lessons === 3);
+        const pkg6 = sorted.find(p => p.lessons === 6);
+        const pkg10 = sorted.find(p => p.lessons === 10);
+        
+        // Build array with available packages
+        this.packages = [pkg3, pkg6, pkg10].filter(p => p !== undefined) as AvailableLessonsPackage[];
+        
+        // Fallback: if we don't have exact matches, take up to 3 from sorted
+        if (this.packages.length === 0 && sorted.length > 0) {
           this.packages = sorted.slice(0, 3);
         }
+        
         this.packagesLoading = false;
       },
       error: () => {
