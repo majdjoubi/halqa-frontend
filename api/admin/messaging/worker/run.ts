@@ -38,6 +38,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     await authorizeWorkerOrAdmin(req);
 
+    const startedAt = Date.now();
+    const maxRunMs = Number(process.env['MESSAGING_WORKER_MAX_MS'] || 8000);
+    const hardMaxJobs = Number(process.env['MESSAGING_WORKER_MAX_JOBS'] || 10);
+
     const limitPerMinute = 50;
     const limitPerDay = dailyDomainLimit();
 
@@ -63,7 +67,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const remainingThisMinute = Math.max(0, limitPerMinute - sent_last_min);
     const remainingToday = Math.max(0, limitPerDay - sent_today);
-    const take = Math.min(remainingThisMinute, remainingToday);
+    const take = Math.min(remainingThisMinute, remainingToday, hardMaxJobs);
 
     if (take <= 0) {
       return sendJson(res, 200, { processed: 0, message: 'Rate limit reached' });
@@ -89,11 +93,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       [take]
     );
 
+    // Flip campaigns to "sending" immediately so UI doesn't remain "queued"
+    // if the function gets terminated mid-run.
+    const campaignIds = Array.from(new Set(jobs.map((j: any) => String(j.campaign_id))));
+    for (const campaignId of campaignIds) {
+      await dbQuery(
+        `update messaging_campaigns set status = 'sending'
+         where id = $1 and status in ('queued','sending')`,
+        [campaignId]
+      );
+    }
+
     let processed = 0;
     let sent = 0;
     let failed = 0;
+    let stoppedEarly = false;
 
     for (const job of jobs) {
+      if (Date.now() - startedAt > maxRunMs) {
+        stoppedEarly = true;
+        break;
+      }
+
       processed += 1;
       const recipientEmail = normalizeEmail(job.email);
 
@@ -180,14 +201,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     // Update campaign status for any campaigns touched
-    const campaignIds = Array.from(new Set(jobs.map((j: any) => String(j.campaign_id))));
     for (const campaignId of campaignIds) {
-      await dbQuery(
-        `update messaging_campaigns set status = 'sending'
-         where id = $1 and status in ('queued','sending')`,
-        [campaignId]
-      );
-
       const [{ remaining }] = await dbQuery<{ remaining: number }>(
         `select count(*)::int as remaining
          from messaging_send_jobs
@@ -203,7 +217,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return sendJson(res, 200, { processed, sent, failed });
+    return sendJson(res, 200, {
+      processed,
+      sent,
+      failed,
+      stoppedEarly,
+      maxRunMs,
+      maxJobs: take,
+    });
   } catch (e: any) {
     console.error(e);
 
