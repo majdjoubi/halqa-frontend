@@ -608,6 +608,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
             1,
             Math.ceil(this.AllTeacherCount / this.pageSize)
           );
+
+          // Keep teacher cards ordered by earliest upcoming availability
+          this.sortTeachersByNearestAvailability();
           this.loading = false;
         },
         (err) => {
@@ -652,6 +655,9 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           1,
           Math.ceil(this.AllTeacherCount / this.pageSize)
         );
+
+        // Keep teacher cards ordered by earliest upcoming availability
+        this.sortTeachersByNearestAvailability();
         this.loading = false;
       },
       (err) => {

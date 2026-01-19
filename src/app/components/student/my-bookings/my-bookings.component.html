@@ -108,7 +108,7 @@
           </div>
 
           <div class="card-footer d-flex align-items-center">
-            <span class="status" [ngClass]="statusClass(b)">{{ statusKey(b) | translate }}</span>
+            <span class="status" [ngClass]="statusClass(b)">{{ statusLabel(b) }}</span>
 
             <div class="actions">
               <button
@@ -163,7 +163,7 @@
           </div>
 
           <div class="card-footer d-flex align-items-center">
-            <span class="status" [ngClass]="statusClass(b)">{{ statusKey(b) | translate }}</span>
+            <span class="status" [ngClass]="statusClass(b)">{{ statusLabel(b) }}</span>
             <div class="actions">
               <button
                 *ngIf="canReview(b)"

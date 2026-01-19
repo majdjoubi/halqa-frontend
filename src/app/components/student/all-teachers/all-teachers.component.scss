@@ -1209,9 +1209,12 @@
   border-radius: 20px;
   width: 100%;
   max-width: 520px;
+  max-height: calc(100vh - 40px);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: slideUpModal 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
 }
 
 @keyframes slideUpModal {
@@ -1272,6 +1275,49 @@
 
 .available-lessons-body {
   padding: 24px;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.available-lessons-footer {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 520px) {
+  .available-lessons-overlay {
+    padding: 12px;
+  }
+
+  .available-lessons-container {
+    max-width: 420px;
+    border-radius: 16px;
+    max-height: calc(100vh - 24px);
+  }
+
+  .available-lessons-header {
+    padding: 16px 16px;
+  }
+
+  .available-lessons-title {
+    font-size: 18px;
+
+    &::before {
+      font-size: 20px;
+    }
+  }
+
+  .available-lessons-body {
+    padding: 16px;
+  }
+
+  .package {
+    padding: 14px 14px;
+    border-radius: 14px;
+  }
+
+  .available-lessons-footer {
+    padding: 16px;
+  }
 }
 
 .available-lessons-message {

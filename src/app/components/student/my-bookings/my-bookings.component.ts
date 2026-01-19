@@ -225,6 +225,32 @@ export class MyBookingsComponent implements OnInit {
     }
   }
 
+  /**
+   * UI-safe label for booking status.
+   * - Uses translations when available
+   * - Falls back to a humanized label (never shows raw keys like BOOKING_STATUS_COMPLETED)
+   */
+  statusLabel(b: StudentBookingItem): string {
+    const key = this.statusKey(b);
+    const translated = this.translate.instant(key);
+    if (translated && translated !== key) return translated;
+
+    return this.humanizeStatusKey(key);
+  }
+
+  private humanizeStatusKey(key: string): string {
+    const raw = String(key ?? '').trim();
+    const withoutPrefix = raw.replace(/^BOOKING_STATUS_/i, '');
+    if (!withoutPrefix) return raw;
+
+    return withoutPrefix
+      .toLowerCase()
+      .split('_')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  }
+
   isCompleted(b: StudentBookingItem): boolean {
     if (this.isCancelledBooking(b)) return false;
     const normalized = this.normalizeStatus(b.status);
