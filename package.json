@@ -8,6 +8,7 @@
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "i18n:check": "node scripts/check-i18n.mjs",
     "serve:ssr:halqa": "node dist/halqa/server/server.mjs",
     "prerender": "ng run halqa:prerender:production"
   },

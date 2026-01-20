@@ -36,7 +36,7 @@ export function appTranslateInitializerFactory(
 ) {
   return () => {
     const DEFAULT = 'ar';
-    const supported = ['ar', 'en'];
+    const supported = ['ar', 'en', 'de', 'tr', 'fr'];
 
     translate.addLangs(supported);
     translate.setDefaultLang(DEFAULT);
@@ -61,7 +61,6 @@ export function appTranslateInitializerFactory(
     return lastValueFrom(translate.use(lang));
   };
 }
-//test for update df
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),

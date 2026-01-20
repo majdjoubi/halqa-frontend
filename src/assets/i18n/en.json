@@ -653,6 +653,8 @@
     "send": "Send"
   },
 
+  "password_reset_success": "Password updated successfully",
+
   "verify_otp": {
     "title": "Verify your email",
     "description": "We've sent a verification code to your email. Please enter the 6-digit code below to verify your account.",
@@ -932,6 +934,14 @@
     "de": {
       "name": "German",
       "code": "Deutsch"
+    },
+    "tr": {
+      "name": "Turkish",
+      "code": "Türkçe"
+    },
+    "fr": {
+      "name": "French",
+      "code": "Français"
     },
     "arabic": "Arabic",
     "english": "English",

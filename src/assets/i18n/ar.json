@@ -511,8 +511,8 @@
     "teacher-subtitle": "معلم",
     "description": "اختار اي دور ستقوم به لتكملة الرحله",
     "student-text": "طالب تريد تتعلم القراءن والتجويد وتقوية المستوى",
-    "student-subtitle": "طالب تريد تتعلم القراءن والتجويد وتقوية المستوى",
     "teacher-text": "معلم ذو خبره تريد تعليمم الطلاب القراءن والتجويد",
+    "student-teacher": "معلم ذو خبره تريد تعليمم الطلاب القراءن والتجويد",
 
     "button": "إنضم إلينا"
   },
@@ -650,10 +650,10 @@
     "description": "أدخل كلمة المرور الجديدة أدناه.",
     "email": "البريد الإلكتروني",
     "email_placeholder": "example@gmail.com",
-    "send": "إرسال",
-    "reset_password": "تأكيد كلمة المرور الجديدة",
-    "password_reset_success": "تم تحديث كلمة المرور بنجاح"
+    "send": "إرسال"
   },
+
+  "password_reset_success": "تم تحديث كلمة المرور بنجاح",
 
   "verify_otp": {
     "title": "التحقق من الرمز",
@@ -801,6 +801,8 @@
     "cert_info": "أضف شهاداتك التعليمية والمهنية (اختياري)"
   },
 
+  "availability": "التوفر",
+
   "teacher_profile": {
     "edit_profile_button": "تعديل الملف الشخصي",
     "withdraw_profits": "سحب الأرباح",
@@ -934,6 +936,14 @@
       "name": "الألمانية",
       "code": "DE"
     },
+    "tr": {
+      "name": "التركية",
+      "code": "TR"
+    },
+    "fr": {
+      "name": "الفرنسية",
+      "code": "FR"
+    },
     "arabic": "العربية",
     "english": "الإنجليزية",
     "native": "اللغة الأم",
@@ -996,7 +1006,8 @@
     "available": "متاح",
     "unavailable": "غير متاح",
     "pay_now": "احجز الآن",
-    "booking_footer": "دفع آمن عبر حلقة"
+    "booking_footer": "دفع آمن عبر حلقة",
+    "no_courses": "لا توجد دورات متاحة"
   },
   "days": {
     "sunday": "أحد",

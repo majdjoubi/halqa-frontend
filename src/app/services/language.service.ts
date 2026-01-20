@@ -31,6 +31,24 @@ export class LanguageService {
       nativeName: 'English',
       direction: 'ltr',
     },
+    {
+      code: 'de',
+      name: 'German',
+      nativeName: 'Deutsch',
+      direction: 'ltr',
+    },
+    {
+      code: 'tr',
+      name: 'Turkish',
+      nativeName: 'Türkçe',
+      direction: 'ltr',
+    },
+    {
+      code: 'fr',
+      name: 'French',
+      nativeName: 'Français',
+      direction: 'ltr',
+    },
   ];
 
   private currentLanguageSubject = new BehaviorSubject<Language>(
