@@ -138,13 +138,10 @@ export class LanguageService {
    */
   toggleLanguage(): void {
     const currentCode = this.currentLanguage.code;
-    const nextLanguage = this.languages.find(
-      (lang) => lang.code !== currentCode
-    );
-
-    if (nextLanguage) {
-      this.setLanguage(nextLanguage.code);
-    }
+    const idx = this.languages.findIndex((l) => l.code === currentCode);
+    const nextIndex = idx >= 0 ? (idx + 1) % this.languages.length : 0;
+    const nextLanguage = this.languages[nextIndex];
+    if (nextLanguage) this.setLanguage(nextLanguage.code);
   }
 
   /**

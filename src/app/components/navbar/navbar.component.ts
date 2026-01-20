@@ -32,6 +32,7 @@ import { NotificationBellComponent } from '../notification-bell/notification-bel
 })
 export class NavbarComponent implements OnInit, OnDestroy {
   currentLanguage: Language;
+  public readonly languages: Language[];
   private languageSubscription: Subscription;
   private authSubscription: Subscription;
   public roleSubscription: Subscription;
@@ -69,6 +70,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.currentLanguage = this.languageService.currentLanguage;
+    this.languages = this.languageService.languages;
     this.languageSubscription = new Subscription();
     this.authSubscription = new Subscription();
     this.roleSubscription = new Subscription();
@@ -271,6 +273,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   toggleLanguage(): void {
     this.languageService.toggleLanguage();
+  }
+
+  onLanguageChange(event: Event): void {
+    const select = event.target as HTMLSelectElement | null;
+    const languageCode = select?.value;
+    if (!languageCode) return;
+    this.languageService.setLanguage(languageCode);
   }
 
   getOtherLanguage(): Language {

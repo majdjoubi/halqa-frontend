@@ -233,14 +233,19 @@
       <!-- Right Section -->
       <div class="navbar-actions">
         <!-- Language Switcher -->
-        <button
-          class="language-btn"
-          (click)="toggleLanguage()"
-          [attr.aria-label]="'Switch to ' + getOtherLanguage().nativeName"
-        >
-          <i class="fas fa-globe"></i>
-          {{ getOtherLanguage().code | uppercase }}
-        </button>
+        <div class="language-switcher">
+          <i class="fas fa-globe" aria-hidden="true"></i>
+          <select
+            class="language-select"
+            [value]="currentLanguage.code"
+            (change)="onLanguageChange($event)"
+            [attr.aria-label]="'CHANGE_LANGUAGE' | translate"
+          >
+            <option *ngFor="let lang of languages" [value]="lang.code">
+              {{ lang.code | uppercase }} - {{ lang.nativeName }}
+            </option>
+          </select>
+        </div>
 
         <!-- Auth Buttons -->
         <div class="auth-buttons" *ngIf="!isAuthenticated">
