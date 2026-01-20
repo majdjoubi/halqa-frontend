@@ -35,6 +35,10 @@ export class ShowUsersComponent implements OnChanges, OnDestroy {
     label: string;
     bg?: string;
     action?: string;
+    // Optional predicate to control whether to show the button for a given user
+    show?: (user: any) => boolean;
+    // Optional predicate to disable the button for a given user
+    disabled?: (user: any) => boolean;
   }> | null = null;
 
   // emit when a dynamic action is clicked. Payload: { action: string, user: any }

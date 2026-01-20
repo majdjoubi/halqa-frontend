@@ -41,14 +41,32 @@ export class AllUserComponent implements OnInit {
   // configure action buttons: Deactivate and Delete
   switchButtons = [
     {
+      label: 'Activate',
+      bg: '#0b8043',
+      action: 'activate',
+      show: (u: any) => {
+        const raw = u?.raw;
+        const isActive = raw?.isActive !== undefined ? !!raw.isActive : u?.statusKey === 'approved' || u?.status === 'active';
+        return !isActive;
+      },
+      disabled: (u: any) => !!u?.raw?.__toggling,
+    },
+    {
       label: 'Deactivate',
       bg: '#dc3545',
       action: 'deactivate',
+      show: (u: any) => {
+        const raw = u?.raw;
+        const isActive = raw?.isActive !== undefined ? !!raw.isActive : u?.statusKey === 'approved' || u?.status === 'active';
+        return !!isActive;
+      },
+      disabled: (u: any) => !!u?.raw?.__toggling,
     },
     {
       label: 'Delete',
       bg: '#6c757d',
       action: 'delete',
+      disabled: (u: any) => !!u?.raw?.__toggling,
     },
   ];
 
@@ -251,34 +269,76 @@ export class AllUserComponent implements OnInit {
   // handle actions emitted from the show-users component
   handleAction(evt: { action: string; user: any }) {
     if (!evt || !evt.action) return;
+
+    const id = evt.user?.id || evt.user?._id || evt.user?.userId;
+    if (!id) return;
     
-    if (evt.action === 'deactivate') {
+    if (evt.action === 'activate') {
+      if (confirm('هل أنت متأكد من تفعيل هذا المستخدم؟\nAre you sure you want to activate this user?')) {
+        // mark as toggling (loading)
+        this.AllUsers = (this.AllUsers || []).map((u) => {
+          const uid = u.id || u._id || u.userId;
+          if (String(uid) !== String(id)) return u;
+          return { ...u, __toggling: true };
+        });
+
+        this.repoService.toggleUserStatus(id, true).subscribe({
+          next: () => {
+            this.AllUsers = (this.AllUsers || []).map((u) => {
+              const uid = u.id || u._id || u.userId;
+              if (String(uid) !== String(id)) return u;
+              const { __toggling, ...rest } = u as any;
+              return { ...rest, isActive: true };
+            });
+            alert('تم تفعيل المستخدم بنجاح\nUser activated successfully');
+          },
+          error: (err) => {
+            console.error('Failed to activate user', err);
+            this.AllUsers = (this.AllUsers || []).map((u) => {
+              const uid = u.id || u._id || u.userId;
+              if (String(uid) !== String(id)) return u;
+              const { __toggling, ...rest } = u as any;
+              return rest;
+            });
+            alert('فشل في تفعيل المستخدم\nFailed to activate user. Please try again.');
+          },
+        });
+      }
+    } else if (evt.action === 'deactivate') {
       // Handle deactivate action - set user as inactive
-      const id = evt.user?.id || evt.user?._id || evt.user?.userId;
-      if (!id) return;
-      
       if (confirm('هل أنت متأكد من إلغاء تفعيل هذا المستخدم؟\nAre you sure you want to deactivate this user?')) {
+        // mark as toggling (loading)
+        this.AllUsers = (this.AllUsers || []).map((u) => {
+          const uid = u.id || u._id || u.userId;
+          if (String(uid) !== String(id)) return u;
+          return { ...u, __toggling: true };
+        });
+
         this.repoService.toggleUserStatus(id, false).subscribe({
           next: () => {
             // Update user in list
             this.AllUsers = (this.AllUsers || []).map((u) => {
               const uid = u.id || u._id || u.userId;
               if (String(uid) !== String(id)) return u;
-              return { ...u, isActive: false };
+              const { __toggling, ...rest } = u as any;
+              return { ...rest, isActive: false };
             });
             alert('تم إلغاء تفعيل المستخدم بنجاح\nUser deactivated successfully');
           },
           error: (err) => {
             console.error('Failed to deactivate user', err);
+            this.AllUsers = (this.AllUsers || []).map((u) => {
+              const uid = u.id || u._id || u.userId;
+              if (String(uid) !== String(id)) return u;
+              const { __toggling, ...rest } = u as any;
+              return rest;
+            });
             alert('فشل في إلغاء تفعيل المستخدم\nFailed to deactivate user. Please try again.');
           },
         });
       }
     } else if (evt.action === 'delete') {
       // Handle delete action - remove user completely from database
-      const id = evt.user?.id || evt.user?._id || evt.user?.userId;
-      if (!id) return;
-      
       if (confirm('⚠️ تحذير: هل أنت متأكد من حذف هذا المستخدم نهائياً؟ سيتم حذف جميع بياناته بما في ذلك الحجوزات والدروس والتقييمات.\n\n⚠️ Warning: Are you sure you want to permanently delete this user? All their data including bookings, lessons, and reviews will be deleted.')) {
         this.repoService.deleteUser(id).subscribe({
           next: () => {

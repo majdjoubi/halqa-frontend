@@ -91,6 +91,19 @@ src/
 npm test
 ```
 
+## 🧪 الاختبارات E2E عبر MCP (TestSprite)
+
+تمت إضافة تعريف MCP لـ TestSprite في: [.vscode/mcp.json](.vscode/mcp.json)
+
+### الإعداد
+
+- انسخ ملف `.env.example` إلى `.env` (أو أضف المتغير في متغيرات النظام/CI):
+	- `TESTSPRITE_API_KEY`
+
+### ملاحظة أمنية
+
+- لا تضع مفتاح API حقيقي داخل الكود أو في ملفات متعقبة (git). استخدم متغيرات البيئة/Secrets فقط.
+
 ## 📚 الوثائق الإضافية
 
 - [دليل تصميم الأزرار](BUTTON_DESIGN_SPECS.md)

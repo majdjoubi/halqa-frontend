@@ -10,6 +10,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { StorageService } from '../services/storage.service';
 import { Router } from '@angular/router';
+import { environment } from '../environment/environment';
 
 @Injectable()
 export class HttpInterceptorService implements HttpInterceptor {
@@ -25,12 +26,9 @@ export class HttpInterceptorService implements HttpInterceptor {
       token = this.storageService.getItem('authToken');
     }
 
-    console.log('Interceptor - Token found:', !!token);
-    if (token) {
-      console.log(
-        'Interceptor - Token preview:',
-        token.substring(0, 20) + '...'
-      );
+    const isAuthLoginRequest = req.url.includes('/api/auth/login');
+    if (!environment.production) {
+      console.log('Interceptor - Token found:', !!token);
     }
 
     // Decide headers based on request body type. If body is FormData, do not set
@@ -49,11 +47,15 @@ export class HttpInterceptorService implements HttpInterceptor {
     // Add Authorization header if token exists (works for both JSON and FormData)
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-      console.log('Interceptor - Adding Authorization header');
+      if (!environment.production) {
+        console.log('Interceptor - Adding Authorization header');
+      }
     } else {
-      console.warn(
-        'Interceptor - No token found, proceeding without Authorization header'
-      );
+      if (!environment.production) {
+        console.warn(
+          'Interceptor - No token found, proceeding without Authorization header'
+        );
+      }
     }
 
     const modifiedReq = req.clone({ setHeaders: headers });
@@ -68,11 +70,16 @@ export class HttpInterceptorService implements HttpInterceptor {
           console.error(
             'Unauthorized access - Token might be invalid or expired'
           );
-          // Clear invalid tokens and redirect to login
-          this.storageService.removeItem('authToken');
-          this.storageService.removeItem('access_token');
-          this.storageService.removeItem('userData');
-          console.log('Interceptor - Tokens cleared due to 401 error');
+          // Only clear tokens for protected-resource 401s.
+          // A 401 on /api/auth/login usually means invalid credentials and should not wipe existing sessions.
+          if (!isAuthLoginRequest) {
+            this.storageService.removeItem('authToken');
+            this.storageService.removeItem('access_token');
+            this.storageService.removeItem('userData');
+            if (!environment.production) {
+              console.log('Interceptor - Tokens cleared due to 401 error');
+            }
+          }
           // Uncomment the line below if you want automatic redirect to login
           // this.router.navigate(['/auth/login']);
         } else if (error.status === 400) {

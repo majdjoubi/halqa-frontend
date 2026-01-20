@@ -96,6 +96,7 @@ export class FacadeAuthService {
       this._errorHandler.createErrorHandler({
         customErrorMessages: {
           401: 'Invalid email or password. Please check your credentials.',
+          403: 'Account is deactivated. Please contact support to reactivate your account.',
           400: 'Please check your input and try again.',
           500: 'Server error. Please try again later.',
           0: 'Network error. Please check your internet connection.',

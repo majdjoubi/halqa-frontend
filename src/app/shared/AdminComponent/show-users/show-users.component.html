@@ -192,10 +192,12 @@
                     >
                       <button
                         *ngFor="let b of actionButtons"
+                        [hidden]="b.show ? !b.show(t) : false"
                         class="btn"
                         type="button"
                         [style.background]="b.bg || null"
                         [style.color]="b.bg ? '#fff' : null"
+                        [disabled]="b.disabled ? b.disabled(t) : false"
                         (click)="onActionClick(b, t)"
                       >
                         <span class="btn-label">{{ b.label }}</span>
