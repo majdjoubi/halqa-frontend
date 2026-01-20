@@ -1435,9 +1435,11 @@
       "to_remove": "to remove",
       "confirm": "Confirm",
       "cancel": "Cancel",
+      "repeat_4_weeks": "Repeat for the next 4 weeks",
       "slots": "slots",
       "saving": "Saving changes...",
       "success": "Availability updated successfully",
+      "partial": "Updated with issues (created {{created}}, removed {{deleted}}, failed {{failed}})",
       "error": "Failed to update some availability slots"
     }
   }

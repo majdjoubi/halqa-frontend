@@ -1415,9 +1415,11 @@
       "to_remove": "kaldırılacak",
       "confirm": "Onayla",
       "cancel": "İptal",
+      "repeat_4_weeks": "Önümüzdeki 4 hafta için tekrarla",
       "slots": "zaman",
       "saving": "Değişiklikler kaydediliyor...",
       "success": "Uygunluk başarıyla güncellendi",
+      "partial": "Bazı sorunlarla güncellendi (oluşturulan {{created}}, kaldırılan {{deleted}}, başarısız {{failed}})",
       "error": "Bazı uygunluk zamanları güncellenemedi"
     }
   }

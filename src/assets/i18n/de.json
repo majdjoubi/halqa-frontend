@@ -1415,9 +1415,11 @@
       "to_remove": "zu entfernen",
       "confirm": "Bestätigen",
       "cancel": "Abbrechen",
+      "repeat_4_weeks": "Für die nächsten 4 Wochen wiederholen",
       "slots": "Zeitfenster",
       "saving": "Änderungen werden gespeichert...",
       "success": "Verfügbarkeit erfolgreich aktualisiert",
+      "partial": "Aktualisiert mit Problemen (erstellt {{created}}, entfernt {{deleted}}, fehlgeschlagen {{failed}})",
       "error": "Einige Verfügbarkeits-Zeitfenster konnten nicht aktualisiert werden"
     }
   }

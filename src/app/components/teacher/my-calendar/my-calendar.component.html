@@ -113,6 +113,10 @@
                   <i class="fas fa-minus-circle"></i> {{ slotsToDelete.size }} {{ 'my_calendar_page.batch.to_remove' | translate }}
                 </span>
               </span>
+              <label *ngIf="pendingSlots.size > 0" class="repeat-toggle">
+                <input type="checkbox" [(ngModel)]="repeatNext4Weeks" />
+                <span>{{ 'my_calendar_page.batch.repeat_4_weeks' | translate }}</span>
+              </label>
               <div class="confirm-actions">
                 <button class="btn-cancel" (click)="clearPendingChanges()">
                   <i class="fas fa-times"></i>

@@ -89,6 +89,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   // ===== PENDING SELECTION =====
   pendingSlots: Set<number> = new Set(); // Hours pending to be added
   slotsToDelete: Set<number> = new Set(); // Availability IDs pending to be deleted
+  repeatNext4Weeks: boolean = false;
 
   // ===== HOURLY RATE =====
   hourlyRate: number = 0;
@@ -589,6 +590,19 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
   clearPendingChanges(): void {
     this.pendingSlots.clear();
     this.slotsToDelete.clear();
+    this.repeatNext4Weeks = false;
+  }
+
+  private parseYmdToUtcDate(dateStr: string): Date {
+    const [year, month, day] = dateStr.split('-').map(n => parseInt(n, 10));
+    return new Date(Date.UTC(year, month - 1, day));
+  }
+
+  private formatUtcDateToYmd(date: Date): string {
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   /**
@@ -599,9 +613,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
     
     this.isSavingSlot = true;
     const dateStr = this.selectedCalendarDate;
-    const dateParts = dateStr.split('-');
-    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-    const dayOfWeek = dateObj.getDay();
+    const baseDateUtc = this.parseYmdToUtcDate(dateStr);
     
     const operations: any[] = [];
     const results = {
@@ -616,17 +628,27 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
       // IMPORTANT: Do not wrap 23:00 -> 00:00.
       // Backend slot generation requires EndTime > StartTime. Use 24:00:00 for the last hour.
       const endHour = hour + 1;
-      operations.push({
-        type: 'create',
-        hour: hour,
-        request: {
-          dayOfWeek: dayOfWeek,
-          startTime: `${String(hour).padStart(2, '0')}:00:00`,
-          endTime: `${String(endHour).padStart(2, '0')}:00:00`,
-          isRecurring: false,
-          date: dateStr,
-          isAvailable: true
-        }
+
+      const dateOffsetsDays = this.repeatNext4Weeks ? [0, 7, 14, 21] : [0];
+
+      dateOffsetsDays.forEach(daysToAdd => {
+        const dateUtc = new Date(baseDateUtc.getTime());
+        dateUtc.setUTCDate(dateUtc.getUTCDate() + daysToAdd);
+        const repeatedDateStr = this.formatUtcDateToYmd(dateUtc);
+        const repeatedDayOfWeek = dateUtc.getUTCDay();
+
+        operations.push({
+          type: 'create',
+          hour: hour,
+          request: {
+            dayOfWeek: repeatedDayOfWeek,
+            startTime: `${String(hour).padStart(2, '0')}:00:00`,
+            endTime: `${String(endHour).padStart(2, '0')}:00:00`,
+            isRecurring: false,
+            date: repeatedDateStr,
+            isAvailable: true
+          }
+        });
       });
     });
     
@@ -662,7 +684,7 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
             results.created++;
             this.availabilitySlots.push({
               id: response.id,
-              date: this.selectedCalendarDate,
+              date: op.request.date,
               displayStartTime: `${String(op.hour).padStart(2, '0')}:00`,
               displayHour: op.hour
             });
@@ -702,8 +724,18 @@ export class MyCalendarComponent implements OnInit, OnDestroy {
 
         this.isSavingSlot = false;
 
-        const hadFailures = results.createFailed > 0 || results.deleteFailed > 0;
-        if (hadFailures) {
+        const failed = results.createFailed + results.deleteFailed;
+        const succeeded = results.created + results.deleted;
+
+        if (failed > 0 && succeeded > 0) {
+          alert(
+            this.translate.instant('my_calendar_page.batch.partial', {
+              created: results.created,
+              deleted: results.deleted,
+              failed: failed
+            }) || 'Availability updated with some issues'
+          );
+        } else if (failed > 0) {
           alert(this.translate.instant('my_calendar_page.batch.error') || 'Failed to update some availability slots');
         } else {
           alert(this.translate.instant('my_calendar_page.batch.success') || 'Availability updated successfully');

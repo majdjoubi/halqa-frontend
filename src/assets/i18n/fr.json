@@ -29,7 +29,7 @@
       "none": "Aucun billet de leçon dans votre portefeuille"
     },
     "modal": {
-      "title": "Aucun billet de leçon dans votre portefeuille",
+      "title": "Aucun ticket de leçon dans votre portefeuille",
       "body": "Pour réserver, vous avez besoin d'au moins 1 billet de leçon dans votre portefeuille.",
       "cta_buy": "Acheter des billets de leçon",
       "cta_topup": "Recharger le portefeuille",
@@ -1415,9 +1415,11 @@
       "to_remove": "à retirer",
       "confirm": "Confirmez",
       "cancel": "Annulez",
+      "repeat_4_weeks": "Répéter pour les 4 prochaines semaines",
       "slots": "créneaux",
       "saving": "Enregistrement des modifications...",
       "success": "Disponibilité mise à jour",
+      "partial": "Mis à jour avec des problèmes (créés {{created}}, supprimés {{deleted}}, échecs {{failed}})",
       "error": "Certains créneaux n'ont pas pu être mis à jour"
     }
   }

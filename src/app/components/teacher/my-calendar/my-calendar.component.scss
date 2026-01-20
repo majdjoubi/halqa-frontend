@@ -941,6 +941,20 @@ $bg-white: #ffffff;
           color: darken($primary-color, 5%);
         }
       }
+
+        .repeat-toggle {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+          color: #374151;
+          user-select: none;
+        }
+
+        .repeat-toggle input {
+          width: 16px;
+          height: 16px;
+        }
     }
   }
 }
