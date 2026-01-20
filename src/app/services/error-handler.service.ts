@@ -76,6 +76,19 @@ export class ErrorHandlerService {
     error: any,
     customMessages: { [key: number]: string } = {}
   ): string {
+    // If backend provides a message, allow specific known cases to override generic status messages.
+    // This is especially important for login, where a correct password can still be blocked.
+    const backendMsgRaw =
+      error?.error && typeof error.error?.message === 'string'
+        ? (error.error.message as string)
+        : '';
+    const backendMsg = backendMsgRaw.trim();
+    const backendMsgLower = backendMsg.toLowerCase();
+
+    if (backendMsgLower.includes('deactivat') || backendMsgLower.includes('inactive')) {
+      return 'تم تعطيل الحساب. الرجاء التواصل مع الإدارة لإعادة تفعيله.';
+    }
+
     // Check if there's a custom message for this status code
     if (error.status && customMessages[error.status]) {
       return customMessages[error.status];
@@ -109,8 +122,8 @@ export class ErrorHandlerService {
         return 'Network error. Please check your internet connection.';
       default:
         // Try to extract message from error response
-        if (error.error && error.error.message) {
-          return error.error.message;
+        if (backendMsg) {
+          return backendMsg;
         }
         if (error.message) {
           return error.message;
