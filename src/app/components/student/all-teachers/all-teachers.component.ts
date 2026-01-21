@@ -128,6 +128,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   private teacherSortRequestId = 0;
   private readonly TEACHERS_SORT_CONCURRENCY = 4;
   private readonly nearestAvailabilityCache = new Map<string, string | null>();
+  private readonly TEACHERS_AVAILABILITY_PREFETCH_PAGES_LIMIT = 25;
   private readonly TEACHER_RATING_OVERRIDES_KEY = 'halqa_teacher_rating_overrides';
 
   // Timezone - User's IANA timezone (auto-detected)
@@ -576,6 +577,19 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   loadPage(page: number = 1) {
     this.loading = true;
 
+    const hasSearch = !!(this.searchText && this.searchText.trim().length > 0);
+    const hasFilters = !!(
+      (this.selectedCourse && this.selectedCourse.toString().trim().length > 0) ||
+      (this.selectedTeacher && this.selectedTeacher.toString().trim().length > 0) ||
+      (this.selectedLanguage !== null && this.selectedLanguage !== undefined) ||
+      (this.minRating !== null && this.minRating !== undefined) ||
+      (this.maxHourlyRate !== null && this.maxHourlyRate !== undefined) ||
+      (this.minExperience !== null && this.minExperience !== undefined) ||
+      typeof this.onlyAvailable === 'boolean'
+    );
+
+    const useSearchEndpoint = hasSearch || hasFilters;
+
     const baseOptions: any = {
       search: this.searchText || undefined,
       specialization: this.selectedCourse || undefined,
@@ -613,8 +627,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Default mode: availability-first across pages.
-    this.loadTeachersAvailabilityFirst(page, baseOptions);
+    // Default mode: availability-first across pagination (computed from bookable slots).
+    this.loadTeachersAvailabilityFirstComputed(page, baseOptions, useSearchEndpoint);
   }
 
   private extractTeachersArray(response: any): any[] {
@@ -661,161 +675,216 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Ensures teachers with bookable availability appear first across pagination.
-   * Uses backend isAvailable filter to build each UI page from:
-   *   [available teachers...] then [unavailable teachers...]
-   *
-   * This avoids relying on local slot/time calculations for ordering.
+   * Availability-first pagination that does NOT rely on backend isAvailable.
+   * Instead, it computes each teacher's nearest bookable slot using SlotsService (timezone-safe),
+   * then paginates the resulting global order so page 1/2 reflect true availability priority.
    */
-  private loadTeachersAvailabilityFirst(page: number, baseOptions: any): void {
-    const pageSize = this.pageSize;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
+  private loadTeachersAvailabilityFirstComputed(page: number, baseOptions: any, useSearchEndpoint: boolean): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      // SSR: fall back to backend paging without heavy slot lookups.
+      this.loadPageBackendOnly(page, baseOptions, useSearchEndpoint);
+      return;
+    }
 
-    // Always get the real total count from the unfiltered search to avoid double-counting
-    // in case the backend ignores isAvailable or returns overlapping sets.
-    const metaAll$ = this._repo
-      .searchTeachers({ ...baseOptions, page: 1, pageSize: 1 })
-      .pipe(catchError(() => of(null)));
+    const requestId = ++this.teacherSortRequestId;
+    const uiPageSize = this.pageSize;
+    const targetStart = (page - 1) * uiPageSize;
+    const targetEnd = targetStart + uiPageSize;
 
-    const metaAvail$ = this._repo
-      .searchTeachers({ ...baseOptions, isAvailable: true, page: 1, pageSize: 1 })
-      .pipe(catchError(() => of(null)));
+    const now = DateTime.now().setZone(this.userIanaTimezone);
+    const fromDate = now.minus({ days: 1 }).toFormat('yyyy-MM-dd');
+    const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
-    const metaUnavail$ = this._repo
-      .searchTeachers({ ...baseOptions, isAvailable: false, page: 1, pageSize: 1 })
-      .pipe(catchError(() => of(null)));
+    const available: any[] = [];
+    const unavailable: any[] = [];
+    const seen = new Set<string>();
 
-    forkJoin({ metaAll: metaAll$, metaAvail: metaAvail$, metaUnavail: metaUnavail$ }).subscribe({
-      next: ({ metaAll, metaAvail, metaUnavail }) => {
-        // Fallback: if the search endpoint does not support isAvailable, revert to old listing.
-        if (!metaAll && !metaAvail && !metaUnavail) {
-          this._repo.getAllTeachers(page, pageSize).subscribe({
-            next: (response) => {
-              this.allTeachers = this.extractTeachersArray(response);
-              this.applyRatingOverridesToList(this.allTeachers);
-              this.AllTeacherCount = this.extractTotalCount(response, this.allTeachers);
-              this.currentpage = page;
-              this.totalPages = Math.max(1, Math.ceil(this.AllTeacherCount / pageSize));
-              this.loading = false;
-            },
-            error: (err) => {
-              console.error('Failed to load teachers', err);
-              this.loading = false;
-            }
-          });
-          return;
+    let serverPage = 1;
+    const serverPageSize = Math.max(20, uiPageSize);
+    let totalCount: number | null = null;
+
+    const finalizeFromCurrentBuffers = () => {
+      // Sort available by earliest next slot; keep stable order for ties.
+      const availableSorted = [...available].sort((a: any, b: any) => {
+        const aNext: string | null = a?.__nextAvailableAtUtc ?? null;
+        const bNext: string | null = b?.__nextAvailableAtUtc ?? null;
+        if (aNext && bNext) {
+          const cmp = aNext.localeCompare(bNext);
+          return cmp !== 0 ? cmp : (a?.__scanIndex ?? 0) - (b?.__scanIndex ?? 0);
         }
+        if (aNext && !bNext) return -1;
+        if (!aNext && bNext) return 1;
+        return (a?.__scanIndex ?? 0) - (b?.__scanIndex ?? 0);
+      });
 
-        const overallTotal = metaAll ? this.extractTotalCount(metaAll, this.extractTeachersArray(metaAll)) : null;
+      const combined = [...availableSorted, ...unavailable];
+      const pageItems = combined.slice(targetStart, targetEnd);
+      this.allTeachers = pageItems;
+      this.applyRatingOverridesToList(this.allTeachers);
+      this.loading = false;
+    };
 
-        const availTotal = metaAvail ? this.extractTotalCount(metaAvail, this.extractTeachersArray(metaAvail)) : 0;
-        const unavailTotal = metaUnavail ? this.extractTotalCount(metaUnavail, this.extractTeachersArray(metaUnavail)) : 0;
-        const total = typeof overallTotal === 'number' && Number.isFinite(overallTotal)
-          ? overallTotal
-          : (availTotal + unavailTotal);
+    const fetchServerPage = (p: number) => {
+      if (useSearchEndpoint) {
+        return this._repo.searchTeachers({ ...baseOptions, page: p, pageSize: serverPageSize });
+      }
+      return this._repo.getAllTeachers(p, serverPageSize);
+    };
 
-        this.AllTeacherCount = total;
-        this.currentpage = page;
-        this.totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const processServerPage = (p: number) => {
+      fetchServerPage(p).pipe(catchError(() => of(null))).subscribe({
+        next: (response) => {
+          if (requestId !== this.teacherSortRequestId) return;
 
-        const availStart = Math.min(start, availTotal);
-        const availEnd = Math.min(end, availTotal);
-        const unavailStart = Math.max(0, start - availTotal);
-        const unavailEnd = Math.min(unavailTotal, Math.max(0, end - availTotal));
+          const teachers = this.extractTeachersArray(response);
+          if (totalCount === null) {
+            totalCount = this.extractTotalCount(response, teachers);
+            this.AllTeacherCount = totalCount;
+            this.currentpage = page;
+            this.totalPages = Math.max(1, Math.ceil(totalCount / uiPageSize));
+          }
 
-        forkJoin({
-          availItems: this.fetchTeacherSlice(baseOptions, true, availStart, availEnd, pageSize),
-          unavailItems: this.fetchTeacherSlice(baseOptions, false, unavailStart, unavailEnd, pageSize),
-        }).subscribe({
-          next: ({ availItems, unavailItems }) => {
-            const combined = [...(availItems || []), ...(unavailItems || [])];
-            let deduped = this.dedupeTeachersById(combined);
+          if (!teachers || teachers.length === 0) {
+            finalizeFromCurrentBuffers();
+            return;
+          }
 
-            // If duplicates removed result in fewer than pageSize items, top up from the same
-            // availability buckets (best-effort) to keep pages full.
-            const missingInitial = Math.max(0, pageSize - deduped.length);
-            if (missingInitial === 0) {
-              this.allTeachers = deduped;
-              this.applyRatingOverridesToList(this.allTeachers);
-              this.loading = false;
-              return;
-            }
+          const pageSnapshot = teachers.map((t: any, idx: number) => ({ t, idx }));
 
-            const extraAvailStart = availEnd;
-            const extraAvailEnd = Math.min(availTotal, availEnd + missingInitial);
+          from(pageSnapshot)
+            .pipe(
+              mergeMap(
+                ({ t, idx }: any) => {
+                  const teacherId = this.getTeacherIdString(t);
+                  const scanIndex = (p - 1) * serverPageSize + idx;
 
-            // After filling from extra available, fill remaining from extra unavailable.
-            const extraUnavailStart = unavailEnd;
-            const extraUnavailEnd = Math.min(unavailTotal, unavailEnd + missingInitial);
+                  if (teacherId && seen.has(teacherId)) {
+                    return of(null);
+                  }
 
-            forkJoin({
-              extraAvail: this.fetchTeacherSlice(baseOptions, true, extraAvailStart, extraAvailEnd, pageSize),
-              extraUnavail: this.fetchTeacherSlice(baseOptions, false, extraUnavailStart, extraUnavailEnd, pageSize),
-            }).subscribe({
-              next: ({ extraAvail, extraUnavail }) => {
-                const combined2 = [...combined, ...(extraAvail || []), ...(extraUnavail || [])];
-                deduped = this.dedupeTeachersById(combined2).slice(0, pageSize);
-                this.allTeachers = deduped;
-                this.applyRatingOverridesToList(this.allTeachers);
-                this.loading = false;
+                  if (!teacherId) {
+                    return of({ teacher: t, teacherId: '', nextAtUtc: null as string | null, scanIndex });
+                  }
+
+                  if (this.nearestAvailabilityCache.has(teacherId)) {
+                    return of({
+                      teacher: t,
+                      teacherId,
+                      nextAtUtc: this.nearestAvailabilityCache.get(teacherId) ?? null,
+                      scanIndex,
+                    });
+                  }
+
+                  return this.slotsService
+                    .getEnrichedSlots(teacherId, fromDate, toDate, 60, this.userIanaTimezone)
+                    .pipe(
+                      map((result: any) => {
+                        const slots: EnrichedSlot[] = (result?.slots || []) as EnrichedSlot[];
+                        let nextAtUtc: string | null = null;
+                        for (const s of slots) {
+                          if (!s || !s.isBookable || !s.startAtUtc) continue;
+                          if (nextAtUtc === null || s.startAtUtc < nextAtUtc) {
+                            nextAtUtc = s.startAtUtc;
+                          }
+                        }
+                        this.nearestAvailabilityCache.set(teacherId, nextAtUtc);
+                        return { teacher: t, teacherId, nextAtUtc, scanIndex };
+                      }),
+                      catchError(() => {
+                        this.nearestAvailabilityCache.set(teacherId, null);
+                        return of({ teacher: t, teacherId, nextAtUtc: null as string | null, scanIndex });
+                      })
+                    );
+                },
+                this.TEACHERS_SORT_CONCURRENCY
+              ),
+              toArray(),
+              map((rows: any[]) => (rows || []).filter(Boolean))
+            )
+            .subscribe({
+              next: (rows: Array<{ teacher: any; teacherId: string; nextAtUtc: string | null; scanIndex: number }>) => {
+                if (requestId !== this.teacherSortRequestId) return;
+
+                // Preserve original order within this fetched server page.
+                rows.sort((a, b) => (a.scanIndex ?? 0) - (b.scanIndex ?? 0));
+
+                for (const r of rows) {
+                  const t = r.teacher;
+                  const id = r.teacherId;
+                  if (id) {
+                    if (seen.has(id)) continue;
+                    seen.add(id);
+                  }
+
+                  t.__nextAvailableAtUtc = r.nextAtUtc;
+                  t.__scanIndex = r.scanIndex;
+
+                  if (r.nextAtUtc) {
+                    available.push(t);
+                  } else {
+                    unavailable.push(t);
+                  }
+                }
+
+                const availableSortedCount = available.length;
+                const combinedCount = availableSortedCount + unavailable.length;
+
+                const hasEnoughForTarget = combinedCount >= targetEnd;
+                const reachedLastServerPage = totalCount !== null
+                  ? (serverPage * serverPageSize) >= totalCount
+                  : teachers.length < serverPageSize;
+
+                const reachedPrefetchLimit = serverPage >= this.TEACHERS_AVAILABILITY_PREFETCH_PAGES_LIMIT;
+
+                if (hasEnoughForTarget || reachedLastServerPage || reachedPrefetchLimit) {
+                  finalizeFromCurrentBuffers();
+                  return;
+                }
+
+                serverPage += 1;
+                processServerPage(serverPage);
               },
-              error: (err) => {
-                console.error('Failed to load teachers', err);
-                // Fall back to whatever we already have.
-                this.allTeachers = deduped;
-                this.applyRatingOverridesToList(this.allTeachers);
-                this.loading = false;
+              error: () => {
+                // If per-teacher processing fails unexpectedly, fall back to backend-only mode.
+                if (requestId !== this.teacherSortRequestId) return;
+                this.loadPageBackendOnly(page, baseOptions, useSearchEndpoint);
               }
             });
-          },
-          error: (err) => {
-            console.error('Failed to load teachers', err);
-            this.loading = false;
-          }
-        });
+        },
+        error: (err) => {
+          if (requestId !== this.teacherSortRequestId) return;
+          console.error('Failed to load teachers', err);
+          this.loading = false;
+        }
+      });
+    };
+
+    // Start scanning from page 1 to build global ordering for the requested UI page.
+    serverPage = 1;
+    processServerPage(serverPage);
+  }
+
+  private loadPageBackendOnly(page: number, baseOptions: any, useSearchEndpoint: boolean): void {
+    const pageSize = this.pageSize;
+
+    const obs = useSearchEndpoint
+      ? this._repo.searchTeachers({ ...baseOptions, page, pageSize })
+      : this._repo.getAllTeachers(page, pageSize);
+
+    obs.subscribe({
+      next: (response) => {
+        this.allTeachers = this.extractTeachersArray(response);
+        this.applyRatingOverridesToList(this.allTeachers);
+        this.AllTeacherCount = this.extractTotalCount(response, this.allTeachers);
+        this.currentpage = page;
+        this.totalPages = Math.max(1, Math.ceil(this.AllTeacherCount / pageSize));
+        this.loading = false;
       },
       error: (err) => {
         console.error('Failed to load teachers', err);
         this.loading = false;
       }
     });
-  }
-
-  private fetchTeacherSlice(
-    baseOptions: any,
-    isAvailable: boolean,
-    sliceStart: number,
-    sliceEnd: number,
-    pageSize: number
-  ) {
-    if (sliceEnd <= sliceStart) return of([] as any[]);
-
-    const pageStart = Math.floor(sliceStart / pageSize) + 1;
-    const pageEnd = Math.floor((sliceEnd - 1) / pageSize) + 1;
-    const pages: Array<ReturnType<RepoService['searchTeachers']>> = [];
-
-    for (let p = pageStart; p <= pageEnd; p++) {
-      pages.push(
-        this._repo.searchTeachers({
-          ...baseOptions,
-          isAvailable,
-          page: p,
-          pageSize,
-        })
-      );
-    }
-
-    const offsetInCombined = sliceStart - (pageStart - 1) * pageSize;
-    const needed = sliceEnd - sliceStart;
-
-    return forkJoin(pages).pipe(
-      map((responses: any[]) => {
-        const combined = (responses || []).flatMap((r) => this.extractTeachersArray(r));
-        return combined.slice(offsetInCombined, offsetInCombined + needed);
-      }),
-      catchError(() => of([] as any[]))
-    );
   }
 
   /**
