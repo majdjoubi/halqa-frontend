@@ -629,6 +629,37 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     return Array.isArray(fallbackTeachers) ? fallbackTeachers.length : 0;
   }
 
+  private getTeacherIdString(teacher: any): string {
+    const rawId = teacher?.id ?? teacher?.userId ?? teacher?.teacherId;
+    if (rawId === null || rawId === undefined) return '';
+    if (typeof rawId !== 'string' && typeof rawId !== 'number') return '';
+    return String(rawId).trim();
+  }
+
+  /**
+   * De-dupe teachers by id while keeping the first occurrence.
+   * Teachers with missing ids are kept (not deduped).
+   */
+  private dedupeTeachersById(list: any[]): any[] {
+    if (!Array.isArray(list) || list.length === 0) return [];
+
+    const seen = new Set<string>();
+    const out: any[] = [];
+
+    for (const t of list) {
+      const id = this.getTeacherIdString(t);
+      if (!id) {
+        out.push(t);
+        continue;
+      }
+      if (seen.has(id)) continue;
+      seen.add(id);
+      out.push(t);
+    }
+
+    return out;
+  }
+
   /**
    * Ensures teachers with bookable availability appear first across pagination.
    * Uses backend isAvailable filter to build each UI page from:
@@ -641,6 +672,12 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const start = (page - 1) * pageSize;
     const end = start + pageSize;
 
+    // Always get the real total count from the unfiltered search to avoid double-counting
+    // in case the backend ignores isAvailable or returns overlapping sets.
+    const metaAll$ = this._repo
+      .searchTeachers({ ...baseOptions, page: 1, pageSize: 1 })
+      .pipe(catchError(() => of(null)));
+
     const metaAvail$ = this._repo
       .searchTeachers({ ...baseOptions, isAvailable: true, page: 1, pageSize: 1 })
       .pipe(catchError(() => of(null)));
@@ -649,10 +686,10 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
       .searchTeachers({ ...baseOptions, isAvailable: false, page: 1, pageSize: 1 })
       .pipe(catchError(() => of(null)));
 
-    forkJoin({ metaAvail: metaAvail$, metaUnavail: metaUnavail$ }).subscribe({
-      next: ({ metaAvail, metaUnavail }) => {
+    forkJoin({ metaAll: metaAll$, metaAvail: metaAvail$, metaUnavail: metaUnavail$ }).subscribe({
+      next: ({ metaAll, metaAvail, metaUnavail }) => {
         // Fallback: if the search endpoint does not support isAvailable, revert to old listing.
-        if (!metaAvail && !metaUnavail) {
+        if (!metaAll && !metaAvail && !metaUnavail) {
           this._repo.getAllTeachers(page, pageSize).subscribe({
             next: (response) => {
               this.allTeachers = this.extractTeachersArray(response);
@@ -670,9 +707,13 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           return;
         }
 
+        const overallTotal = metaAll ? this.extractTotalCount(metaAll, this.extractTeachersArray(metaAll)) : null;
+
         const availTotal = metaAvail ? this.extractTotalCount(metaAvail, this.extractTeachersArray(metaAvail)) : 0;
         const unavailTotal = metaUnavail ? this.extractTotalCount(metaUnavail, this.extractTeachersArray(metaUnavail)) : 0;
-        const total = availTotal + unavailTotal;
+        const total = typeof overallTotal === 'number' && Number.isFinite(overallTotal)
+          ? overallTotal
+          : (availTotal + unavailTotal);
 
         this.AllTeacherCount = total;
         this.currentpage = page;
@@ -688,9 +729,45 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
           unavailItems: this.fetchTeacherSlice(baseOptions, false, unavailStart, unavailEnd, pageSize),
         }).subscribe({
           next: ({ availItems, unavailItems }) => {
-            this.allTeachers = [...(availItems || []), ...(unavailItems || [])];
-            this.applyRatingOverridesToList(this.allTeachers);
-            this.loading = false;
+            const combined = [...(availItems || []), ...(unavailItems || [])];
+            let deduped = this.dedupeTeachersById(combined);
+
+            // If duplicates removed result in fewer than pageSize items, top up from the same
+            // availability buckets (best-effort) to keep pages full.
+            const missingInitial = Math.max(0, pageSize - deduped.length);
+            if (missingInitial === 0) {
+              this.allTeachers = deduped;
+              this.applyRatingOverridesToList(this.allTeachers);
+              this.loading = false;
+              return;
+            }
+
+            const extraAvailStart = availEnd;
+            const extraAvailEnd = Math.min(availTotal, availEnd + missingInitial);
+
+            // After filling from extra available, fill remaining from extra unavailable.
+            const extraUnavailStart = unavailEnd;
+            const extraUnavailEnd = Math.min(unavailTotal, unavailEnd + missingInitial);
+
+            forkJoin({
+              extraAvail: this.fetchTeacherSlice(baseOptions, true, extraAvailStart, extraAvailEnd, pageSize),
+              extraUnavail: this.fetchTeacherSlice(baseOptions, false, extraUnavailStart, extraUnavailEnd, pageSize),
+            }).subscribe({
+              next: ({ extraAvail, extraUnavail }) => {
+                const combined2 = [...combined, ...(extraAvail || []), ...(extraUnavail || [])];
+                deduped = this.dedupeTeachersById(combined2).slice(0, pageSize);
+                this.allTeachers = deduped;
+                this.applyRatingOverridesToList(this.allTeachers);
+                this.loading = false;
+              },
+              error: (err) => {
+                console.error('Failed to load teachers', err);
+                // Fall back to whatever we already have.
+                this.allTeachers = deduped;
+                this.applyRatingOverridesToList(this.allTeachers);
+                this.loading = false;
+              }
+            });
           },
           error: (err) => {
             console.error('Failed to load teachers', err);
