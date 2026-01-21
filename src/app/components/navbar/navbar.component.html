@@ -1,5 +1,5 @@
 <nav class="modern-navbar" *ngIf="showNavbar">
-  <div class="navbar-container">
+  <div class="navbar-container" [class.admin]="role === 3">
     <ng-container *ngIf="isLoading; else navbarContent">
       <div class="skeleton-navbar">
         <div class="skeleton-brand">
@@ -86,7 +86,7 @@
 
       <!-- Navigation Menu -->
       <div class="navbar-menu" [class.active]="mobileMenuOpen">
-        <ul class="nav-links">
+        <ul class="nav-links" [class.admin]="role === 3">
           <li class="nav-item">
             <a
               routerLink="/"
