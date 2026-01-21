@@ -575,98 +575,170 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
   loadPage(page: number = 1) {
     this.loading = true;
-    // If user hasn't typed a search and no filters are active, use default listing endpoint
-    const hasSearch = !!(this.searchText && this.searchText.trim().length > 0);
-    const hasFilters = !!(
-      (this.selectedCourse &&
-        this.selectedCourse.toString().trim().length > 0) ||
-      (this.selectedTeacher &&
-        this.selectedTeacher.toString().trim().length > 0) ||
-      (this.selectedLanguage !== null && this.selectedLanguage !== undefined) ||
-      (this.minRating !== null && this.minRating !== undefined) ||
-      (this.maxHourlyRate !== null && this.maxHourlyRate !== undefined) ||
-      (this.minExperience !== null && this.minExperience !== undefined) ||
-      typeof this.onlyAvailable === 'boolean'
-    );
 
-    if (!hasSearch && !hasFilters) {
-      this._repo.getAllTeachers(page, this.pageSize).subscribe(
-        (response) => {
-          // Expecting response shape { teachers: [], totalCount: number }
-          this.allTeachers =
-            response.teachers || response.items || response.data || [];
-
-          // Apply locally-saved rating overrides (best-effort; browser-only)
-          this.applyRatingOverridesToList(this.allTeachers);
-
-          this.AllTeacherCount =
-            response.totalCount ||
-            response.total ||
-            (Array.isArray(this.allTeachers) ? this.allTeachers.length : 0);
-          this.currentpage = page;
-          this.totalPages = Math.max(
-            1,
-            Math.ceil(this.AllTeacherCount / this.pageSize)
-          );
-
-          // Keep teacher cards ordered by earliest upcoming availability
-          this.sortTeachersByNearestAvailability();
-          this.loading = false;
-        },
-        (err) => {
-          console.error('Failed to load teachers', err);
-          this.loading = false;
-        }
-      );
-      return;
-    }
-
-    // Otherwise call search endpoint (include filters alongside search term)
-    const options: any = {
+    const baseOptions: any = {
       search: this.searchText || undefined,
       specialization: this.selectedCourse || undefined,
       language: this.selectedLanguage || undefined,
       minRating: this.minRating || undefined,
       maxHourlyRate: this.maxHourlyRate || undefined,
       minExperience: this.minExperience || undefined,
-      page: page,
-      pageSize: this.pageSize,
     };
-    // include availability filter only when explicitly set (true/false)
+
+    // When user explicitly filters availability, respect backend paging as-is.
     if (typeof this.onlyAvailable === 'boolean') {
-      options.isAvailable = this.onlyAvailable;
+      const options = {
+        ...baseOptions,
+        isAvailable: this.onlyAvailable,
+        page,
+        pageSize: this.pageSize,
+      };
+
+      this._repo.searchTeachers(options).subscribe({
+        next: (response) => {
+          this.allTeachers = this.extractTeachersArray(response);
+          this.applyRatingOverridesToList(this.allTeachers);
+
+          this.AllTeacherCount = this.extractTotalCount(response, this.allTeachers);
+          this.currentpage = page;
+          this.totalPages = Math.max(1, Math.ceil(this.AllTeacherCount / this.pageSize));
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Failed to load teachers', err);
+          this.loading = false;
+        }
+      });
+
+      return;
     }
 
-    this._repo.searchTeachers(options).subscribe(
-      (response) => {
-        // Expect response shape similar to { teachers: [], totalCount }
-        this.allTeachers =
-          response.teachers || response.items || response.data || [];
+    // Default mode: availability-first across pages.
+    this.loadTeachersAvailabilityFirst(page, baseOptions);
+  }
 
-        // Apply locally-saved rating overrides (best-effort; browser-only)
-        this.applyRatingOverridesToList(this.allTeachers);
+  private extractTeachersArray(response: any): any[] {
+    if (!response) return [];
+    const list = (response as any).teachers || (response as any).items || (response as any).data || [];
+    return Array.isArray(list) ? list : [];
+  }
 
-        this.AllTeacherCount =
-          response.totalCount ||
-          response.total ||
-          (Array.isArray(this.allTeachers) ? this.allTeachers.length : 0);
+  private extractTotalCount(response: any, fallbackTeachers: any[]): number {
+    const total = response?.totalCount ?? response?.total;
+    if (typeof total === 'number' && Number.isFinite(total)) return total;
+    return Array.isArray(fallbackTeachers) ? fallbackTeachers.length : 0;
+  }
+
+  /**
+   * Ensures teachers with bookable availability appear first across pagination.
+   * Uses backend isAvailable filter to build each UI page from:
+   *   [available teachers...] then [unavailable teachers...]
+   *
+   * This avoids relying on local slot/time calculations for ordering.
+   */
+  private loadTeachersAvailabilityFirst(page: number, baseOptions: any): void {
+    const pageSize = this.pageSize;
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize;
+
+    const metaAvail$ = this._repo
+      .searchTeachers({ ...baseOptions, isAvailable: true, page: 1, pageSize: 1 })
+      .pipe(catchError(() => of(null)));
+
+    const metaUnavail$ = this._repo
+      .searchTeachers({ ...baseOptions, isAvailable: false, page: 1, pageSize: 1 })
+      .pipe(catchError(() => of(null)));
+
+    forkJoin({ metaAvail: metaAvail$, metaUnavail: metaUnavail$ }).subscribe({
+      next: ({ metaAvail, metaUnavail }) => {
+        // Fallback: if the search endpoint does not support isAvailable, revert to old listing.
+        if (!metaAvail && !metaUnavail) {
+          this._repo.getAllTeachers(page, pageSize).subscribe({
+            next: (response) => {
+              this.allTeachers = this.extractTeachersArray(response);
+              this.applyRatingOverridesToList(this.allTeachers);
+              this.AllTeacherCount = this.extractTotalCount(response, this.allTeachers);
+              this.currentpage = page;
+              this.totalPages = Math.max(1, Math.ceil(this.AllTeacherCount / pageSize));
+              this.loading = false;
+            },
+            error: (err) => {
+              console.error('Failed to load teachers', err);
+              this.loading = false;
+            }
+          });
+          return;
+        }
+
+        const availTotal = metaAvail ? this.extractTotalCount(metaAvail, this.extractTeachersArray(metaAvail)) : 0;
+        const unavailTotal = metaUnavail ? this.extractTotalCount(metaUnavail, this.extractTeachersArray(metaUnavail)) : 0;
+        const total = availTotal + unavailTotal;
+
+        this.AllTeacherCount = total;
         this.currentpage = page;
-        this.totalPages = Math.max(
-          1,
-          Math.ceil(this.AllTeacherCount / this.pageSize)
-        );
+        this.totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-        // Keep teacher cards ordered by earliest upcoming availability
-        this.sortTeachersByNearestAvailability();
-        this.loading = false;
+        const availStart = Math.min(start, availTotal);
+        const availEnd = Math.min(end, availTotal);
+        const unavailStart = Math.max(0, start - availTotal);
+        const unavailEnd = Math.min(unavailTotal, Math.max(0, end - availTotal));
+
+        forkJoin({
+          availItems: this.fetchTeacherSlice(baseOptions, true, availStart, availEnd, pageSize),
+          unavailItems: this.fetchTeacherSlice(baseOptions, false, unavailStart, unavailEnd, pageSize),
+        }).subscribe({
+          next: ({ availItems, unavailItems }) => {
+            this.allTeachers = [...(availItems || []), ...(unavailItems || [])];
+            this.applyRatingOverridesToList(this.allTeachers);
+            this.loading = false;
+          },
+          error: (err) => {
+            console.error('Failed to load teachers', err);
+            this.loading = false;
+          }
+        });
       },
-      (err) => {
+      error: (err) => {
         console.error('Failed to load teachers', err);
         this.loading = false;
       }
-    );
+    });
+  }
 
-    // ...existing code...
+  private fetchTeacherSlice(
+    baseOptions: any,
+    isAvailable: boolean,
+    sliceStart: number,
+    sliceEnd: number,
+    pageSize: number
+  ) {
+    if (sliceEnd <= sliceStart) return of([] as any[]);
+
+    const pageStart = Math.floor(sliceStart / pageSize) + 1;
+    const pageEnd = Math.floor((sliceEnd - 1) / pageSize) + 1;
+    const pages: Array<ReturnType<RepoService['searchTeachers']>> = [];
+
+    for (let p = pageStart; p <= pageEnd; p++) {
+      pages.push(
+        this._repo.searchTeachers({
+          ...baseOptions,
+          isAvailable,
+          page: p,
+          pageSize,
+        })
+      );
+    }
+
+    const offsetInCombined = sliceStart - (pageStart - 1) * pageSize;
+    const needed = sliceEnd - sliceStart;
+
+    return forkJoin(pages).pipe(
+      map((responses: any[]) => {
+        const combined = (responses || []).flatMap((r) => this.extractTeachersArray(r));
+        return combined.slice(offsetInCombined, offsetInCombined + needed);
+      }),
+      catchError(() => of([] as any[]))
+    );
   }
 
   /**
