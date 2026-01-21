@@ -702,8 +702,14 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     const toDate = now.plus({ days: 29 }).toFormat('yyyy-MM-dd');
 
     const teacherIds: string[] = teachersSnapshot
-      .map((t: any) => (t?.id || t?.userId) as string)
-      .filter((id: any) => typeof id === 'string' && id.length > 0);
+      .map((t: any) => {
+        const rawId = t?.id ?? t?.userId ?? t?.teacherId;
+        if (rawId === null || rawId === undefined) return null;
+        if (typeof rawId !== 'string' && typeof rawId !== 'number') return null;
+        const id = String(rawId).trim();
+        return id.length > 0 ? id : null;
+      })
+      .filter((id: string | null): id is string => typeof id === 'string');
 
     from(teacherIds)
       .pipe(
@@ -743,7 +749,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
 
         const byId = new Map<string, string | null>(rows.map(r => [r.teacherId, r.nextAtUtc]));
         for (const t of teachersSnapshot as any[]) {
-          const id = (t?.id || t?.userId) as string;
+          const rawId = t?.id ?? t?.userId ?? t?.teacherId;
+          const id = rawId === null || rawId === undefined ? '' : String(rawId);
           t.__nextAvailableAtUtc = id ? (byId.get(id) ?? null) : null;
         }
 
