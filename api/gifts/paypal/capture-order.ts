@@ -4,6 +4,26 @@ import { dbQuery } from '../../_lib/db';
 import { ensureGiftSchema } from '../_lib/schema';
 import { paypalApi } from './_client';
 
+function classifyError(e: any): { status: number; message: string } {
+  const message = String(e?.message || '');
+
+  // Server misconfiguration (missing secrets/env vars)
+  if (/^(PAYPAL_[A-Z0-9_]+|DATABASE_URL) is required$/.test(message)) {
+    return { status: 500, message };
+  }
+
+  // Upstream PayPal failures (not a client/request problem)
+  if (
+    /^PayPal token error \d+/.test(message) ||
+    message === 'Invalid PayPal token response' ||
+    /^PayPal error \d+/.test(message)
+  ) {
+    return { status: 502, message };
+  }
+
+  return { status: 400, message: message || 'Bad Request' };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== 'POST') {
@@ -48,6 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return sendJson(res, 200, { success: true, code, status });
   } catch (e: any) {
     console.error(e);
-    return sendJson(res, 400, { message: e?.message || 'Bad Request' });
+    const { status, message } = classifyError(e);
+    return sendJson(res, status, { message });
   }
 }
