@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environment/environment';
 
 export type GiftPackageId = 'pkg_1' | 'pkg_3' | 'pkg_6' | 'pkg_10';
@@ -41,7 +41,19 @@ export class GiftService {
 
   getPayPalGiftStatus(): Observable<{ enabled: boolean }> {
     const url = `${this.baseUrl}/api/gifts/paypal/status`;
-    return this.http.get<{ enabled: boolean }>(url);
+    // Be defensive: if the endpoint is not deployed/mis-routed, some hosts may
+    // return the SPA index.html (200 text/html) which would otherwise cause a
+    // JSON parse error in HttpClient.
+    return this.http.get(url, { responseType: 'text' }).pipe(
+      map((text) => {
+        try {
+          const data = JSON.parse(String(text || ''));
+          return { enabled: !!data?.enabled };
+        } catch {
+          return { enabled: false };
+        }
+      })
+    );
   }
 
   createStripeIntent(payload: {
