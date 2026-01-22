@@ -24,6 +24,8 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
 
+  paypalGiftEnabled = true;
+
   selectedPackageId: GiftPackageId = 'pkg_3';
 
   recipientName = '';
@@ -70,10 +72,31 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
           if (!this.packages.find((p) => p.id === this.selectedPackageId)) {
             this.selectedPackageId = (this.packages[0]?.id as GiftPackageId) || 'pkg_3';
           }
-          this.loading = false;
-          // Prepare payment UI
-          this.prepareStripe();
-          this.preparePayPal();
+          // Check if PayPal gifting is configured server-side
+          this.subs.add(
+            this.giftService.getPayPalGiftStatus().subscribe({
+              next: (s) => {
+                this.paypalGiftEnabled = !!s?.enabled;
+                if (!this.paypalGiftEnabled && this.paymentMethod === 'paypal') {
+                  this.paymentMethod = 'stripe';
+                  this.error = 'gifting.buy.errors.paypal_unavailable';
+                }
+
+                this.loading = false;
+                // Prepare payment UI
+                this.prepareStripe();
+                if (this.paypalGiftEnabled) this.preparePayPal();
+              },
+              error: (err) => {
+                // If status endpoint fails, keep PayPal visible but let runtime errors handle it.
+                console.error(err);
+                this.paypalGiftEnabled = true;
+                this.loading = false;
+                this.prepareStripe();
+                this.preparePayPal();
+              },
+            })
+          );
         },
         error: (err) => {
           console.error(err);
@@ -89,6 +112,13 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
   }
 
   setPaymentMethod(method: 'stripe' | 'paypal'): void {
+    if (method === 'paypal' && !this.paypalGiftEnabled) {
+      this.error = 'gifting.buy.errors.paypal_unavailable';
+      this.paymentMethod = 'stripe';
+      this.prepareStripe();
+      return;
+    }
+
     this.paymentMethod = method;
     this.error = null;
 

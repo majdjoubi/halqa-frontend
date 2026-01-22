@@ -39,6 +39,11 @@ export class GiftService {
     return this.http.get<{ packages: GiftPackage[] }>(url);
   }
 
+  getPayPalGiftStatus(): Observable<{ enabled: boolean }> {
+    const url = `${this.baseUrl}/api/gifts/paypal/status`;
+    return this.http.get<{ enabled: boolean }>(url);
+  }
+
   createStripeIntent(payload: {
     packageId: GiftPackageId;
     recipientName?: string;

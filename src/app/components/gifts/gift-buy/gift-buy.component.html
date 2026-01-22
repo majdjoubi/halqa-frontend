@@ -48,7 +48,15 @@
 
           <div class="tabs">
             <button type="button" class="tab" [class.active]="paymentMethod==='stripe'" (click)="setPaymentMethod('stripe')">{{ 'gifting.buy.pay_card' | translate }}</button>
-            <button type="button" class="tab" [class.active]="paymentMethod==='paypal'" (click)="setPaymentMethod('paypal')">{{ 'gifting.buy.pay_paypal' | translate }}</button>
+            <button
+              type="button"
+              class="tab"
+              [class.active]="paymentMethod==='paypal'"
+              [disabled]="!paypalGiftEnabled"
+              (click)="setPaymentMethod('paypal')"
+            >
+              {{ 'gifting.buy.pay_paypal' | translate }}
+            </button>
           </div>
 
           <ng-container *ngIf="paymentMethod==='stripe'">
