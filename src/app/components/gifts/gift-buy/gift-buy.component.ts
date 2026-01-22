@@ -1,0 +1,222 @@
+import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { TranslateModule } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
+
+import { GiftService, GiftPackage, GiftPackageId } from '../../../services/gifting/gift.service';
+import { StripeService } from '../../../services/stripe.service';
+import { PaypalService } from '../../../services/paypal.service';
+
+declare var paypal: any;
+
+@Component({
+  selector: 'app-gift-buy',
+  standalone: true,
+  imports: [CommonModule, FormsModule, TranslateModule],
+  templateUrl: './gift-buy.component.html',
+  styleUrl: './gift-buy.component.scss',
+})
+export class GiftBuyComponent implements OnInit, OnDestroy {
+  packages: GiftPackage[] = [];
+  loading = false;
+  error: string | null = null;
+
+  selectedPackageId: GiftPackageId = 'pkg_3';
+
+  recipientName = '';
+  message = '';
+  purchaserEmail = '';
+
+  paymentMethod: 'stripe' | 'paypal' = 'stripe';
+
+  stripeReady = false;
+  paying = false;
+
+  private subs = new Subscription();
+
+  constructor(
+    @Inject(PLATFORM_ID) private platformId: Object,
+    private giftService: GiftService,
+    private stripeService: StripeService,
+    private paypalService: PaypalService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    this.loadPackages();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+    try {
+      this.stripeService.destroyCardElement();
+    } catch {
+      // ignore
+    }
+  }
+
+  private loadPackages(): void {
+    this.loading = true;
+    this.error = null;
+
+    this.subs.add(
+      this.giftService.getPackages().subscribe({
+        next: (resp) => {
+          this.packages = resp?.packages || [];
+          if (!this.packages.find((p) => p.id === this.selectedPackageId)) {
+            this.selectedPackageId = (this.packages[0]?.id as GiftPackageId) || 'pkg_3';
+          }
+          this.loading = false;
+          // Prepare payment UI
+          this.prepareStripe();
+          this.preparePayPal();
+        },
+        error: (err) => {
+          console.error(err);
+          this.loading = false;
+          this.error = 'gifting.buy.errors.load_packages';
+        },
+      })
+    );
+  }
+
+  get selectedPackage(): GiftPackage | null {
+    return this.packages.find((p) => p.id === this.selectedPackageId) || null;
+  }
+
+  setPaymentMethod(method: 'stripe' | 'paypal'): void {
+    this.paymentMethod = method;
+    this.error = null;
+
+    if (method === 'stripe') {
+      this.prepareStripe();
+    } else {
+      this.preparePayPal();
+    }
+  }
+
+  private async prepareStripe(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.paymentMethod !== 'stripe') return;
+
+    try {
+      await this.stripeService.initializeStripe();
+      // mount card element
+      this.stripeService.createCardElement('gift-card-element');
+      this.stripeReady = true;
+    } catch (e) {
+      console.error(e);
+      this.stripeReady = false;
+      this.error = 'gifting.buy.errors.stripe_unavailable';
+    }
+  }
+
+  async payWithStripe(): Promise<void> {
+    if (!this.selectedPackage) return;
+    if (this.paying) return;
+
+    this.error = null;
+    this.paying = true;
+
+    try {
+      const resp = await this.giftService
+        .createStripeIntent({
+          packageId: this.selectedPackageId,
+          recipientName: this.recipientName,
+          message: this.message,
+          purchaserEmail: this.purchaserEmail,
+        })
+        .toPromise();
+
+      const code = resp?.code;
+      const clientSecret = resp?.clientSecret;
+      if (!code || !clientSecret) throw new Error('Payment could not be started');
+
+      const result = await this.stripeService.confirmPayment(clientSecret);
+      if (result?.error) {
+        throw new Error(result.error?.message || 'Payment failed');
+      }
+
+      await this.router.navigate(['/gift', code]);
+    } catch (e: any) {
+      console.error(e);
+      this.error = e?.message || 'gifting.buy.errors.payment_failed';
+    } finally {
+      this.paying = false;
+    }
+  }
+
+  private async preparePayPal(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (this.paymentMethod !== 'paypal') return;
+
+    try {
+      const cfg = await this.paypalService.getPayPalConfig().toPromise();
+      const clientId = cfg?.clientId;
+      if (!clientId) throw new Error('PayPal config missing');
+
+      await this.paypalService.loadPayPalScript(clientId);
+
+      // Render buttons with gift endpoints
+      this.renderGiftPayPalButtons();
+    } catch (e) {
+      console.error(e);
+      this.error = 'gifting.buy.errors.paypal_unavailable';
+    }
+  }
+
+  private renderGiftPayPalButtons(): void {
+    if (typeof paypal === 'undefined') return;
+
+    // Re-render: clear container
+    const el = document.getElementById('gift-paypal-buttons');
+    if (el) el.innerHTML = '';
+
+    paypal
+      .Buttons({
+        style: {
+          layout: 'vertical',
+          color: 'blue',
+          shape: 'rect',
+          label: 'paypal',
+        },
+        createOrder: async () => {
+          try {
+            const resp = await this.giftService
+              .createPayPalOrder({
+                packageId: this.selectedPackageId,
+                recipientName: this.recipientName,
+                message: this.message,
+                purchaserEmail: this.purchaserEmail,
+              })
+              .toPromise();
+
+            // store code for redirect after capture
+            (window as any).__giftPayPalCode = resp?.code;
+            return resp?.orderId;
+          } catch (e) {
+            this.error = 'gifting.buy.errors.paypal_start_failed';
+            throw e;
+          }
+        },
+        onApprove: async (data: any) => {
+          try {
+            const capture = await this.giftService.capturePayPalOrder(data.orderID).toPromise();
+            if (!capture?.success) throw new Error('PayPal capture failed');
+            await this.router.navigate(['/gift', capture.code]);
+          } catch (e: any) {
+            console.error(e);
+            this.error = e?.message || 'gifting.buy.errors.paypal_payment_failed';
+          }
+        },
+        onError: (err: any) => {
+          console.error(err);
+          this.error = 'gifting.buy.errors.paypal_payment_failed';
+        },
+      })
+      .render('#gift-paypal-buttons');
+  }
+}

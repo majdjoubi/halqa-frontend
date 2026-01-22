@@ -1,0 +1,83 @@
+<section class="gift-buy">
+  <div class="container">
+    <h2 class="title">{{ 'gifting.buy.title' | translate }}</h2>
+    <p class="subtitle">
+      {{ 'gifting.buy.subtitle' | translate }}
+    </p>
+
+    <div class="alert" *ngIf="error">{{ error | translate }}</div>
+
+    <div class="panel" *ngIf="!loading; else loadingTpl">
+      <div class="grid">
+        <div class="card">
+          <h3>{{ 'gifting.buy.step1' | translate }}</h3>
+          <div class="packages">
+            <label class="pkg" *ngFor="let p of packages">
+              <input
+                type="radio"
+                name="pkg"
+                [value]="p.id"
+                [(ngModel)]="selectedPackageId"
+              />
+              <div class="pkg-meta">
+                <div class="pkg-title">{{ p.lessons }} lesson(s)</div>
+                <div class="pkg-price">${{ p.priceUsd }}</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>{{ 'gifting.buy.step2' | translate }}</h3>
+          <div class="field">
+            <label>{{ 'gifting.buy.recipient_name' | translate }}</label>
+            <input [(ngModel)]="recipientName" maxlength="80" [placeholder]="'gifting.buy.recipient_name_ph' | translate" />
+          </div>
+          <div class="field">
+            <label>{{ 'gifting.buy.message' | translate }}</label>
+            <textarea [(ngModel)]="message" maxlength="500" [placeholder]="'gifting.buy.message_ph' | translate"></textarea>
+          </div>
+          <div class="field">
+            <label>{{ 'gifting.buy.purchaser_email' | translate }}</label>
+            <input [(ngModel)]="purchaserEmail" maxlength="120" [placeholder]="'gifting.buy.purchaser_email_ph' | translate" />
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>{{ 'gifting.buy.step3' | translate }}</h3>
+
+          <div class="tabs">
+            <button type="button" class="tab" [class.active]="paymentMethod==='stripe'" (click)="setPaymentMethod('stripe')">{{ 'gifting.buy.pay_card' | translate }}</button>
+            <button type="button" class="tab" [class.active]="paymentMethod==='paypal'" (click)="setPaymentMethod('paypal')">{{ 'gifting.buy.pay_paypal' | translate }}</button>
+          </div>
+
+          <ng-container *ngIf="paymentMethod==='stripe'">
+            <div class="stripe-box">
+              <div id="gift-card-element" class="card-element"></div>
+              <button
+                class="pay-btn"
+                type="button"
+                [disabled]="!stripeReady || paying"
+                (click)="payWithStripe()"
+              >
+                {{ (paying ? 'gifting.buy.processing' : 'gifting.buy.pay_generate') | translate }}
+              </button>
+              <small class="hint">{{ 'gifting.buy.hint_stripe' | translate }}</small>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="paymentMethod==='paypal'">
+            <div class="paypal-box">
+              <div id="gift-paypal-buttons"></div>
+              <small class="hint">{{ 'gifting.buy.hint_paypal' | translate }}</small>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #loadingTpl>
+      <div class="panel">{{ 'LOADING' | translate }}</div>
+    </ng-template>
+  </div>
+</section>

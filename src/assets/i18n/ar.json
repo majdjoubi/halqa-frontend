@@ -77,6 +77,66 @@
     "message": "⚠️ الموقع يخضع حالياً لأعمال الصيانة والتحسينات. نرجو منكم العودة في وقت لاحق. شكراً لتفهمكم."
   },
   "HOME": "الرئيسية",
+  "nav": {
+    "gift": "إهداء"
+  },
+  "gifting": {
+    "cta": "إهداء باقة",
+    "buy": {
+      "title": "إهداء",
+      "subtitle": "اشترِ باقة وأهدِها لشخص آخر. يمكنه استردادها بعد إنشاء حساب.",
+      "step1": "١) اختر الباقة",
+      "step2": "٢) تفاصيل الهدية (اختياري)",
+      "step3": "٣) الدفع",
+      "recipient_name": "اسم المستلم",
+      "recipient_name_ph": "الاسم",
+      "message": "رسالة",
+      "message_ph": "اكتب رسالة قصيرة",
+      "purchaser_email": "بريدك الإلكتروني (إيصال)",
+      "purchaser_email_ph": "you@email.com",
+      "pay_card": "بطاقة",
+      "pay_paypal": "PayPal",
+      "pay_generate": "ادفع وأنشئ الهدية",
+      "processing": "جارٍ المعالجة…",
+      "hint_stripe": "دفع آمن عبر Stripe.",
+      "hint_paypal": "دفع آمن عبر PayPal.",
+      "errors": {
+        "load_packages": "تعذر تحميل باقات الإهداء.",
+        "stripe_unavailable": "خدمة Stripe غير متاحة حالياً.",
+        "paypal_unavailable": "خدمة PayPal غير متاحة حالياً.",
+        "paypal_start_failed": "تعذر بدء عملية الدفع عبر PayPal.",
+        "paypal_payment_failed": "فشلت عملية الدفع عبر PayPal.",
+        "payment_failed": "فشلت عملية الدفع."
+      }
+    },
+    "voucher": {
+      "buy_another": "شراء هدية أخرى",
+      "redeem": "استرداد",
+      "print": "طباعة",
+      "title": "باقة هدية",
+      "package": "الباقة",
+      "value": "القيمة",
+      "expires": "تاريخ الانتهاء",
+      "to": "إلى",
+      "message": "الرسالة",
+      "code": "كود الهدية",
+      "redeem_link": "رابط الاسترداد",
+      "note": "يمكن استخدام هذا الكود مرة واحدة فقط. يجب على المستلم إنشاء حساب طالب ثم استرداده."
+    },
+    "redeem": {
+      "title": "استرداد الهدية",
+      "processing": "جارٍ المعالجة…",
+      "success_title": "تم بنجاح!",
+      "success_body": "تم استرداد الهدية.",
+      "book": "احجز درساً",
+      "ready": "جاهز لاسترداد الكود",
+      "button": "استرداد"
+    },
+    "errors": {
+      "missing_code": "كود الهدية غير موجود.",
+      "not_found": "لم يتم العثور على كود الهدية."
+    }
+  },
   "ABOUT_US": "من نحن",
   "BENEFITS": "الفوائد",
   "OUR_MISSION": "مهمتنا",

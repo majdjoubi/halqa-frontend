@@ -99,6 +99,17 @@
             </a>
           </li>
 
+          <li class="nav-item">
+            <a
+              routerLink="/gift"
+              routerLinkActive="active"
+              class="nav-link"
+              (click)="closeMobileMenu()"
+            >
+              {{ "nav.gift" | translate }}
+            </a>
+          </li>
+
           <ng-container *ngIf="role === 1">
             <li class="nav-item">
               <a

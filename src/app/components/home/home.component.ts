@@ -109,6 +109,10 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/all-teachers']);
   }
 
+  goToGift(): void {
+    this.router.navigate(['/gift']);
+  }
+
   private getBrowserStoredRole(): string | null {
     if (!isPlatformBrowser(this.platformId)) return null;
     return localStorage.getItem('user_role');

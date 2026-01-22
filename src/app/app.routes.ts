@@ -12,6 +12,25 @@ export const routes: Routes = [
       import('./components/home/home.component').then((m) => m.HomeComponent),
   },
   {
+    path: 'gift',
+    loadComponent: () =>
+      import('./components/gifts/gift-buy/gift-buy.component').then((m) => m.GiftBuyComponent),
+  },
+  {
+    path: 'gift/:code',
+    loadComponent: () =>
+      import('./components/gifts/gift-voucher/gift-voucher.component').then(
+        (m) => m.GiftVoucherComponent
+      ),
+  },
+  {
+    path: 'redeem/:code',
+    loadComponent: () =>
+      import('./components/gifts/gift-redeem/gift-redeem.component').then(
+        (m) => m.GiftRedeemComponent
+      ),
+  },
+  {
     path: 'home',
     canActivate: [ProtectedGuard],
     loadComponent: () =>

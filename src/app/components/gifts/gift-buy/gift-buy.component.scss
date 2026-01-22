@@ -1,0 +1,176 @@
+.gift-buy {
+  padding: 110px 0 40px;
+
+  .title {
+    font-weight: 800;
+    margin: 0 0 8px;
+  }
+
+  .subtitle {
+    margin: 0 0 18px;
+    color: #64748b;
+  }
+
+  .alert {
+    background: #fff4f4;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #991b1b;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  @media (min-width: 992px) {
+    .grid {
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: start;
+    }
+  }
+
+  .card {
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 12px;
+    padding: 14px;
+    background: #fff;
+
+    h3 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+  }
+
+  .packages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .pkg {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 10px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 10px;
+    cursor: pointer;
+
+    input {
+      transform: translateY(-1px);
+    }
+
+    .pkg-meta {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      gap: 10px;
+
+      .pkg-title {
+        font-weight: 800;
+      }
+
+      .pkg-price {
+        font-weight: 800;
+        color: #016836;
+      }
+    }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+
+    label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    input,
+    textarea {
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+  }
+
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    .tab {
+      border: 1px solid rgba(15, 23, 42, 0.12);
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-weight: 800;
+      cursor: pointer;
+
+      &.active {
+        border-color: rgba(1, 104, 54, 0.35);
+        box-shadow: 0 0 0 4px rgba(1, 104, 54, 0.08);
+      }
+    }
+  }
+
+  .stripe-box,
+  .paypal-box {
+    padding: 10px;
+    border: 1px dashed rgba(15, 23, 42, 0.2);
+    border-radius: 12px;
+  }
+
+  .card-element {
+    padding: 12px;
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .pay-btn {
+    width: 100%;
+    margin-top: 12px;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 14px;
+    background: #065a33;
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .hint {
+    display: block;
+    margin-top: 10px;
+    color: #64748b;
+  }
+}

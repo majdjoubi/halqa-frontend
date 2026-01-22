@@ -77,6 +77,66 @@
     "message": "⚠️ Die Website wird derzeit gewartet und verbessert. Bitte schau später wieder vorbei. Vielen Dank für dein Verständnis."
   },
   "HOME": "Startseite",
+  "nav": {
+    "gift": "Gift"
+  },
+  "gifting": {
+    "cta": "Gift a package",
+    "buy": {
+      "title": "Gift",
+      "subtitle": "Buy a package and gift it to someone. They can redeem it after creating an account.",
+      "step1": "1) Choose package",
+      "step2": "2) Gift details (optional)",
+      "step3": "3) Pay",
+      "recipient_name": "Recipient name",
+      "recipient_name_ph": "Name",
+      "message": "Message",
+      "message_ph": "Write a short message",
+      "purchaser_email": "Your email (receipt)",
+      "purchaser_email_ph": "you@email.com",
+      "pay_card": "Card",
+      "pay_paypal": "PayPal",
+      "pay_generate": "Pay & Generate Gift",
+      "processing": "Processing…",
+      "hint_stripe": "Secure card processing via Stripe.",
+      "hint_paypal": "Secure payment via PayPal.",
+      "errors": {
+        "load_packages": "Failed to load gift packages.",
+        "stripe_unavailable": "Stripe is unavailable right now.",
+        "paypal_unavailable": "PayPal is unavailable right now.",
+        "paypal_start_failed": "Failed to start PayPal payment.",
+        "paypal_payment_failed": "PayPal payment failed.",
+        "payment_failed": "Payment failed."
+      }
+    },
+    "voucher": {
+      "buy_another": "Buy another",
+      "redeem": "Redeem",
+      "print": "Print",
+      "title": "Gift Package",
+      "package": "Package",
+      "value": "Value",
+      "expires": "Expires",
+      "to": "To",
+      "message": "Message",
+      "code": "Gift Code",
+      "redeem_link": "Redeem link",
+      "note": "This code can be used once. The recipient must create a student account, then redeem."
+    },
+    "redeem": {
+      "title": "Redeem Gift",
+      "processing": "Processing…",
+      "success_title": "Success!",
+      "success_body": "Your gift has been redeemed.",
+      "book": "Book a lesson",
+      "ready": "Ready to redeem code",
+      "button": "Redeem"
+    },
+    "errors": {
+      "missing_code": "Missing gift code.",
+      "not_found": "Gift voucher not found."
+    }
+  },
   "ABOUT_US": "Über uns",
   "BENEFITS": "Vorteile",
   "OUR_MISSION": "unsere Mission",

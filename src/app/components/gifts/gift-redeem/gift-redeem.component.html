@@ -1,0 +1,22 @@
+<section class="gift-redeem">
+  <div class="container">
+    <h2 class="title">{{ 'gifting.redeem.title' | translate }}</h2>
+
+    <div class="panel" *ngIf="loading">{{ 'gifting.redeem.processing' | translate }}</div>
+
+    <div class="alert" *ngIf="!loading && error">{{ error | translate }}</div>
+
+    <div class="panel" *ngIf="!loading && success">
+      <h3>{{ 'gifting.redeem.success_title' | translate }}</h3>
+      <p>{{ 'gifting.redeem.success_body' | translate }}</p>
+      <div class="actions">
+        <a class="btn" routerLink="/all-teachers">{{ 'gifting.redeem.book' | translate }}</a>
+      </div>
+    </div>
+
+    <div class="panel" *ngIf="!loading && !success && !error">
+      <p>{{ 'gifting.redeem.ready' | translate }}: <span class="mono">{{ code }}</span></p>
+      <button type="button" class="btn" (click)="redeem()">{{ 'gifting.redeem.button' | translate }}</button>
+    </div>
+  </div>
+</section>

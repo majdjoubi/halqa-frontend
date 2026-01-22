@@ -1,0 +1,71 @@
+<section class="gift-voucher">
+  <div class="container" *ngIf="!loading; else loadingTpl">
+    <div class="alert" *ngIf="error">{{ error | translate }}</div>
+
+    <div class="voucher" *ngIf="voucher">
+      <div class="voucher-actions no-print">
+        <a class="btn secondary" routerLink="/gift">{{ 'gifting.voucher.buy_another' | translate }}</a>
+        <a class="btn" [routerLink]="['/redeem', voucher.code]">{{ 'gifting.voucher.redeem' | translate }}</a>
+        <button class="btn" type="button" (click)="print()">{{ 'gifting.voucher.print' | translate }}</button>
+      </div>
+
+      <div class="voucher-card" id="print-area">
+        <div class="brand">
+          <img src="/assets/images/logo.png" alt="Halqa" class="logo" />
+          <div class="brand-text">
+            <div class="brand-name">Halqa</div>
+            <div class="brand-sub">Gift Voucher / إهداء</div>
+          </div>
+        </div>
+
+        <div class="title-row">
+          <h2>{{ 'gifting.voucher.title' | translate }}</h2>
+          <div class="status" [class.paid]="voucher.status==='paid'" [class.pending]="voucher.status==='pending'" [class.failed]="voucher.status==='failed'">
+            {{ voucher.status }}
+          </div>
+        </div>
+
+        <div class="meta">
+          <div class="meta-item">
+            <div class="label">{{ 'gifting.voucher.package' | translate }}</div>
+            <div class="value">{{ voucher.lessons }} lesson(s)</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">{{ 'gifting.voucher.value' | translate }}</div>
+            <div class="value">${{ voucher.priceUsd }} USD</div>
+          </div>
+          <div class="meta-item">
+            <div class="label">{{ 'gifting.voucher.expires' | translate }}</div>
+            <div class="value">{{ voucher.expiresAtUtc | date:'mediumDate' }}</div>
+          </div>
+        </div>
+
+        <div class="to" *ngIf="voucher.recipientName">
+          <div class="label">{{ 'gifting.voucher.to' | translate }}</div>
+          <div class="value">{{ voucher.recipientName }}</div>
+        </div>
+
+        <div class="msg" *ngIf="voucher.message">
+          <div class="label">{{ 'gifting.voucher.message' | translate }}</div>
+          <div class="value">{{ voucher.message }}</div>
+        </div>
+
+        <div class="code">
+          <div class="label">{{ 'gifting.voucher.code' | translate }}</div>
+          <div class="value">{{ voucher.code }}</div>
+          <div class="small">{{ 'gifting.voucher.redeem_link' | translate }}: <span class="mono">{{ voucher.redeemUrl }}</span></div>
+        </div>
+
+        <div class="note">
+          <div class="small">
+            {{ 'gifting.voucher.note' | translate }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loadingTpl>
+    <div class="container"><div class="panel">Loading…</div></div>
+  </ng-template>
+</section>

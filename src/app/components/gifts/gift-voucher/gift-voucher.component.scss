@@ -1,0 +1,202 @@
+.gift-voucher {
+  padding: 110px 0 40px;
+
+  .alert {
+    background: #fff4f4;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #991b1b;
+    margin-bottom: 14px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .voucher-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #065a33;
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+
+    &.secondary {
+      background: #334155;
+    }
+  }
+
+  .voucher-card {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.1);
+    border-radius: 16px;
+    padding: 18px;
+    max-width: 760px;
+    margin: 0 auto;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+
+    .logo {
+      width: 44px;
+      height: 44px;
+      object-fit: contain;
+    }
+
+    .brand-name {
+      font-weight: 900;
+      font-size: 20px;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .brand-sub {
+      color: #64748b;
+      font-weight: 800;
+      font-size: 12px;
+    }
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+
+    h2 {
+      margin: 0;
+      font-weight: 900;
+      font-size: 22px;
+    }
+
+    .status {
+      font-weight: 900;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      text-transform: uppercase;
+
+      &.paid {
+        background: rgba(1, 104, 54, 0.12);
+        color: #065a33;
+      }
+
+      &.pending {
+        background: rgba(234, 179, 8, 0.15);
+        color: #92400e;
+      }
+
+      &.failed {
+        background: rgba(239, 68, 68, 0.12);
+        color: #991b1b;
+      }
+    }
+  }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+
+    .meta-item {
+      border: 1px solid rgba(15, 23, 42, 0.06);
+      border-radius: 12px;
+      padding: 10px;
+
+      .label {
+        color: #64748b;
+        font-weight: 800;
+        font-size: 12px;
+      }
+
+      .value {
+        font-weight: 900;
+        color: #0f172a;
+        margin-top: 4px;
+      }
+    }
+  }
+
+  .to,
+  .msg,
+  .code {
+    margin-top: 14px;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+    border-radius: 12px;
+    padding: 12px;
+
+    .label {
+      color: #64748b;
+      font-weight: 800;
+      font-size: 12px;
+    }
+
+    .value {
+      font-weight: 900;
+      color: #0f172a;
+      margin-top: 6px;
+      white-space: pre-wrap;
+    }
+
+    .small {
+      margin-top: 8px;
+      color: #64748b;
+      font-size: 12px;
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+    }
+  }
+
+  .note {
+    margin-top: 14px;
+    color: #64748b;
+
+    .small {
+      font-size: 12px;
+      font-weight: 700;
+    }
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  .gift-voucher {
+    padding: 0 !important;
+  }
+
+  .gift-voucher .voucher-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+}

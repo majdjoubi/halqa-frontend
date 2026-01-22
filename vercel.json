@@ -34,7 +34,7 @@
       "dest": "/assets/images/logo.png"
     },
     {
-      "src": "/api/(?!admin/messaging|unsubscribe|health)(.*)",
+      "src": "/api/(?!admin/messaging|unsubscribe|health|gifts)(.*)",
       "dest": "https://halqa-api-k60w.onrender.com/api/$1"
     },
     {

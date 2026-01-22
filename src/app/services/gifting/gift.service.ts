@@ -1,0 +1,78 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environment/environment';
+
+export type GiftPackageId = 'pkg_1' | 'pkg_3' | 'pkg_6' | 'pkg_10';
+
+export interface GiftPackage {
+  id: GiftPackageId;
+  lessons: number;
+  priceUsd: number;
+}
+
+export interface GiftVoucherPublic {
+  code: string;
+  packageId: string;
+  lessons: number;
+  priceUsd: number;
+  currency: string;
+  provider: 'stripe' | 'paypal' | string;
+  status: 'pending' | 'paid' | 'failed' | string;
+  recipientName?: string | null;
+  message?: string | null;
+  createdAtUtc?: string;
+  paidAtUtc?: string | null;
+  expiresAtUtc?: string;
+  redeemedAtUtc?: string | null;
+  redeemUrl?: string;
+}
+
+@Injectable({ providedIn: 'root' })
+export class GiftService {
+  private readonly baseUrl = (environment.apiUrl || '').replace(/\/$/, '');
+
+  constructor(private http: HttpClient) {}
+
+  getPackages(): Observable<{ packages: GiftPackage[] }> {
+    const url = `${this.baseUrl}/api/gifts/packages`;
+    return this.http.get<{ packages: GiftPackage[] }>(url);
+  }
+
+  createStripeIntent(payload: {
+    packageId: GiftPackageId;
+    recipientName?: string;
+    message?: string;
+    purchaserEmail?: string;
+  }): Observable<{ code: string; clientSecret: string | null }> {
+    const url = `${this.baseUrl}/api/gifts/stripe/create-intent`;
+    return this.http.post<{ code: string; clientSecret: string | null }>(url, payload);
+  }
+
+  createPayPalOrder(payload: {
+    packageId: GiftPackageId;
+    recipientName?: string;
+    message?: string;
+    purchaserEmail?: string;
+  }): Observable<{ orderId: string; code: string }> {
+    const url = `${this.baseUrl}/api/gifts/paypal/create-order`;
+    return this.http.post<{ orderId: string; code: string }>(url, payload);
+  }
+
+  capturePayPalOrder(orderId: string): Observable<{ success: boolean; code: string; status?: string }> {
+    const url = `${this.baseUrl}/api/gifts/paypal/capture-order`;
+    return this.http.post<{ success: boolean; code: string; status?: string }>(url, { orderId });
+  }
+
+  getVoucher(code: string): Observable<{ voucher: GiftVoucherPublic }> {
+    const url = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}`;
+    return this.http.get<{ voucher: GiftVoucherPublic }>(url);
+  }
+
+  redeemVoucher(code: string): Observable<any> {
+    const token = localStorage.getItem('access_token') || '';
+    const headers = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}/redeem`;
+    return this.http.post(url, {}, { headers });
+  }
+}

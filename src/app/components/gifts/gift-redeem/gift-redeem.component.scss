@@ -1,0 +1,50 @@
+.gift-redeem {
+  padding: 110px 0 40px;
+
+  .title {
+    font-weight: 800;
+    margin: 0 0 12px;
+  }
+
+  .panel {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .alert {
+    background: #fff4f4;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+    padding: 10px 12px;
+    border-radius: 10px;
+    color: #991b1b;
+    margin-bottom: 14px;
+  }
+
+  .actions {
+    margin-top: 12px;
+  }
+
+  .btn {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 14px;
+    background: #065a33;
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  }
+}
+
+@media print {
+  .gift-redeem {
+    display: none !important;
+  }
+}
