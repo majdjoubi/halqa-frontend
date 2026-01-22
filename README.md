@@ -161,6 +161,12 @@ Built with ❤️ using Angular
 - `HALQA_DOMAIN_CREATED_AT` (Optional) ISO date مثل: `2025-12-01`
 - `SENDGRID_EVENT_WEBHOOK_PUBLIC_KEY_PEM` (Recommended) للتحقق من Webhook signature
 
+#### PayPal (Gifts)
+
+- `PAYPAL_CLIENT_ID` (Required)
+- `PAYPAL_CLIENT_SECRET` (Required)
+- `PAYPAL_ENV` (Optional) `live` أو `sandbox` (default `live`)
+
 ### 🗄️ قاعدة البيانات (Database)
 
 - ملف الـ migration موجود هنا: [db/migrations/001_admin_messaging.sql](db/migrations/001_admin_messaging.sql)

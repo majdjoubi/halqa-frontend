@@ -1,7 +1,10 @@
-function requireEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`${name} is required`);
-  return v;
+function requireAnyEnv(names: string[]): string {
+  for (const name of names) {
+    const v = process.env[name];
+    if (v) return v;
+  }
+  // Keep the error format stable for our error classifier.
+  throw new Error(`${names[0]} is required`);
 }
 
 function paypalBaseUrl(): string {
@@ -17,8 +20,8 @@ export async function getPayPalAccessToken(): Promise<string> {
     return cachedToken.accessToken;
   }
 
-  const clientId = requireEnv('PAYPAL_CLIENT_ID');
-  const secret = requireEnv('PAYPAL_CLIENT_SECRET');
+  const clientId = requireAnyEnv(['PAYPAL_CLIENT_ID', 'PAYPAL_CLIENTID', 'PAYPAL_CLIENT_ID_LIVE']);
+  const secret = requireAnyEnv(['PAYPAL_CLIENT_SECRET', 'PAYPAL_SECRET', 'PAYPAL_CLIENT_SECRET_LIVE']);
 
   const basic = Buffer.from(`${clientId}:${secret}`, 'utf8').toString('base64');
 
@@ -31,7 +34,7 @@ export async function getPayPalAccessToken(): Promise<string> {
     body: 'grant_type=client_credentials',
   });
 
-  const data = await resp.json().catch(() => null);
+  const data: any = await resp.json().catch(() => null);
   if (!resp.ok) {
     throw new Error(data?.error_description || `PayPal token error ${resp.status}`);
   }
