@@ -1,6 +1,7 @@
 import { Component, Inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
@@ -197,7 +198,15 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
             // store code for redirect after capture
             (window as any).__giftPayPalCode = resp?.code;
             return resp?.orderId;
-          } catch (e) {
+          } catch (e: any) {
+            const serverMessage =
+              e instanceof HttpErrorResponse ? String((e.error as any)?.message || '') : String(e?.message || '');
+
+            if (e instanceof HttpErrorResponse && e.status >= 500 && /PAYPAL_[A-Z0-9_]+ is required/.test(serverMessage)) {
+              this.error = 'gifting.buy.errors.paypal_unavailable';
+              throw new Error('PayPal unavailable');
+            }
+
             this.error = 'gifting.buy.errors.paypal_start_failed';
             throw e;
           }
@@ -209,7 +218,15 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
             await this.router.navigate(['/gift', capture.code]);
           } catch (e: any) {
             console.error(e);
-            this.error = e?.message || 'gifting.buy.errors.paypal_payment_failed';
+            const serverMessage =
+              e instanceof HttpErrorResponse ? String((e.error as any)?.message || '') : String(e?.message || '');
+
+            if (e instanceof HttpErrorResponse && e.status >= 500 && /PAYPAL_[A-Z0-9_]+ is required/.test(serverMessage)) {
+              this.error = 'gifting.buy.errors.paypal_unavailable';
+              return;
+            }
+
+            this.error = 'gifting.buy.errors.paypal_payment_failed';
           }
         },
         onError: (err: any) => {
