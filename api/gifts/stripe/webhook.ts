@@ -1,13 +1,26 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import crypto from 'node:crypto';
+import Stripe from 'stripe';
 import { sendJson } from '../../_lib/http';
 import { dbQuery } from '../../_lib/db';
 import { ensureGiftSchema } from '../_lib/schema';
+
+// Ensure we can read the raw request body for signature verification.
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
 
 function requireEnv(name: string): string {
   const v = process.env[name];
   if (!v) throw new Error(`${name} is required`);
   return v;
+}
+
+function getStripe(): Stripe {
+  const key = requireEnv('STRIPE_SECRET_KEY');
+  return new Stripe(key, { apiVersion: '2023-10-16' });
 }
 
 async function readRawBody(req: VercelRequest): Promise<string> {
@@ -62,9 +75,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     const secret = requireEnv('STRIPE_GIFT_WEBHOOK_SECRET');
     const rawBody = await readRawBody(req);
-    verifyStripeSignature(rawBody, sig, secret);
 
-    const event = JSON.parse(rawBody);
+    // Prefer Stripe's implementation; fall back to our own verification if needed.
+    let event: any;
+    try {
+      const stripe = getStripe();
+      event = stripe.webhooks.constructEvent(rawBody, sig, secret);
+    } catch (e) {
+      verifyStripeSignature(rawBody, sig, secret);
+      event = JSON.parse(rawBody);
+    }
 
     if (event?.type === 'checkout.session.completed') {
       const session = event?.data?.object;

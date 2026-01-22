@@ -9,7 +9,7 @@ import { getGiftPackage, normalizeGiftText } from '../_lib/catalog';
 function getStripe(): Stripe {
   const key = process.env['STRIPE_SECRET_KEY'];
   if (!key) throw new Error('STRIPE_SECRET_KEY is required');
-  return new Stripe(key, { apiVersion: '2024-06-20' });
+  return new Stripe(key, { apiVersion: '2023-10-16' });
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -36,13 +36,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const intent = await stripe.paymentIntents.create({
       amount: amountCents,
       currency: 'usd',
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ['card'],
       metadata: {
         type: 'gift_voucher',
         code,
         packageId: pkg.id,
       },
       description: `Halqa gift voucher ${pkg.lessons} lesson(s)`,
+      ...(purchaserEmail ? { receipt_email: purchaserEmail } : {}),
     });
 
     const expiresAt = new Date();

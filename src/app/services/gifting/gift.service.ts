@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../environment/environment';
 
-export type GiftPackageId = 'pkg_1' | 'pkg_3' | 'pkg_6' | 'pkg_10';
+export type GiftPackageId = 'pkg_1' | 'pkg_3' | 'pkg_6' | 'pkg_10' | 'pkg_test';
 
 export interface GiftPackage {
   id: GiftPackageId;
@@ -82,14 +82,36 @@ export class GiftService {
   }
 
   getVoucher(code: string): Observable<{ voucher: GiftVoucherPublic }> {
-    const url = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}`;
-    return this.http.get<{ voucher: GiftVoucherPublic }>(url);
+    const primaryUrl = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}`;
+    const fallbackUrl = `${this.baseUrl}/api/gifts/vouchers/get?code=${encodeURIComponent(code)}`;
+
+    const parse = (text: any) => {
+      const data = JSON.parse(String(text || ''));
+      if (!data?.voucher) throw new Error('Invalid voucher response');
+      return data as { voucher: GiftVoucherPublic };
+    };
+
+    return this.http.get(primaryUrl, { responseType: 'text' }).pipe(
+      map(parse),
+      catchError(() => this.http.get(fallbackUrl, { responseType: 'text' }).pipe(map(parse)))
+    );
   }
 
   redeemVoucher(code: string): Observable<any> {
     const token = localStorage.getItem('access_token') || '';
     const headers = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}/redeem`;
-    return this.http.post(url, {}, { headers });
+
+    const primaryUrl = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}/redeem`;
+    const fallbackUrl = `${this.baseUrl}/api/gifts/vouchers/redeem?code=${encodeURIComponent(code)}`;
+
+    const parse = (text: any) => {
+      // Most responses are JSON; if we ever get HTML/invalid, force an error.
+      return JSON.parse(String(text || ''));
+    };
+
+    return this.http.post(primaryUrl, {}, { headers, responseType: 'text' }).pipe(
+      map(parse),
+      catchError(() => this.http.post(fallbackUrl, {}, { headers, responseType: 'text' }).pipe(map(parse)))
+    );
   }
 }

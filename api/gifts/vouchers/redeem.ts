@@ -1,8 +1,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { sendJson } from '../../../_lib/http';
-import { ensureGiftSchema } from '../../_lib/schema';
-import { getDbPool } from '../../../_lib/db';
-import { getRedeemPackageIdForGiftPackageId, isTestGiftPackageEnabled } from '../../_lib/catalog';
+import { sendJson } from '../../_lib/http';
+import { ensureGiftSchema } from '../_lib/schema';
+import { getDbPool } from '../../_lib/db';
+import { getRedeemPackageIdForGiftPackageId, isTestGiftPackageEnabled } from '../_lib/catalog';
 
 const DEFAULT_HALQA_API = 'https://halqa-api-k60w.onrender.com';
 
@@ -75,6 +75,10 @@ async function studentBuyPackageWithWallet(studentToken: string, packageId: stri
   return resp.json().catch(() => ({}));
 }
 
+// NOTE: This endpoint exists as a fallback for deployments where dynamic
+// function routes (e.g. api/gifts/vouchers/[code]/redeem.ts) are not routed.
+// It is typically used via a Vercel rewrite from:
+//   /api/gifts/vouchers/:code/redeem  ->  /api/gifts/vouchers/redeem?code=:code
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return sendJson(res, 405, { message: `Method ${req.method} not allowed` });
@@ -98,10 +102,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     try {
       await client.query('begin');
 
-      const { rows } = await client.query(
-        `select * from gift_vouchers where code = $1 for update`,
-        [code]
-      );
+      const { rows } = await client.query(`select * from gift_vouchers where code = $1 for update`, [code]);
 
       if (rows.length === 0) {
         await client.query('rollback');
@@ -145,7 +146,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         walletCreditResp = await adminCreditWallet(student.email, amount, description);
         buyResp = await studentBuyPackageWithWallet(studentToken, packageId);
       } catch (e: any) {
-        // Do not mark redeemed if external calls fail.
         await client.query('rollback');
         return sendJson(res, 400, { message: e?.message || 'Redeem failed' });
       }
