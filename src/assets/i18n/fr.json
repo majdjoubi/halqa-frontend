@@ -645,6 +645,7 @@
     "last_name_placeholder": "Saisissez votre nom",
     "last_name_required": "Le nom est requis",
     "email": "E-mail",
+    "email_important_hint": "Important : vos rendez-vous et notifications seront envoyés à cet e-mail.",
     "email_placeholder": "moi@email.com",
     "email_required": "L'e-mail est requis",
     "email_invalid": "L'e-mail est invalide",

@@ -645,6 +645,7 @@
     "last_name_placeholder": "Soyadınızı girin",
     "last_name_required": "Soyad gereklidir",
     "email": "E-posta",
+    "email_important_hint": "Önemli: randevularınız ve bildirimleriniz bu e-postaya gönderilecektir.",
     "email_placeholder": "ben@email.com",
     "email_required": "E-posta gereklidir",
     "email_invalid": "E-posta geçersiz",

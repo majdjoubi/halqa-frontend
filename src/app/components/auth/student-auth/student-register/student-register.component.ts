@@ -81,7 +81,7 @@ export class StudentRegisterComponent implements OnInit {
         email: ['', [Validators.required, Validators.email]],
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
-        phoneNumber: ['', [Validators.required]], // Phone number without pattern validation
+        phoneNumber: [''], // Optional
       },
       { validators: this.passwordMatchValidator }
     );
@@ -198,6 +198,7 @@ export class StudentRegisterComponent implements OnInit {
 
       // Helper to actually call registration after we have the image URL (or null)
       const callRegister = (imageUrl: string | null) => {
+        const rawPhone = String(this.step1Form.value.phoneNumber ?? '').trim();
         const payload = {
           firstName: this.step1Form.value.firstName,
           lastName: this.step1Form.value.lastName,
@@ -205,7 +206,7 @@ export class StudentRegisterComponent implements OnInit {
           password: this.step1Form.value.password,
           confirmPassword: this.step1Form.value.confirmPassword,
           role: 1, // Role 1 for students
-          phoneNumber: this.step1Form.value.phoneNumber,
+          phoneNumber: rawPhone.length > 0 ? rawPhone : undefined,
           profilePictureUrl: imageUrl, // URL returned from upload endpoint or null
           timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes(), // Auto-detect timezone
         };

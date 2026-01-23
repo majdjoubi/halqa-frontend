@@ -655,6 +655,7 @@
     "last_name_placeholder": "Enter your last name",
     "last_name_required": "Last name is required",
     "email": "Email",
+    "email_important_hint": "Important: your schedule and notifications will be sent to this email.",
     "email_placeholder": "me@email.com",
     "email_required": "Email is required",
     "email_invalid": "Email is invalid",

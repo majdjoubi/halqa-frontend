@@ -155,6 +155,7 @@
                   step1Form.get('email')?.touched
                 "
               />
+              <small class="text-muted d-block mt-1">{{ 'student_register.email_important_hint' | translate }}</small>
               <div
                 *ngIf="
                   step1Form.get('email')?.valid &&
@@ -405,7 +406,7 @@
                 step1Form.get('phoneNumber')?.touched
               "
             >
-              <label class="form-label required">{{
+              <label class="form-label">{{
                 "student_register.phone" | translate
               }}</label>
               <input
@@ -429,10 +430,6 @@
                 "
                 class="invalid-feedback"
               >
-                <small
-                  *ngIf="step1Form.get('phoneNumber')?.errors?.['required']"
-                  >{{ "student_register.phone_required" | translate }}</small
-                >
                 <small
                   *ngIf="step1Form.get('phoneNumber')?.errors?.['pattern']"
                   >{{

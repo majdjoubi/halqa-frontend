@@ -645,6 +645,7 @@
     "last_name_placeholder": "Gib deinen Nachnamen ein",
     "last_name_required": "Nachname ist erforderlich",
     "email": "E-Mail",
+    "email_important_hint": "Wichtig: Termine und Benachrichtigungen werden an diese E-Mail gesendet.",
     "email_placeholder": "ich@email.com",
     "email_required": "E-Mail ist erforderlich",
     "email_invalid": "E-Mail ist ungültig",

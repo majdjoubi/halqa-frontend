@@ -655,6 +655,7 @@
     "last_name_placeholder": "أدخل إسم العائلة",
     "last_name_required": "إسم العائلة مطلوب",
     "email": "بريد إلكتروني",
+    "email_important_hint": "مهم جدًا: ستصلك المواعيد والإشعارات على هذا البريد.",
     "email_placeholder": "me@email.com",
     "email_required": "البريد الإلكتروني مطلوب",
     "email_invalid": "البريد الإلكتروني غير صحيح",
