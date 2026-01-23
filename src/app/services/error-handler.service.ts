@@ -89,6 +89,12 @@ export class ErrorHandlerService {
       return 'تم تعطيل الحساب. الرجاء التواصل مع الإدارة لإعادة تفعيله.';
     }
 
+    // If backend provides a message, prefer it over generic status-based strings.
+    // This keeps UI aligned with server validation details (and matches existing tests).
+    if (backendMsg) {
+      return backendMsg;
+    }
+
     // Check if there's a custom message for this status code
     if (error.status && customMessages[error.status]) {
       return customMessages[error.status];

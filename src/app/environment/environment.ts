@@ -3,6 +3,9 @@ export const environment = {
   production: false,
   // In development, use same-origin + dev-server proxy (see proxy.conf.json)
   apiUrl: '',
+  // Optional: full base URL for SignalR hubs (e.g. https://api.example.com).
+  // Leave empty to use same-origin (/hubs/*).
+  notificationsHubUrl: '',
   // Optional: separate base URL for Scheduling V1 API (/v1). Leave empty in dev to use proxy.
   schedulingApiUrl: '',
   // Optional: separate base URL for V2 APIs (/v2). Leave empty to use same-origin.

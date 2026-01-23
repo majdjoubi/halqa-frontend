@@ -18,6 +18,13 @@ function requireEnv(name: string): string {
   return v;
 }
 
+function requireWebhookSecret(): string {
+  // Backwards compatible: some deployments use STRIPE_WEBHOOK_SECRET.
+  return process.env['STRIPE_GIFT_WEBHOOK_SECRET'] || process.env['STRIPE_WEBHOOK_SECRET'] || (() => {
+    throw new Error('STRIPE_GIFT_WEBHOOK_SECRET is required');
+  })();
+}
+
 function getStripe(): Stripe {
   const key = requireEnv('STRIPE_SECRET_KEY');
   return new Stripe(key, { apiVersion: '2023-10-16' });
@@ -73,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const sig = String(req.headers['stripe-signature'] || '');
     if (!sig) return sendJson(res, 200, { ok: true });
 
-    const secret = requireEnv('STRIPE_GIFT_WEBHOOK_SECRET');
+    const secret = requireWebhookSecret();
     const rawBody = await readRawBody(req);
 
     // Prefer Stripe's implementation; fall back to our own verification if needed.

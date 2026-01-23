@@ -6,6 +6,12 @@ import { ensureGiftSchema } from '../_lib/schema';
 import { generateGiftCode } from '../_lib/code';
 import { getGiftPackage, normalizeGiftText } from '../_lib/catalog';
 
+function isUniqueViolation(e: any): boolean {
+  const code = String(e?.code || '').trim();
+  const msg = String(e?.message || '');
+  return code === '23505' || /duplicate key value violates unique constraint/i.test(msg);
+}
+
 function getStripe(): Stripe {
   const key = process.env['STRIPE_SECRET_KEY'];
   if (!key) throw new Error('STRIPE_SECRET_KEY is required');
@@ -29,7 +35,44 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const message = normalizeGiftText(body.message, 500);
     const purchaserEmail = normalizeGiftText(body.purchaserEmail, 120);
 
-    const code = generateGiftCode();
+    const expiresAt = new Date();
+    expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
+
+    // Reserve a unique code first to avoid collisions and keep payment metadata consistent.
+    let code = '';
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = generateGiftCode();
+      try {
+        await dbQuery(
+          `insert into gift_vouchers (
+             code, package_id, lessons, price_usd, currency, provider,
+             stripe_payment_intent_id, status, purchaser_email, recipient_name, message, expires_at
+           ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          [
+            candidate,
+            pkg.id,
+            pkg.lessons,
+            pkg.priceUsd,
+            'USD',
+            'stripe',
+            null,
+            'pending',
+            purchaserEmail,
+            recipientName,
+            message,
+            expiresAt.toISOString(),
+          ]
+        );
+        code = candidate;
+        break;
+      } catch (e: any) {
+        if (isUniqueViolation(e)) continue;
+        throw e;
+      }
+    }
+
+    if (!code) throw new Error('Failed to generate a unique gift code');
+
     const amountCents = Math.round(pkg.priceUsd * 100);
 
     const stripe = getStripe();
@@ -46,29 +89,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ...(purchaserEmail ? { receipt_email: purchaserEmail } : {}),
     });
 
-    const expiresAt = new Date();
-    expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
-
-    await dbQuery(
-      `insert into gift_vouchers (
-         code, package_id, lessons, price_usd, currency, provider,
-         stripe_payment_intent_id, status, purchaser_email, recipient_name, message, expires_at
-       ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-      [
-        code,
-        pkg.id,
-        pkg.lessons,
-        pkg.priceUsd,
-        'USD',
-        'stripe',
-        intent.id,
-        'pending',
-        purchaserEmail,
-        recipientName,
-        message,
-        expiresAt.toISOString(),
-      ]
-    );
+    await dbQuery(`update gift_vouchers set stripe_payment_intent_id = $2 where code = $1`, [code, intent.id]);
 
     return sendJson(res, 200, {
       code,

@@ -10,6 +10,7 @@ export async function ensureGiftSchema(): Promise<void> {
     `create table if not exists gift_vouchers (
       id bigserial primary key,
       code text not null unique,
+      short_code text unique,
       package_id text not null,
       lessons int not null,
       price_usd numeric(10,2) not null,
@@ -37,6 +38,7 @@ export async function ensureGiftSchema(): Promise<void> {
   await dbQuery(`alter table gift_vouchers add column if not exists stripe_checkout_session_id text`);
   await dbQuery(`alter table gift_vouchers add column if not exists stripe_payment_intent_id text`);
   await dbQuery(`alter table gift_vouchers add column if not exists paypal_order_id text`);
+  await dbQuery(`alter table gift_vouchers add column if not exists short_code text`);
   await dbQuery(`alter table gift_vouchers add column if not exists purchaser_email text`);
   await dbQuery(`alter table gift_vouchers add column if not exists recipient_name text`);
   await dbQuery(`alter table gift_vouchers add column if not exists message text`);
@@ -50,6 +52,11 @@ export async function ensureGiftSchema(): Promise<void> {
 
   await dbQuery(`create index if not exists idx_gift_vouchers_status on gift_vouchers(status)`);
   await dbQuery(`create index if not exists idx_gift_vouchers_expires_at on gift_vouchers(expires_at)`);
+  await dbQuery(
+    `create unique index if not exists idx_gift_vouchers_short_code_unique
+     on gift_vouchers(short_code)
+     where short_code is not null`
+  );
 
   ensured = true;
 }

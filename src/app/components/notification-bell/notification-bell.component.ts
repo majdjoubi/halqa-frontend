@@ -15,6 +15,7 @@ import { StorageService } from '../../services/storage.service';
 })
 export class NotificationBellComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  private signalRInitialized = false;
   
   notifications: Notification[] = [];
   unreadCount = 0;
@@ -51,11 +52,11 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
         this.playNotificationSound();
       });
 
-    // Load notifications immediately (don't wait for SignalR)
-    this.loadNotifications();
-
-    // Initialize SignalR for real-time updates
-    this.notificationService.initializeSignalR();
+    // Only load/init when authenticated; avoids expected 401 noise on public pages.
+    if (this.hasToken()) {
+      this.loadNotifications();
+      this.ensureSignalR();
+    }
     
     // Request browser notification permission
     this.notificationService.requestNotificationPermission();
@@ -70,15 +71,33 @@ export class NotificationBellComponent implements OnInit, OnDestroy {
 
   toggleDropdown(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen && this.hasToken()) {
+      this.ensureSignalR();
+    }
     if (this.isOpen && this.notifications.length === 0) {
       this.loadNotifications();
     }
   }
 
   loadNotifications(): void {
+    if (!this.hasToken()) return;
     this.isLoading = true;
     this.notificationService.loadNotifications();
     setTimeout(() => this.isLoading = false, 500);
+  }
+
+  private hasToken(): boolean {
+    const t =
+      this.storageService.getItem('authToken') ||
+      this.storageService.getItem('access_token') ||
+      this.storageService.getItem('token');
+    return !!(t && t.trim());
+  }
+
+  private ensureSignalR(): void {
+    if (this.signalRInitialized) return;
+    this.notificationService.initializeSignalR();
+    this.signalRInitialized = true;
   }
 
   markAsRead(notification: Notification, event?: Event): void {

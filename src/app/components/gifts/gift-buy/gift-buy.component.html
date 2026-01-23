@@ -5,6 +5,22 @@
       {{ 'gifting.buy.subtitle' | translate }}
     </p>
 
+    <div class="panel redeem-panel">
+      <div class="redeem-row">
+        <div class="redeem-title">{{ 'gifting.buy.have_code' | translate }}</div>
+        <div class="redeem-controls">
+          <input
+            [(ngModel)]="redeemCode"
+            maxlength="64"
+            [placeholder]="'gifting.buy.code_ph' | translate"
+          />
+          <button type="button" class="btn" (click)="goRedeem()">
+            {{ 'gifting.voucher.redeem' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div class="alert" *ngIf="error">{{ error | translate }}</div>
 
     <div class="panel" *ngIf="!loading; else loadingTpl">

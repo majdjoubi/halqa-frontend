@@ -21,10 +21,11 @@ export class HttpInterceptorService implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<any>> {
     // Get token from storage - check both possible names
-    let token = this.storageService.getItem('access_token');
-    if (!token) {
-      token = this.storageService.getItem('authToken');
-    }
+    // Prefer authToken if present (some login flows only set this), otherwise fall back.
+    // Also check legacy 'token' key used by some older services (e.g. SignalR).
+    let token = this.storageService.getItem('authToken');
+    if (!token) token = this.storageService.getItem('access_token');
+    if (!token) token = this.storageService.getItem('token');
 
     const isAuthLoginRequest = req.url.includes('/api/auth/login');
     if (!environment.production) {
@@ -70,11 +71,21 @@ export class HttpInterceptorService implements HttpInterceptor {
           console.error(
             'Unauthorized access - Token might be invalid or expired'
           );
+
+          // Do not clear tokens for gift serverless endpoints; a 401 there could be a
+          // role mismatch (e.g. teacher token) and clearing breaks retry/fallback UX.
+          const isGiftRequest = req.url.includes('/api/gifts/');
+
+          // Do not clear tokens for V2 endpoints; these may be public or may return 401
+          // due to backend-side policy changes, and wiping tokens creates logout loops.
+          const isV2Request = req.url.includes('/v2/');
+
           // Only clear tokens for protected-resource 401s.
           // A 401 on /api/auth/login usually means invalid credentials and should not wipe existing sessions.
-          if (!isAuthLoginRequest) {
+          if (!isAuthLoginRequest && !isGiftRequest && !isV2Request) {
             this.storageService.removeItem('authToken');
             this.storageService.removeItem('access_token');
+            this.storageService.removeItem('token');
             this.storageService.removeItem('userData');
             if (!environment.production) {
               console.log('Interceptor - Tokens cleared due to 401 error');

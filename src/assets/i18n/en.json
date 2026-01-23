@@ -78,13 +78,16 @@
   },
   "HOME": "Home",
   "nav": {
-    "gift": "Gift"
+    "gift": "Gift",
+    "gift_hover": "Gift Quran lessons to someone you love"
   },
   "gifting": {
     "cta": "Gift a package",
     "buy": {
-      "title": "Gift",
-      "subtitle": "Buy a package and gift it to someone. They can redeem it after creating an account.",
+      "title": "Gift Quran lessons",
+      "subtitle": "Choose a package, pay, then share the gift code so they can book lessons.",
+      "have_code": "Already have a gift code?",
+      "code_ph": "Enter code (e.g. HALQA123AB)",
       "step1": "1) Choose package",
       "step2": "2) Gift details (optional)",
       "step3": "3) Pay",
@@ -134,7 +137,12 @@
     },
     "errors": {
       "missing_code": "Missing gift code.",
-      "not_found": "Gift voucher not found."
+      "not_found": "Gift voucher not found.",
+      "student_required": "Please sign in with a student account to redeem this gift.",
+      "unauthorized": "Please sign in to redeem this gift.",
+      "already_redeemed": "This gift code has already been used.",
+      "not_paid_yet": "Payment is still pending. Please wait a moment and try again.",
+      "redeem_failed": "Could not redeem this gift. Please try again."
     }
   },
   "ABOUT_US": "About us",

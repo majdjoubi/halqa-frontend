@@ -28,5 +28,12 @@
     "secure": true,
     "changeOrigin": true,
     "logLevel": "debug"
+  },
+  "/hubs": {
+    "target": "https://halqa-api-k60w.onrender.com",
+    "secure": true,
+    "changeOrigin": true,
+    "ws": true,
+    "logLevel": "debug"
   }
 }

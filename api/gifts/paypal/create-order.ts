@@ -7,6 +7,12 @@ import { getGiftPackage, normalizeGiftText } from '../_lib/catalog';
 import { getPublicBaseUrl } from '../_lib/publicUrl';
 import { paypalApi } from './_client';
 
+function isUniqueViolation(e: any): boolean {
+  const code = String(e?.code || '').trim();
+  const msg = String(e?.message || '');
+  return code === '23505' || /duplicate key value violates unique constraint/i.test(msg);
+}
+
 function classifyError(e: any): { status: number; message: string } {
   const message = String(e?.message || '');
 
@@ -44,60 +50,88 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const message = normalizeGiftText(body.message, 500);
     const purchaserEmail = normalizeGiftText(body.purchaserEmail, 120);
 
-    const code = generateGiftCode();
-
     const expiresAt = new Date();
     expiresAt.setUTCFullYear(expiresAt.getUTCFullYear() + 1);
+
+    // Reserve a unique code first.
+    let code = '';
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const candidate = generateGiftCode();
+      try {
+        await dbQuery(
+          `insert into gift_vouchers (
+             code, package_id, lessons, price_usd, currency, provider,
+             paypal_order_id, status, purchaser_email, recipient_name, message, expires_at
+           ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
+          [
+            candidate,
+            pkg.id,
+            pkg.lessons,
+            pkg.priceUsd,
+            'USD',
+            'paypal',
+            null,
+            'pending',
+            purchaserEmail,
+            recipientName,
+            message,
+            expiresAt.toISOString(),
+          ]
+        );
+        code = candidate;
+        break;
+      } catch (e: any) {
+        if (isUniqueViolation(e)) continue;
+        throw e;
+      }
+    }
+
+    if (!code) throw new Error('Failed to generate a unique gift code');
 
     const baseUrl = getPublicBaseUrl(req);
     const giftUrl = `${baseUrl}/gift/${encodeURIComponent(code)}`;
 
-    const data: any = await paypalApi('/v2/checkout/orders', {
-      method: 'POST',
-      body: JSON.stringify({
-        intent: 'CAPTURE',
-        purchase_units: [
-          {
-            reference_id: code,
-            custom_id: code,
-            description: `Halqa gift voucher ${pkg.lessons} lesson(s)`,
-            amount: {
-              currency_code: 'USD',
-              value: pkg.priceUsd.toFixed(2),
+    let data: any;
+    try {
+      data = await paypalApi('/v2/checkout/orders', {
+        method: 'POST',
+        body: JSON.stringify({
+          intent: 'CAPTURE',
+          purchase_units: [
+            {
+              reference_id: code,
+              custom_id: code,
+              description: `Halqa gift voucher ${pkg.lessons} lesson(s)`,
+              amount: {
+                currency_code: 'USD',
+                value: pkg.priceUsd.toFixed(2),
+              },
             },
+          ],
+          application_context: {
+            brand_name: 'Halqa',
+            user_action: 'PAY_NOW',
+            return_url: giftUrl,
+            cancel_url: `${baseUrl}/gift?canceled=1`,
           },
-        ],
-        application_context: {
-          brand_name: 'Halqa',
-          user_action: 'PAY_NOW',
-          return_url: giftUrl,
-          cancel_url: `${baseUrl}/gift?canceled=1`,
-        },
-      }),
-    });
+        }),
+      });
+    } catch (e) {
+      // Release reserved code so the user can retry.
+      try {
+        await dbQuery(`delete from gift_vouchers where code = $1 and provider = 'paypal' and status = 'pending' and paypal_order_id is null`, [code]);
+      } catch {
+        // ignore cleanup failure
+      }
+      throw e;
+    }
 
     const orderId = String(data?.id || '');
     if (!orderId) throw new Error('PayPal create order missing id');
 
     await dbQuery(
-      `insert into gift_vouchers (
-         code, package_id, lessons, price_usd, currency, provider,
-         paypal_order_id, status, purchaser_email, recipient_name, message, expires_at
-       ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
-      [
-        code,
-        pkg.id,
-        pkg.lessons,
-        pkg.priceUsd,
-        'USD',
-        'paypal',
-        orderId,
-        'pending',
-        purchaserEmail,
-        recipientName,
-        message,
-        expiresAt.toISOString(),
-      ]
+      `update gift_vouchers set paypal_order_id = $2 where code = $1 and provider = 'paypal'`,
+      [code, orderId]
     );
 
     return sendJson(res, 200, {

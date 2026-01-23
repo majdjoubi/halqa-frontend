@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, map } from 'rxjs';
 import { environment } from '../../environment/environment';
+import { HttpErrorResponse } from '@angular/common/http';
 
 export type GiftPackageId = 'pkg_1' | 'pkg_3' | 'pkg_6' | 'pkg_10' | 'pkg_test';
 
@@ -13,6 +14,7 @@ export interface GiftPackage {
 
 export interface GiftVoucherPublic {
   code: string;
+  shortCode?: string | null;
   packageId: string;
   lessons: number;
   priceUsd: number;
@@ -91,16 +93,29 @@ export class GiftService {
       return data as { voucher: GiftVoucherPublic };
     };
 
+    const shouldFallback = (err: any): boolean => {
+      const status = Number((err as HttpErrorResponse)?.status ?? NaN);
+      // Parse errors (no status) or network-ish failures may be due to routing/rewrites.
+      if (!Number.isFinite(status)) return true;
+      if (status === 0) return true;
+      // If the primary route isn't deployed/mis-routed, some hosts return 404/405.
+      if (status === 404 || status === 405) return true;
+      // Transient gateway/proxy errors.
+      if (status === 502 || status === 503 || status === 504) return true;
+      // Do not fallback for normal auth/validation errors.
+      return false;
+    };
+
     return this.http.get(primaryUrl, { responseType: 'text' }).pipe(
       map(parse),
-      catchError(() => this.http.get(fallbackUrl, { responseType: 'text' }).pipe(map(parse)))
+      catchError((err) => {
+        if (!shouldFallback(err)) throw err;
+        return this.http.get(fallbackUrl, { responseType: 'text' }).pipe(map(parse));
+      })
     );
   }
 
   redeemVoucher(code: string): Observable<any> {
-    const token = localStorage.getItem('access_token') || '';
-    const headers = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-
     const primaryUrl = `${this.baseUrl}/api/gifts/vouchers/${encodeURIComponent(code)}/redeem`;
     const fallbackUrl = `${this.baseUrl}/api/gifts/vouchers/redeem?code=${encodeURIComponent(code)}`;
 
@@ -109,9 +124,21 @@ export class GiftService {
       return JSON.parse(String(text || ''));
     };
 
-    return this.http.post(primaryUrl, {}, { headers, responseType: 'text' }).pipe(
+    const shouldFallback = (err: any): boolean => {
+      const status = Number((err as HttpErrorResponse)?.status ?? NaN);
+      if (!Number.isFinite(status)) return true;
+      if (status === 0) return true;
+      if (status === 404 || status === 405) return true;
+      if (status === 502 || status === 503 || status === 504) return true;
+      return false;
+    };
+
+    return this.http.post(primaryUrl, {}, { responseType: 'text' }).pipe(
       map(parse),
-      catchError(() => this.http.post(fallbackUrl, {}, { headers, responseType: 'text' }).pipe(map(parse)))
+      catchError((err) => {
+        if (!shouldFallback(err)) throw err;
+        return this.http.post(fallbackUrl, {}, { responseType: 'text' }).pipe(map(parse));
+      })
     );
   }
 }

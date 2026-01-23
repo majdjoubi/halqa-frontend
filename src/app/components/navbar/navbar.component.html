@@ -104,6 +104,7 @@
               routerLink="/gift"
               routerLinkActive="active"
               class="nav-link"
+              [attr.title]="'nav.gift_hover' | translate"
               (click)="closeMobileMenu()"
             >
               {{ "nav.gift" | translate }}

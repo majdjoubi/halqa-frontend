@@ -32,6 +32,8 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
   message = '';
   purchaserEmail = '';
 
+  redeemCode = '';
+
   paymentMethod: 'stripe' | 'paypal' = 'stripe';
 
   stripeReady = false;
@@ -265,5 +267,14 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
         },
       })
       .render('#gift-paypal-buttons');
+  }
+
+  goRedeem(): void {
+    const raw = String(this.redeemCode || '').trim();
+    if (!raw) return;
+
+    // Only normalize the new short code format; old codes (e.g. GFT_...) are case-sensitive.
+    const normalized = /^halqa[a-z0-9]{5}$/i.test(raw) ? raw.toUpperCase() : raw;
+    this.router.navigate(['/redeem', normalized]);
   }
 }

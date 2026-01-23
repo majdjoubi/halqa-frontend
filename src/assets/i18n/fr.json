@@ -78,13 +78,16 @@
   },
   "HOME": "Accueil",
   "nav": {
-    "gift": "Gift"
+    "gift": "Gift",
+    "gift_hover": "Offrez des cours de Coran à quelqu’un que vous aimez"
   },
   "gifting": {
     "cta": "Gift a package",
     "buy": {
-      "title": "Gift",
-      "subtitle": "Buy a package and gift it to someone. They can redeem it after creating an account.",
+      "title": "Offrir des cours de Coran",
+      "subtitle": "Choisissez un forfait, payez, puis partagez le code cadeau pour qu’il puisse réserver des cours.",
+      "have_code": "Already have a gift code?",
+      "code_ph": "Enter code (e.g. HALQA123AB)",
       "step1": "1) Choose package",
       "step2": "2) Gift details (optional)",
       "step3": "3) Pay",
@@ -134,7 +137,12 @@
     },
     "errors": {
       "missing_code": "Missing gift code.",
-      "not_found": "Gift voucher not found."
+      "not_found": "Gift voucher not found.",
+      "student_required": "Please sign in with a student account to redeem this gift.",
+      "unauthorized": "Please sign in to redeem this gift.",
+      "already_redeemed": "Ce code cadeau a déjà été utilisé.",
+      "not_paid_yet": "Le paiement est toujours en attente. Veuillez patienter un instant et réessayer.",
+      "redeem_failed": "Could not redeem this gift. Please try again."
     }
   },
   "ABOUT_US": "À propos",

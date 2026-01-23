@@ -59,8 +59,69 @@ export class GiftRedeemComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.loading = false;
-        this.error = err?.error?.message || err?.message || 'Redeem failed.';
+        this.error = this.mapRedeemErrorToKey(err);
       },
     });
+  }
+
+  private mapRedeemErrorToKey(err: any): string {
+    const status = Number(err?.status || 0);
+    const message = this.extractErrorMessage(err).toLowerCase();
+
+    if (status === 401) {
+      if (message.includes('student token')) {
+        return 'gifting.errors.student_required';
+      }
+      return 'gifting.errors.unauthorized';
+    }
+
+    if (status === 404) {
+      return 'gifting.errors.not_found';
+    }
+
+    if (status === 400 || status === 409) {
+      if (
+        message.includes('already redeemed') ||
+        message.includes('already been redeemed') ||
+        message.includes('voucher already')
+      ) {
+        return 'gifting.errors.already_redeemed';
+      }
+
+      if (message.includes('not paid yet') || message.includes('payment') && message.includes('pending')) {
+        return 'gifting.errors.not_paid_yet';
+      }
+    }
+
+    return 'gifting.errors.redeem_failed';
+  }
+
+  private extractErrorMessage(err: any): string {
+    const rawError = err?.error;
+
+    // HttpClient with responseType 'text' yields a string body on errors.
+    // Our serverless endpoints return JSON, so sometimes the string is JSON.
+    if (typeof rawError === 'string') {
+      const text = rawError.trim();
+      if (!text) return '';
+      try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === 'object') {
+          const msg = (parsed as any)?.message ?? (parsed as any)?.error;
+          if (msg) return String(msg);
+        }
+      } catch {
+        // ignore
+      }
+      return text;
+    }
+
+    if (rawError && typeof rawError === 'object') {
+      const msg = (rawError as any)?.message ?? (rawError as any)?.error;
+      if (msg) return String(msg);
+    }
+
+    const rawMessage = err?.message ?? '';
+    return String(rawMessage || '');
   }
 }

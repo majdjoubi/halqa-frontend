@@ -22,11 +22,11 @@
       "handle": "filesystem"
     },
     {
-      "src": "/api/gifts/vouchers/(GFT_[A-Za-z0-9_-]+)/redeem$",
+      "src": "/api/gifts/vouchers/((?:GFT_[A-Za-z0-9_-]+)|(?:HALQA[A-Za-z0-9]{5}))/redeem$",
       "dest": "/api/gifts/vouchers/redeem?code=$1"
     },
     {
-      "src": "/api/gifts/vouchers/(GFT_[A-Za-z0-9_-]+)$",
+      "src": "/api/gifts/vouchers/((?:GFT_[A-Za-z0-9_-]+)|(?:HALQA[A-Za-z0-9]{5}))$",
       "dest": "/api/gifts/vouchers/get?code=$1"
     },
     {
@@ -48,6 +48,10 @@
     {
       "src": "/uploads/(.*)",
       "dest": "https://halqa-api-k60w.onrender.com/uploads/$1"
+    },
+    {
+      "src": "/hubs/(.*)",
+      "dest": "https://halqa-api-k60w.onrender.com/hubs/$1"
     },
     {
       "src": "/v2/(.*)",

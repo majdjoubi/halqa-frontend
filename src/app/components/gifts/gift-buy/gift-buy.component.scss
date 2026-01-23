@@ -174,3 +174,30 @@
     color: #64748b;
   }
 }
+
+.redeem-panel {
+  margin-bottom: 16px;
+}
+
+.redeem-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.redeem-title {
+  font-weight: 600;
+}
+
+.redeem-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.redeem-controls input {
+  min-width: 240px;
+}

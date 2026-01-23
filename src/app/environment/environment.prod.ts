@@ -3,6 +3,8 @@ export const environment = {
   // In production on Vercel, use same-origin. Vercel routes proxy /api/* to the backend
   // while allowing local serverless endpoints (e.g., /api/admin/messaging/*).
   apiUrl: '',
+  // SignalR is not proxied through Vercel routes. Point hubs directly at the backend.
+  notificationsHubUrl: 'https://halqa-api-k60w.onrender.com',
   // IMPORTANT: This must point to the deployed Scheduling Service base URL.
   // If left empty, /v1 calls will be made relative to the frontend origin.
   schedulingApiUrl: '',

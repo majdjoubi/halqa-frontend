@@ -113,6 +113,9 @@ export class AuthService {
         // حفظ التوكن في local storage
         if (response?.token) {
           this.storageService.setItem('authToken', response.token);
+          // Keep both keys in sync; other parts of the app (and the HTTP interceptor)
+          // may read access_token.
+          this.storageService.setItem('access_token', response.token);
           this.storageService.setItem('userData', JSON.stringify(response.user));
         }
         return {
@@ -139,6 +142,7 @@ export class AuthService {
    */
   logout(): void {
     this.storageService.removeItem('authToken');
+    this.storageService.removeItem('access_token');
     this.storageService.removeItem('userData');
     this.timezoneService.clearTimezoneCache();
   }

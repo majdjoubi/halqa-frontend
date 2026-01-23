@@ -78,13 +78,16 @@
   },
   "HOME": "Ana sayfa",
   "nav": {
-    "gift": "Gift"
+    "gift": "Gift",
+    "gift_hover": "Sevdiklerinize Kur’an dersleri hediye edin"
   },
   "gifting": {
     "cta": "Gift a package",
     "buy": {
-      "title": "Gift",
-      "subtitle": "Buy a package and gift it to someone. They can redeem it after creating an account.",
+      "title": "Kur’an dersleri hediye et",
+      "subtitle": "Bir paket seçin, ödeme yapın, sonra hediye kodunu paylaşın; dersleri rezerve edebilsin.",
+      "have_code": "Already have a gift code?",
+      "code_ph": "Enter code (e.g. HALQA123AB)",
       "step1": "1) Choose package",
       "step2": "2) Gift details (optional)",
       "step3": "3) Pay",
@@ -134,7 +137,12 @@
     },
     "errors": {
       "missing_code": "Missing gift code.",
-      "not_found": "Gift voucher not found."
+      "not_found": "Gift voucher not found.",
+      "student_required": "Please sign in with a student account to redeem this gift.",
+      "unauthorized": "Please sign in to redeem this gift.",
+      "already_redeemed": "Bu hediye kodu daha önce kullanılmış.",
+      "not_paid_yet": "Ödeme hâlâ beklemede. Lütfen biraz bekleyip tekrar deneyin.",
+      "redeem_failed": "Could not redeem this gift. Please try again."
     }
   },
   "ABOUT_US": "Hakkımızda",

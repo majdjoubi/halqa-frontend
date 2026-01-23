@@ -28,6 +28,8 @@ export interface NotificationsResponse {
 })
 export class NotificationService implements OnDestroy {
   private baseUrl = (environment.apiUrl || '').replace(/\/$/, '');
+  private hubBaseUrl = ((environment as any).notificationsHubUrl || '').replace(/\/$/, '');
+  private readonly hardcodedProdHubBaseUrl = 'https://halqa-api-k60w.onrender.com';
   private hubConnection: signalR.HubConnection | null = null;
   private destroy$ = new Subject<void>();
   
@@ -44,25 +46,45 @@ export class NotificationService implements OnDestroy {
     private storageService: StorageService
   ) {}
 
+  private getToken(): string {
+    return (
+      this.storageService.getItem('authToken') ||
+      this.storageService.getItem('access_token') ||
+      this.storageService.getItem('token') ||
+      ''
+    ).trim();
+  }
+
   /**
    * Initialize SignalR connection for real-time notifications
    */
   initializeSignalR(): void {
-    const token = this.storageService.getItem('token');
+    // Make initialization safe to call multiple times.
+    if (this.hubConnection && this.hubConnection.state !== signalR.HubConnectionState.Disconnected) {
+      return;
+    }
+
+    const token = this.getToken();
     if (!token) {
       console.log('No token available for SignalR connection');
       return;
     }
 
-    // Determine hub URL based on environment
-    let hubUrl = '/hubs/notifications';
-    if (this.baseUrl) {
-      hubUrl = `${this.baseUrl}/hubs/notifications`;
-    }
+    // Determine hub URL based on environment.
+    // In production, avoid same-origin '/hubs/*' because the frontend host may not serve SignalR.
+    const resolvedHubBaseUrl =
+      this.hubBaseUrl ||
+      this.baseUrl ||
+      (environment.production ? this.hardcodedProdHubBaseUrl : '');
+
+    const hubUrl = resolvedHubBaseUrl
+      ? `${resolvedHubBaseUrl.replace(/\/$/, '')}/hubs/notifications`
+      : '/hubs/notifications';
 
     this.hubConnection = new signalR.HubConnectionBuilder()
       .withUrl(hubUrl, {
-        accessTokenFactory: () => token
+        // Important: return a fresh token each time (prevents stale token after login/refresh).
+        accessTokenFactory: () => this.getToken()
       })
       .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
       .configureLogging(signalR.LogLevel.Information)
@@ -111,6 +133,12 @@ export class NotificationService implements OnDestroy {
   private async startConnection(): Promise<void> {
     if (!this.hubConnection) return;
 
+    // If token is missing/cleared, don't keep retrying.
+    if (!this.getToken()) {
+      this.stopSignalR();
+      return;
+    }
+
     try {
       await this.hubConnection.start();
       console.log('SignalR connected successfully');
@@ -118,6 +146,15 @@ export class NotificationService implements OnDestroy {
       this.loadNotifications();
     } catch (error) {
       console.error('SignalR connection failed:', error);
+
+      const msg = String((error as any)?.message || error || '');
+      const looksUnauthorized = /\b401\b|unauthoriz/i.test(msg);
+      if (looksUnauthorized) {
+        // Stop noisy retry loops; allow re-init after a new login.
+        this.stopSignalR();
+        return;
+      }
+
       // Retry after 5 seconds
       setTimeout(() => this.startConnection(), 5000);
     }

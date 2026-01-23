@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { PLATFORM_ID } from '@angular/core';
 import { AllTeachersComponent } from './all-teachers.component';
 import { RepoService } from '../../../Repositories/repo.service';
 import { of } from 'rxjs';
@@ -13,11 +14,23 @@ describe('AllTeachersComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [AllTeachersComponent],
-      providers: [{ provide: RepoService, useValue: repoSpy }],
+      providers: [
+        { provide: RepoService, useValue: repoSpy },
+        // Force SSR mode in this spec so the component uses backend-only paging
+        // (avoids browser-only availability computation and keeps this test focused).
+        { provide: PLATFORM_ID, useValue: 'server' },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AllTeachersComponent);
     component = fixture.componentInstance;
+
+    // ngOnInit triggers several unrelated calls that depend on other services.
+    // Stub them so this spec only tests pagination behavior.
+    spyOn<any>(component, 'loadSpecializations').and.callFake(() => undefined);
+    spyOn<any>(component, 'loadStudentExistingBookings').and.callFake(() => undefined);
+    spyOn<any>(component, 'loadWalletBalance').and.callFake(() => undefined);
+    spyOn<any>(component, 'refreshAvailableLessonsBalance').and.callFake(() => undefined);
   });
 
   it('should load first page on init', () => {
