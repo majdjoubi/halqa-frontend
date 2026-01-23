@@ -29,6 +29,8 @@
       "none": "Aucun billet de leçon dans votre portefeuille"
     },
     "modal": {
+        "guest_cta_text": "Créez un compte, choisissez un enseignant et un horaire, puis réservez votre cours d’essai dès maintenant !",
+        "guest_cta_button": "Réserver le cours d’essai",
       "title": "Aucun ticket de leçon dans votre portefeuille",
       "body": "Pour réserver, vous avez besoin d'au moins 1 billet de leçon dans votre portefeuille.",
       "cta_buy": "Acheter des billets de leçon",

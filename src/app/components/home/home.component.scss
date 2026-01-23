@@ -161,6 +161,50 @@
       margin-bottom: 32px;
       max-width: 500px;
     }
+
+    .guest-cta {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      align-items: flex-start;
+      max-width: 520px;
+    }
+
+    .guest-cta-text {
+      margin: 0;
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #111827;
+      font-weight: 600;
+    }
+
+    .guest-cta-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 22px;
+      background: linear-gradient(135deg, $primary-color 0%, darken($primary-color, 10%) 100%);
+      color: #fff;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      box-shadow: 0 10px 22px rgba(1, 104, 54, 0.22);
+    }
+
+    .guest-cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 28px rgba(1, 104, 54, 0.28);
+      background: linear-gradient(135deg, darken($primary-color, 4%) 0%, darken($primary-color, 14%) 100%);
+    }
+
+    .guest-cta-btn:active {
+      transform: translateY(0px);
+    }
+
+    .guest-cta-btn:focus-visible {
+      outline: 3px solid rgba(1, 104, 54, 0.25);
+      outline-offset: 3px;
+    }
   }
 
   .hero-img {
@@ -331,6 +375,11 @@
         text-align: center;
       }
 
+      .guest-cta {
+        align-items: center;
+        margin: 0 auto;
+      }
+
       .hero-buttons {
         justify-content: center;
       }
@@ -339,6 +388,23 @@
     .hero-image {
       .hero-img {
         max-width: 400px;
+      }
+    }
+  }
+}
+
+// RTL alignment for guest CTA
+[dir="rtl"] {
+  .home {
+    .hero-content {
+      .guest-cta {
+        align-items: flex-end;
+      }
+
+      @media (max-width: 991.98px) {
+        .guest-cta {
+          align-items: center;
+        }
       }
     }
   }

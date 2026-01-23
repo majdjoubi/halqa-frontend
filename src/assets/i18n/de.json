@@ -29,6 +29,8 @@
       "none": "Keine Lektionstickets in deiner Wallet"
     },
     "modal": {
+        "guest_cta_text": "Erstelle ein Konto, wähle Lehrer und Zeit und buche jetzt deine Probestunde!",
+        "guest_cta_button": "Probestunde jetzt buchen",
       "title": "Keine Lektionstickets in deiner Wallet",
       "body": "Zum Buchen benötigst du mindestens 1 Lektionsticket in deiner Wallet.",
       "cta_buy": "Lektionstickets kaufen",

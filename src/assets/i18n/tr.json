@@ -29,6 +29,8 @@
       "none": "Cüzdanınızda ders bileti yok"
     },
     "modal": {
+        "guest_cta_text": "Hesap oluşturun, öğretmeni ve zamanı seçin, deneme dersinizi şimdi ayırtın!",
+        "guest_cta_button": "Deneme dersini şimdi ayırt",
       "title": "Cüzdanınızda ders bileti yok",
       "body": "Rezervasyon yapmak için cüzdanınızda en az 1 ders bileti olmalıdır.",
       "cta_buy": "Ders bileti satın al",

@@ -627,6 +627,8 @@
   },
 
   "home": {
+    "guest_cta_text": "Create an account, pick a teacher and time, and book your trial lesson now!",
+    "guest_cta_button": "Book your trial lesson now",
     "packages": {
       "badge": "Lesson Packages",
       "title": "Choose Your Learning Journey",

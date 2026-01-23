@@ -33,6 +33,22 @@ export class HomeComponent implements OnInit {
     this.loadPackages();
   }
 
+  isGuest(): boolean {
+    return !this.facadeAuthService.isAuthenticated();
+  }
+
+  goToGuestTrial(): void {
+    const returnUrl = '/all-teachers';
+
+    if (this.facadeAuthService.isAuthenticated()) {
+      this.goToAllTeachers();
+      return;
+    }
+
+    // Encourage new visitors to create a student account first
+    this.router.navigate(['/student-register'], { queryParams: { returnUrl } });
+  }
+
   private loadPackages(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 

@@ -35,6 +35,13 @@
           <p class="hero-description">
             {{ "hero_section.description" | translate }}
           </p>
+
+          <div class="guest-cta" *ngIf="isGuest()">
+            <p class="guest-cta-text">{{ 'home.guest_cta_text' | translate }}</p>
+            <button type="button" class="guest-cta-btn" (click)="goToGuestTrial()">
+              {{ 'home.guest_cta_button' | translate }}
+            </button>
+          </div>
         </div>
       </div>
 
