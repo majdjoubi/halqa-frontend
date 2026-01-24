@@ -19,6 +19,7 @@ import { SlotsService, EnrichedSlot } from '../../../services/scheduling/slots.s
 import { AvailableLessonsService, AvailableLessonsPackage } from '../../../services/v2/available-lessons.service';
 import { V2BookingService } from '../../../services/v2/v2-booking.service';
 import { TrialService, TrialEligibilityResponse } from '../../../services/v2/trial.service';
+import { GoogleAdsService } from '../../../services/analytics/google-ads.service';
 
 @Component({
   selector: 'app-all-teachers',
@@ -159,7 +160,8 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
     private slotsService: SlotsService,
     private availableLessonsService: AvailableLessonsService,
     private v2BookingService: V2BookingService,
-    private trialService: TrialService
+    private trialService: TrialService,
+    private googleAds: GoogleAdsService
   ) { }
 
   ngOnInit() {
@@ -452,11 +454,15 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
   buyAvailableLessonsWithWallet(packageId: string): void {
     if (!this.availableLessonsEnabled || !packageId || this.buyingPackageId) return;
 
+    const transactionId = this.createClientTransactionId();
     this.buyingPackageId = packageId;
     this.availableLessonsService.buyWithWallet(packageId).subscribe({
       next: () => {
         // Wallet may change due to purchase; refresh best-effort
         this.loadWalletBalance();
+
+        // Google Ads conversion event (SPA-friendly)
+        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
 
         this.availableLessonsService.getBalance().subscribe({
           next: (bal) => {
@@ -514,6 +520,19 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  private createClientTransactionId(): string {
+    try {
+      const cryptoAny = (globalThis as any)?.crypto;
+      if (cryptoAny && typeof cryptoAny.randomUUID === 'function') {
+        return cryptoAny.randomUUID();
+      }
+    } catch {
+      // ignore
+    }
+
+    return `tx_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   }
 
   /**

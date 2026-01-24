@@ -397,56 +397,6 @@
                 </small>
               </div>
             </div>
-
-            <!-- Phone Number -->
-            <div
-              class="form-group mb-4"
-              [class.field-valid]="
-                step1Form.get('phoneNumber')?.valid &&
-                step1Form.get('phoneNumber')?.touched
-              "
-            >
-              <label class="form-label">{{
-                "student_register.phone" | translate
-              }}</label>
-              <input
-                type="tel"
-                class="form-control"
-                formControlName="phoneNumber"
-                [placeholder]="'student_register.phone_placeholder' | translate"
-                [class.is-invalid]="
-                  step1Form.get('phoneNumber')?.invalid &&
-                  step1Form.get('phoneNumber')?.touched
-                "
-                [class.is-valid]="
-                  step1Form.get('phoneNumber')?.valid &&
-                  step1Form.get('phoneNumber')?.touched
-                "
-              />
-              <div
-                *ngIf="
-                  step1Form.get('phoneNumber')?.invalid &&
-                  step1Form.get('phoneNumber')?.touched
-                "
-                class="invalid-feedback"
-              >
-                <small
-                  *ngIf="step1Form.get('phoneNumber')?.errors?.['pattern']"
-                  >{{
-                    "student_register.phone_invalid_format" | translate
-                  }}</small
-                >
-              </div>
-              <div
-                *ngIf="
-                  step1Form.get('phoneNumber')?.valid &&
-                  step1Form.get('phoneNumber')?.touched
-                "
-                class="validation-feedback valid-feedback"
-              >
-                {{ "student_register.phone_valid" | translate }}
-              </div>
-            </div>
             <!-- Continue Button -->
             <button
               type="button"
