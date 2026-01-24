@@ -1,0 +1,46 @@
+<section class="legal">
+  <h1>Cookie-Einstellungen</h1>
+
+  <p>
+    Hier können Sie entscheiden, welche Cookies/Technologien wir verwenden dürfen. Notwendige Cookies sind
+    für den Betrieb der Website erforderlich und können nicht deaktiviert werden.
+  </p>
+
+  <div class="card" *ngIf="showSettings">
+    <h2>Ihre Auswahl</h2>
+
+    <div class="toggle">
+      <div class="toggle__text">
+        <strong>Notwendig</strong>
+        <div class="muted">Login/Sitzung, Sicherheit, grundlegende Funktionen</div>
+      </div>
+      <input type="checkbox" [checked]="true" disabled />
+    </div>
+
+    <div class="toggle">
+      <div class="toggle__text">
+        <strong>Marketing</strong>
+        <div class="muted">Google Ads Conversion-Tracking (zur Erfolgsmessung von Kampagnen)</div>
+      </div>
+      <input type="checkbox" [(ngModel)]="marketing" />
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="rejectNonEssential()">
+        Nur notwendige
+      </button>
+      <button class="btn btn-primary" type="button" (click)="acceptAll()">Alle akzeptieren</button>
+      <button class="btn btn-outline" type="button" (click)="save()">Speichern</button>
+    </div>
+
+    <p class="muted" *ngIf="hasDecision">
+      Gespeichert. Sie können diese Einstellung jederzeit wieder ändern.
+    </p>
+  </div>
+
+  <h2>Cookie-Hinweise</h2>
+  <ul>
+    <li><strong>Notwendige Cookies</strong>: erforderlich für Kernfunktionen.</li>
+    <li><strong>Marketing</strong>: wird nur nach Ihrer Einwilligung aktiviert.</li>
+  </ul>
+</section>

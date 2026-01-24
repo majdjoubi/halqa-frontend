@@ -1,0 +1,28 @@
+<div class="cookie-banner" *ngIf="isVisible">
+  <div class="cookie-banner__content">
+    <div class="cookie-banner__text">
+      <h4>Cookies</h4>
+      <p>
+        Wir verwenden notwendige Cookies, damit die Website funktioniert. Mit Ihrer Einwilligung verwenden wir
+        außerdem Marketing-Cookies (z. B. Google Ads), um Conversions zu messen.
+      </p>
+      <p class="cookie-banner__links">
+        <a routerLink="/datenschutz">Datenschutz</a>
+        <span class="sep">•</span>
+        <a routerLink="/cookies">Cookie-Einstellungen</a>
+      </p>
+    </div>
+
+    <div class="cookie-banner__actions">
+      <button class="btn btn-secondary" type="button" (click)="rejectNonEssential()">
+        Nur notwendige
+      </button>
+      <button class="btn btn-outline" type="button" (click)="openSettings()">
+        Einstellungen
+      </button>
+      <button class="btn btn-primary" type="button" (click)="acceptAll()">
+        Alle akzeptieren
+      </button>
+    </div>
+  </div>
+</div>

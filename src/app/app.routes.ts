@@ -212,6 +212,27 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'impressum',
+    loadComponent: () =>
+      import('./components/legal/impressum/impressum.component').then(
+        (m) => m.ImpressumComponent
+      ),
+  },
+  {
+    path: 'datenschutz',
+    loadComponent: () =>
+      import('./components/legal/datenschutz/datenschutz.component').then(
+        (m) => m.DatenschutzComponent
+      ),
+  },
+  {
+    path: 'cookies',
+    loadComponent: () =>
+      import('./components/legal/cookies/cookies.component').then(
+        (m) => m.CookiesComponent
+      ),
+  },
+  {
     path: 'not-found',
     loadComponent: () =>
       import('./components/not-fouend/not-fouend.component').then(

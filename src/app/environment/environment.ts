@@ -19,4 +19,9 @@ export const environment = {
     v2AvailableLessons: false,
     v2Trial: false,
   },
+
+  googleAds: {
+    adsId: 'AW-17893648867',
+    conversionSendTo: 'AW-17893648867/cHYpCMr2t-sbEOPTrdRC',
+  },
 };

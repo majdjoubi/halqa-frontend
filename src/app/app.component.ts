@@ -10,6 +10,9 @@ import { FooterComponent } from './components/footer/footer.component';
 import { StripeService } from './services/stripe.service';
 import { inject as injectAnalytics } from '@vercel/analytics';
 import { TimezoneService } from './services/scheduling/timezone.service';
+import { CookieConsentBannerComponent } from './components/cookie-consent-banner/cookie-consent-banner.component';
+import { CookieConsentService } from './services/consent/cookie-consent.service';
+import { GoogleAdsTagService } from './services/analytics/google-ads-tag.service';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -18,6 +21,7 @@ import { TimezoneService } from './services/scheduling/timezone.service';
     TranslateModule,
     CommonModule,
     NavbarComponent,
+    CookieConsentBannerComponent,
     FooterComponent,
   ],
   templateUrl: './app.component.html',
@@ -34,6 +38,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private stripeService: StripeService,
     private timezoneService: TimezoneService,
+    private cookieConsent: CookieConsentService,
+    private googleAdsTag: GoogleAdsTagService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.availableLanguages = this.languageService.languages;
@@ -55,6 +61,15 @@ export class AppComponent implements OnInit, OnDestroy {
       if (hasToken) {
         this.timezoneService.syncTimezoneToBackend().subscribe();
       }
+
+      // Load Google Ads tag only after explicit marketing consent.
+      this.cookieConsent.consent$
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((consent) => {
+          if (consent?.marketing) {
+            void this.googleAdsTag.ensureLoaded();
+          }
+        });
     }
   }
 
