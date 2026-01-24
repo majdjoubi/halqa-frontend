@@ -62,8 +62,18 @@ export class HomeComponent implements OnInit {
     this.packagesLoading = true;
     this.availableLessonsService.getPackages().subscribe({
       next: (pkgs) => {
+        const list = Array.isArray(pkgs) ? pkgs : [];
+
+        // If the v2 service is gated for guests (common to avoid 401 noise), it may
+        // intentionally return an empty array. In that case, keep showing fallback.
+        if (list.length === 0) {
+          this.packages = [...this.fallbackPackages];
+          this.packagesLoading = false;
+          return;
+        }
+
         // Sort by lessons count and pick: 3, 6, 10 lessons packages
-        const sorted = (Array.isArray(pkgs) ? pkgs : [])
+        const sorted = list
           .filter(p => p.active !== false)
           .sort((a, b) => a.lessons - b.lessons);
         
