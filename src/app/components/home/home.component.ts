@@ -50,10 +50,11 @@ export class HomeComponent implements OnInit {
   }
 
   private loadPackages(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Always show packages to visitors (fallback values), even if v2 is disabled
+    // Always show packages to visitors (fallback values), even during SSR
     this.packages = [...this.fallbackPackages];
+
+    // Only attempt API calls in the browser
+    if (!isPlatformBrowser(this.platformId)) return;
 
     // If v2 is enabled, attempt to replace fallback with API-provided packages
     if (!this.availableLessonsService.isEnabled()) return;
@@ -93,7 +94,8 @@ export class HomeComponent implements OnInit {
     const returnUrl = '/all-teachers?openAvailableLessons=1';
 
     if (!this.facadeAuthService.isAuthenticated()) {
-      this.router.navigate(['/login'], { queryParams: { returnUrl } });
+      // Visitors: guide them to create a student account first
+      this.router.navigate(['/student-register'], { queryParams: { returnUrl } });
       return;
     }
 

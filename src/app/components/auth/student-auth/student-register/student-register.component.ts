@@ -8,7 +8,7 @@ import {
   AbstractControl,
 } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { SideImageComponent } from '../../../../shared/shared-component/side-image/side-image.component';
 import { FormValidationComponent } from '../../../../shared/shared-component/form-validation/form-validation.component';
 import { FacadeAuthService } from '../../../../services/auth/facade-auth.service';
@@ -38,6 +38,8 @@ export class StudentRegisterComponent implements OnInit {
   errorMessage: string | null = null;
   isSubmitting: boolean = false;
 
+  private returnUrl?: string;
+
   showPassword: boolean = false;
   showConfirmPassword: boolean = false;
 
@@ -54,7 +56,8 @@ export class StudentRegisterComponent implements OnInit {
     private fb: FormBuilder,
     private _facadeAuth: FacadeAuthService,
     private _uploadService: UploadFilesService,
-    private translate: TranslateService
+    private translate: TranslateService,
+    private route: ActivatedRoute
   ) {
     this.generateAgeOptions();
     this.generateYearOptions();
@@ -70,6 +73,12 @@ export class StudentRegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForms();
+
+    const qpReturnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    // Keep this validation simple and strict: only allow app-internal absolute paths
+    if (qpReturnUrl && qpReturnUrl.trim().startsWith('/')) {
+      this.returnUrl = qpReturnUrl.trim();
+    }
   }
 
   initializeForms(): void {
@@ -211,7 +220,7 @@ export class StudentRegisterComponent implements OnInit {
           timeZoneOffsetMinutes: this.getTimeZoneOffsetMinutes(), // Auto-detect timezone
         };
 
-        this._facadeAuth.sendStudentRegisterRequest(payload).subscribe({
+        this._facadeAuth.sendStudentRegisterRequest(payload, this.returnUrl).subscribe({
           next: (response) => {
             this.isSubmitting = false;
             // Navigation is handled by facade service

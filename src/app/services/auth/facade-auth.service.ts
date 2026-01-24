@@ -109,12 +109,20 @@ export class FacadeAuthService {
   }
 
   // student registration
-  sendStudentRegisterRequest(data: any) {
+  sendStudentRegisterRequest(data: any, returnUrl?: string) {
     this._registerLoading.next(true);
     this._registerError.next(null); // Clear previous errors
 
     return this._authLogin.studentRegister(data).pipe(
       tap((res) => {
+        const safeReturnUrl = (returnUrl || '').trim();
+        const shouldUseReturnUrl =
+          !!safeReturnUrl &&
+          safeReturnUrl.startsWith('/') &&
+          // Only auto-redirect students to student-only routes like /all-teachers
+          (res?.user?.role ?? 1) === 1;
+
+        let hasToken = false;
         if (isPlatformBrowser(this.platformId)) {
           const userRole = 1;
           // Store access token when provided by the register response (mirrors login behavior)
@@ -124,6 +132,7 @@ export class FacadeAuthService {
             localStorage.setItem('access_token', token);
             this._token = token;
             this._isAuthenticated.next(true);
+            hasToken = true;
           } else {
             // preserve original behavior: mark authenticated true even if token not present
             this._isAuthenticated.next(true);
@@ -142,7 +151,22 @@ export class FacadeAuthService {
         // Use role from response if available, otherwise fallback to student role
         const userRole = res?.user?.role ?? 1;
         this._userRole.next(userRole);
-        this._router.navigate(['/login']);
+
+        // If backend returned a token, we can navigate directly.
+        // Otherwise, route to login and preserve returnUrl.
+        if (hasToken) {
+          if (shouldUseReturnUrl) {
+            this._router.navigateByUrl(safeReturnUrl);
+          } else {
+            this._router.navigate(['/home']);
+          }
+        } else {
+          if (shouldUseReturnUrl) {
+            this._router.navigate(['/login'], { queryParams: { returnUrl: safeReturnUrl } });
+          } else {
+            this._router.navigate(['/login']);
+          }
+        }
       }),
       this._errorHandler.createErrorHandler({
         customErrorMessages: {
