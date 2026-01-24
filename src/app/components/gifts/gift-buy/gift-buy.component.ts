@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { GiftService, GiftPackage, GiftPackageId } from '../../../services/gifting/gift.service';
 import { StripeService } from '../../../services/stripe.service';
 import { PaypalService } from '../../../services/paypal.service';
+import { GoogleAdsService } from '../../../services/analytics/google-ads.service';
 
 declare var paypal: any;
 
@@ -46,6 +47,7 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
     private giftService: GiftService,
     private stripeService: StripeService,
     private paypalService: PaypalService,
+    private googleAds: GoogleAdsService,
     private router: Router
   ) {}
 
@@ -173,6 +175,10 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
         throw new Error(result.error?.message || 'Payment failed');
       }
 
+      // Google Ads conversion (Purchase)
+      const transactionId = String(result?.paymentIntent?.id || code || '').trim() || undefined;
+      this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+
       await this.router.navigate(['/gift', code]);
     } catch (e: any) {
       console.error(e);
@@ -247,6 +253,11 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
           try {
             const capture = await this.giftService.capturePayPalOrder(data.orderID).toPromise();
             if (!capture?.success) throw new Error('PayPal capture failed');
+
+            // Google Ads conversion (Purchase)
+            const transactionId = String(data?.orderID || capture?.code || '').trim() || undefined;
+            this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+
             await this.router.navigate(['/gift', capture.code]);
           } catch (e: any) {
             console.error(e);

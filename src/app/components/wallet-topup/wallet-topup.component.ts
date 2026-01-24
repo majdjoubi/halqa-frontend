@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { StripeService } from '../../services/stripe.service';
 import { PaypalService } from '../../services/paypal.service';
+import { GoogleAdsService } from '../../services/analytics/google-ads.service';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -28,6 +29,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
   constructor(
     private stripeService: StripeService,
     private paypalService: PaypalService,
+    private googleAds: GoogleAdsService,
     private router: Router,
     private translate: TranslateService
   ) {}
@@ -94,6 +96,9 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
       this.amount,
       (details) => {
         // Success
+        const transactionId = String(details?.transactionId || details?.orderId || '').trim() || undefined;
+        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+
         this.successMessage = this.translate.instant('wallet_topup.success_paypal', {
           amount: this.amount
         });
@@ -164,6 +169,9 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
         confirmResult.paymentIntent.status === 'succeeded'
       ) {
         // Payment succeeded
+        const transactionId = String(confirmResult?.paymentIntent?.id || '').trim() || undefined;
+        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+
         this.successMessage = this.translate.instant('wallet_topup.success_message', {
           amount: this.amount,
           currency: this.currency.toUpperCase()
