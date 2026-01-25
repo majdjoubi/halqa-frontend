@@ -15,7 +15,7 @@ export interface Language {
 })
 export class LanguageService {
   private readonly STORAGE_KEY = 'selected-language';
-  private readonly DEFAULT_LANGUAGE = 'ar';
+  private readonly DEFAULT_LANGUAGE = 'en';
 
   // Available languages
   public readonly languages: Language[] = [
@@ -87,11 +87,11 @@ export class LanguageService {
     // Set default language
     this.translate.setDefaultLang(this.DEFAULT_LANGUAGE);
 
-    // Load saved language or detect browser language
+    // Load saved language or detect browser language.
+    // Precedence: saved -> supported browser -> default (English).
     const savedLanguage = this.getSavedLanguage();
     const browserLanguage = this.getBrowserLanguage();
-    const languageToUse =
-      savedLanguage || browserLanguage || this.DEFAULT_LANGUAGE;
+    const languageToUse = savedLanguage || browserLanguage || this.DEFAULT_LANGUAGE;
 
     this.setLanguage(languageToUse);
   }
@@ -199,7 +199,10 @@ export class LanguageService {
   private getSavedLanguage(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       try {
-        return localStorage.getItem(this.STORAGE_KEY);
+        const saved = localStorage.getItem(this.STORAGE_KEY);
+        if (!saved) return null;
+
+        return this.languages.some((l) => l.code === saved) ? saved : null;
       } catch (error) {
         console.warn('Could not access localStorage:', error);
         return null;
@@ -225,15 +228,19 @@ export class LanguageService {
    * Get browser language
    */
   private getBrowserLanguage(): string | null {
-    const browserLang = this.translate.getBrowserLang();
+    if (!isPlatformBrowser(this.platformId)) return null;
 
-    if (
-      browserLang &&
-      this.languages.some((lang) => lang.code === browserLang)
-    ) {
-      return browserLang;
-    }
+    // Examples:
+    // - translate.getBrowserCultureLang() -> "fr-FR"
+    // - translate.getBrowserLang() -> "fr"
+    const culture = (this.translate as any).getBrowserCultureLang?.() as string | undefined;
+    const baseFromCulture = culture ? culture.split(/[-_]/)[0] : null;
 
-    return null;
+    const browserBase = this.translate.getBrowserLang();
+
+    const candidate = baseFromCulture || browserBase;
+    if (!candidate) return null;
+
+    return this.languages.some((lang) => lang.code === candidate) ? candidate : null;
   }
 }

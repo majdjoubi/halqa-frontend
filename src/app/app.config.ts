@@ -35,7 +35,7 @@ export function appTranslateInitializerFactory(
   platformId: Object
 ) {
   return () => {
-    const DEFAULT = 'ar';
+    const DEFAULT = 'en';
     const supported = ['ar', 'en', 'de', 'tr', 'fr'];
 
     translate.addLangs(supported);
@@ -49,10 +49,17 @@ export function appTranslateInitializerFactory(
         if (saved && supported.includes(saved)) {
           lang = saved;
         } else {
-          const browserLang = translate.getBrowserLang();
-          if (browserLang && supported.includes(browserLang)) {
-            lang = browserLang;
-          }
+          // Prefer culture lang (e.g. fr-FR) then fall back to base lang.
+          const culture = translate.getBrowserCultureLang?.();
+          const baseFromCulture = culture ? culture.split(/[-_]/)[0] : null;
+          const browserBase = translate.getBrowserLang();
+
+          const candidate =
+            (baseFromCulture && supported.includes(baseFromCulture) && baseFromCulture) ||
+            (browserBase && supported.includes(browserBase) && browserBase) ||
+            null;
+
+          if (candidate) lang = candidate;
         }
       } catch (e) {}
     }
@@ -78,7 +85,7 @@ export const appConfig: ApplicationConfig = {
           useFactory: HttpLoaderFactory,
           deps: [HttpClient],
         },
-        defaultLanguage: 'ar',
+        defaultLanguage: 'en',
       })
     ),
     // Load translations before application bootstrap to prevent key flash
