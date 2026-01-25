@@ -10,4 +10,4 @@ export const environment = {
   googleAds: {
     adsId: 'AW-17893648867',
     conversionSendTo: 'AW-17893648867/cHYpCMr2t-sbEOPTrdRC',
-  },
+      purchaseEventName: 'ads_conversion_Purchase_1',

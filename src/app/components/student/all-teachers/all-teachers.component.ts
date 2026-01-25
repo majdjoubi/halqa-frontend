@@ -462,7 +462,7 @@ export class AllTeachersComponent implements OnInit, OnDestroy {
         this.loadWalletBalance();
 
         // Google Ads conversion event (SPA-friendly)
-        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+        this.googleAds.trackPurchase(transactionId);
 
         this.availableLessonsService.getBalance().subscribe({
           next: (bal) => {

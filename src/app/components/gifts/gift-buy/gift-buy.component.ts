@@ -177,7 +177,7 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
 
       // Google Ads conversion (Purchase)
       const transactionId = String(result?.paymentIntent?.id || code || '').trim() || undefined;
-      this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+      this.googleAds.trackPurchase(transactionId);
 
       await this.router.navigate(['/gift', code]);
     } catch (e: any) {
@@ -256,7 +256,7 @@ export class GiftBuyComponent implements OnInit, OnDestroy {
 
             // Google Ads conversion (Purchase)
             const transactionId = String(data?.orderID || capture?.code || '').trim() || undefined;
-            this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+            this.googleAds.trackPurchase(transactionId);
 
             await this.router.navigate(['/gift', capture.code]);
           } catch (e: any) {

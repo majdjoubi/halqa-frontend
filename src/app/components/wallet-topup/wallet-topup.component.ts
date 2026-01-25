@@ -97,7 +97,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
       (details) => {
         // Success
         const transactionId = String(details?.transactionId || details?.orderId || '').trim() || undefined;
-        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+        this.googleAds.trackPurchase(transactionId);
 
         this.successMessage = this.translate.instant('wallet_topup.success_paypal', {
           amount: this.amount
@@ -170,7 +170,7 @@ export class WalletTopupComponent implements OnInit, OnDestroy {
       ) {
         // Payment succeeded
         const transactionId = String(confirmResult?.paymentIntent?.id || '').trim() || undefined;
-        this.googleAds.trackConversion('AW-17893648867/cHYpCMr2t-sbEOPTrdRC', transactionId);
+        this.googleAds.trackPurchase(transactionId);
 
         this.successMessage = this.translate.instant('wallet_topup.success_message', {
           amount: this.amount,
