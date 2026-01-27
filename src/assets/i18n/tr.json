@@ -620,6 +620,10 @@
     "paragraph": "Misyonumuzun merkezinde Kur'an'ın herkes için erişilebilir olması inancı vardır. Öğrenmeyi hem kolay hem de manevi açıdan zenginleştiren modern araçlar, yapılandırılmış dersler ve uzman rehberlik sunuyoruz. İster yeni başlayın ister tilavetinizi mükemmelleştirin, her adımda yanınızdayız."
   },
   "home": {
+    "activity": {
+      "students_label": "Kayıtlı öğrenciler",
+      "lessons_now_label": "Şu anda devam eden dersler"
+    },
     "packages": {
       "badge": "Ders paketleri",
       "title": "Öğrenme yolculuğunuzu seçin",

@@ -1,9 +1,10 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnDestroy, OnInit, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AvailableLessonsService, AvailableLessonsPackage } from '../../services/v2/available-lessons.service';
 import { FacadeAuthService } from '../../services/auth/facade-auth.service';
+import { PublicStatisticsService } from '../../services/stats/public-statistics.service';
 
 @Component({
   selector: 'app-home',
@@ -12,9 +13,17 @@ import { FacadeAuthService } from '../../services/auth/facade-auth.service';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   packages: AvailableLessonsPackage[] = [];
   packagesLoading = false;
+
+  // Social proof stats
+  private readonly studentsMarketingOffset = 120;
+  private registeredStudents = 31; // fallback until API loads
+  totalStudentsDisplay = this.studentsMarketingOffset + this.registeredStudents;
+
+  lessonsLiveNow = 6; // SSR-safe default
+  private activityTimerId?: number;
 
   private readonly fallbackPackages: AvailableLessonsPackage[] = [
     { id: 'pkg-3', lessons: 3, priceUsd: 27, unitPriceUsd: 27 / 3, active: true },
@@ -26,11 +35,65 @@ export class HomeComponent implements OnInit {
     @Inject(PLATFORM_ID) private platformId: Object,
     private router: Router,
     private availableLessonsService: AvailableLessonsService,
-    private facadeAuthService: FacadeAuthService
+    private facadeAuthService: FacadeAuthService,
+    private publicStatisticsService: PublicStatisticsService
   ) {}
 
   ngOnInit(): void {
     this.loadPackages();
+    this.initActivityStats();
+  }
+
+  ngOnDestroy(): void {
+    if (isPlatformBrowser(this.platformId) && this.activityTimerId) {
+      window.clearInterval(this.activityTimerId);
+    }
+  }
+
+  private initActivityStats(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.refreshActivityStats();
+
+    // Refresh occasionally so the numbers feel alive without being noisy.
+    this.activityTimerId = window.setInterval(() => {
+      this.refreshActivityStats();
+    }, 10 * 60 * 1000);
+  }
+
+  private refreshActivityStats(): void {
+    this.lessonsLiveNow = this.computeLessonsLiveNow();
+    this.publicStatisticsService.getTotalStudentsCount().subscribe({
+      next: (count) => {
+        if (typeof count === 'number' && count >= 0) {
+          this.registeredStudents = count;
+          this.totalStudentsDisplay = this.studentsMarketingOffset + this.registeredStudents;
+        }
+      },
+      error: () => {
+        // Keep fallback values silently
+      },
+    });
+  }
+
+  private computeLessonsLiveNow(date: Date = new Date()): number {
+    // Deterministic time-of-day curve with a tiny day-based variation.
+    // Range is clamped to [3, 12].
+    const min = 3;
+    const max = 12;
+    const mid = (min + max) / 2; // 7.5
+    const amp = (max - min) / 2; // 4.5
+
+    const hour = date.getHours() + date.getMinutes() / 60;
+    const peakHour = 20; // evening peak
+    const angle = (2 * Math.PI * (hour - peakHour)) / 24;
+    const base = mid + amp * Math.cos(angle);
+
+    const day = date.getDay(); // 0..6
+    const noise = ((day * 13 + Math.floor(hour) * 7) % 3) - 1; // -1..1
+
+    const value = Math.round(base + noise * 0.6);
+    return Math.max(min, Math.min(max, value));
   }
 
   isGuest(): boolean {

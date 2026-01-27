@@ -205,6 +205,67 @@
       outline: 3px solid rgba(1, 104, 54, 0.25);
       outline-offset: 3px;
     }
+
+    .activity-stats {
+      margin-top: 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .stat-card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 4px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid rgba(17, 24, 39, 0.08);
+      box-shadow: 0 10px 22px rgba(0, 0, 0, 0.06);
+      min-width: 160px;
+      backdrop-filter: blur(8px);
+    }
+
+    .stat-value {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 900;
+      font-size: 1.25rem;
+      color: #0f172a;
+      line-height: 1.1;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: rgba(15, 23, 42, 0.72);
+      font-weight: 700;
+      letter-spacing: 0.1px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: $primary-color;
+      box-shadow: 0 0 0 0 rgba(1, 104, 54, 0.35);
+      animation: livePulse 1.8s infinite;
+      flex: 0 0 auto;
+    }
+
+    @keyframes livePulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(1, 104, 54, 0.35);
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(1, 104, 54, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(1, 104, 54, 0);
+      }
+    }
   }
 
   .hero-img {

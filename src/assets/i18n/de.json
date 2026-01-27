@@ -620,6 +620,10 @@
     "paragraph": "Im Kern unserer Mission steht der Glaube, dass der Quran für alle zugänglich sein sollte. Wir bieten moderne Werkzeuge, strukturierte Lektionen und fachkundige Anleitung, um das Lernen nicht nur einfach, sondern auch spirituell bereichernd zu machen. Egal, ob du deine Reise beginnst oder deine Rezitation perfektionieren möchtest — wir unterstützen dich bei jedem Schritt."
   },
   "home": {
+    "activity": {
+      "students_label": "Registrierte Schüler",
+      "lessons_now_label": "Lektionen laufen gerade"
+    },
     "packages": {
       "badge": "Lektionspakete",
       "title": "Wähle deinen Lernweg",

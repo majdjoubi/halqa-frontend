@@ -42,6 +42,21 @@
               {{ 'home.guest_cta_button' | translate }}
             </button>
           </div>
+
+          <div class="activity-stats">
+            <div class="stat-card">
+              <div class="stat-value">{{ totalStudentsDisplay }}</div>
+              <div class="stat-label">{{ 'home.activity.students_label' | translate }}</div>
+            </div>
+
+            <div class="stat-card live">
+              <div class="stat-value">
+                <span class="live-dot" aria-hidden="true"></span>
+                {{ lessonsLiveNow }}
+              </div>
+              <div class="stat-label">{{ 'home.activity.lessons_now_label' | translate }}</div>
+            </div>
+          </div>
         </div>
       </div>
 
