@@ -100,6 +100,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     return !this.facadeAuthService.isAuthenticated();
   }
 
+  isStudent(): boolean {
+    if (!this.facadeAuthService.isAuthenticated()) return false;
+    const role = this.getBrowserStoredRole();
+    return role === '1';
+  }
+
   goToGuestTrial(): void {
     const returnUrl = '/all-teachers';
 

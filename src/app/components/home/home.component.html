@@ -43,6 +43,13 @@
             </button>
           </div>
 
+          <div class="guest-cta student-cta" *ngIf="isStudent()">
+            <p class="guest-cta-text">{{ 'START_BOOKING' | translate }}</p>
+            <button type="button" class="guest-cta-btn" (click)="goToAllTeachers()">
+              {{ 'BOOK_NOW' | translate }}
+            </button>
+          </div>
+
           <div class="activity-stats">
             <div class="stat-card">
               <div class="stat-value">{{ totalStudentsDisplay }}</div>

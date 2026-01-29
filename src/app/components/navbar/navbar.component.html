@@ -111,6 +111,23 @@
             </a>
           </li>
 
+          <!-- Mobile-only Language Switcher (for authenticated users with hamburger) -->
+          <li class="nav-item mobile-only" *ngIf="isAuthenticated">
+            <div class="mobile-language-switcher">
+              <i class="fas fa-globe" aria-hidden="true"></i>
+              <select
+                class="language-select"
+                [value]="currentLanguage.code"
+                (change)="onLanguageChange($event)"
+                [attr.aria-label]="'CHANGE_LANGUAGE' | translate"
+              >
+                <option *ngFor="let lang of languages" [value]="lang.code">
+                  {{ lang.code | uppercase }} - {{ lang.nativeName }}
+                </option>
+              </select>
+            </div>
+          </li>
+
           <ng-container *ngIf="role === 1">
             <li class="nav-item">
               <a
@@ -243,7 +260,17 @@
       </div>
 
       <!-- Right Section -->
-      <div class="navbar-actions">
+      <div class="navbar-actions" [class.authenticated]="isAuthenticated">
+        <!-- Mobile: Student CTA (visible without opening hamburger) -->
+        <a
+          *ngIf="role === 1"
+          routerLink="/all-teachers"
+          class="topbar-book-now"
+          (click)="closeMobileMenu()"
+        >
+          {{ "BOOK_NOW" | translate }}
+        </a>
+
         <!-- Language Switcher -->
         <div class="language-switcher">
           <i class="fas fa-globe" aria-hidden="true"></i>
@@ -338,7 +365,7 @@
           </div>
         </div>
 
-        <!-- Mobile Menu Toggle - Only for authenticated users -->
+        <!-- Mobile Menu Toggle (authenticated users) -->
         <button
           *ngIf="isAuthenticated"
           class="mobile-toggle"

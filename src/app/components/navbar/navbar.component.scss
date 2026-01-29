@@ -329,6 +329,45 @@
           }
         }
       }
+
+      // Mobile-only items inside the slide-down menu
+      .nav-item.mobile-only {
+        display: none;
+
+        @media (max-width: 768px) {
+          display: block;
+        }
+      }
+
+      .mobile-language-switcher {
+        display: none;
+
+        @media (max-width: 768px) {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          color: #7f8c8d;
+          padding: 0.75rem 0.5rem;
+          border-top: 1px solid #ecf0f1;
+          margin-top: 0.5rem;
+        }
+
+        i {
+          font-size: 0.95rem;
+        }
+
+        .language-select {
+          background: none;
+          border: none;
+          color: inherit;
+          font-size: 1rem;
+          font-weight: 500;
+          padding: 0.25rem 0;
+          cursor: pointer;
+          outline: none;
+          flex: 1;
+        }
+      }
     }
   }
 
@@ -352,6 +391,26 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+
+    .topbar-book-now {
+      display: none;
+      text-decoration: none;
+      background: linear-gradient(135deg, $primary-color, #2ecc71);
+      color: white !important;
+      padding: 0.5rem 0.9rem;
+      border-radius: 999px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.25);
+
+      @media (max-width: 768px) {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
 
     // Search Button
     .search-btn {
@@ -754,6 +813,15 @@
               color: #e74c3c;
             }
           }
+        }
+      }
+    }
+
+    // On mobile (authenticated users), move language into hamburger menu
+    &.authenticated {
+      @media (max-width: 768px) {
+        .language-switcher {
+          display: none;
         }
       }
     }
