@@ -629,6 +629,7 @@
   "home": {
     "guest_cta_text": "أنشئ حسابًا، اختر المعلّم والوقت، واحجز درسك التجريبي الآن!",
     "guest_cta_button": "احجز درسك التجريبي الآن",
+    "student_cta_text": "اختر معلمك واحجز درسك الآن!",
     "activity": {
       "students_label": "طلاب مسجّلون",
       "lessons_now_label": "دروس قائمة الآن"

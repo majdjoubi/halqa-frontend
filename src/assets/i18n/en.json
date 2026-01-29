@@ -629,6 +629,7 @@
   "home": {
     "guest_cta_text": "Create an account, pick a teacher and time, and book your trial lesson now!",
     "guest_cta_button": "Book your trial lesson now",
+    "student_cta_text": "Choose your teacher and book your lesson now!",
     "activity": {
       "students_label": "Registered students",
       "lessons_now_label": "Lessons happening now"
